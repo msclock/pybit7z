@@ -1,0 +1,52 @@
+name: Renovate
+
+on:
+  schedule:
+    # Match renovate schedule:earlyMondays and schedule:automergeMonthly
+    - cron: '*/15 0-3 * * *'
+  workflow_dispatch:
+
+jobs:
+  renovate:
+    container:
+      env:
+        LOG_LEVEL: debug
+        RENOVATE_ALLOWED_POST_UPGRADE_COMMANDS: '["^git", "^find"]'
+        RENOVATE_BRANCH_PREFIX: renovate-github/
+        RENOVATE_ENABLED: ${{ vars.RENOVATE_ENABLED || true }}
+        RENOVATE_ENABLED_MANAGERS: '["pep621", "copier", "github-actions", "regex", "pre-commit"]'
+        RENOVATE_OPTIMIZE_FOR_DISABLED: 'true'
+        RENOVATE_PLATFORM: github
+        RENOVATE_REPOSITORIES: '["${{ github.repository }}"]'
+        RENOVATE_REPOSITORY_CACHE: enabled
+      image: ghcr.io/renovatebot/renovate:39.49.0@sha256:9f44b9392d1da54a8f59dfd73d424d7d151787cd18d6f14778bcb8451ee07543
+      options: --user root
+    runs-on: ubuntu-24.04
+    steps:
+      - run: env | sort
+
+      - name: Generate a token with GitHub App if App ID exists
+        id: generate-token
+        if: vars.BOT_APP_ID
+        uses: actions/create-github-app-token@5d869da34e18e7287c1daad50e0b8ea0f506ce69 # v1
+        with:
+          app-id: ${{ vars.BOT_APP_ID }}
+          private-key: ${{ secrets.BOT_PRIVATE_KEY }}
+
+      - name: Warn if RENOVATE_GIT_AUTHOR is set while using GitHub App token
+        if: steps.generate-token.outputs.token && vars.RENOVATE_GIT_AUTHOR
+        run: |
+          echo "# :warning: `RENOVATE_GIT_AUTHOR` is set explicitly while using GitHub App token" >> $GITHUB_STEP_SUMMARY
+          echo "Generally, Renovate automatically detects the git author and email using the token. However, explicitly setting the `RENOVATE_GIT_AUTHOR` will override this behavior." >> $GITHUB_STEP_SUMMARY
+
+      - name: Run Renovate
+        env:
+          RENOVATE_PLATFORM_COMMIT: ${{ steps.generate-token.outputs.token && true || false }}
+          RENOVATE_TOKEN: ${{ secrets.RENOVATE_TOKEN || steps.generate-token.outputs.token }}
+          RENOVATE_GIT_AUTHOR: ${{ vars.RENOVATE_GIT_AUTHOR }}
+        run: |
+          if [ -z "$RENOVATE_TOKEN" ]; then
+            echo "RENOVATE_TOKEN is not properly configured, skipping ..."
+          else
+            renovate $RENOVATE_EXTRA_FLAG
+          fi

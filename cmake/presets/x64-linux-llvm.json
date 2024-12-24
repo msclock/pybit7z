@@ -1,0 +1,34 @@
+{
+  "version": 6,
+  "include": [
+    "base.json",
+    "os/linux.json",
+    "compilers/llvm.json",
+    "triplets/x64-linux.json"
+  ],
+  "configurePresets": [
+    {
+      "name": "x64-linux-llvm",
+      "inherits": [
+        "base",
+        "linux",
+        "llvm",
+        "x64-linux"
+      ]
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "x64-linux-llvm",
+      "inherits": "base",
+      "configurePreset": "x64-linux-llvm"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "x64-linux-llvm",
+      "inherits": "base",
+      "configurePreset": "x64-linux-llvm"
+    }
+  ]
+}

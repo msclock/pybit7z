@@ -1,0 +1,54 @@
+{
+  "version": 6,
+  "include": [
+    "base.json"
+  ],
+  "configurePresets": [
+    {
+      "name": "default",
+      "inherits": [
+        "base"
+      ]
+    },
+    {
+      "name": "default-config",
+      "inherits": [
+        "base-config"
+      ]
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "default",
+      "inherits": "base",
+      "configurePreset": "default"
+    },
+    {
+      "name": "default-config-relwithdebinfo",
+      "inherits": "base-config-relwithdebinfo",
+      "configurePreset": "default-config"
+    },
+    {
+      "name": "default-config-debug",
+      "inherits": "base-config-debug",
+      "configurePreset": "default-config"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "default",
+      "inherits": "base",
+      "configurePreset": "default"
+    },
+    {
+      "name": "default-config-relwithdebinfo",
+      "inherits": "base-config-relwithdebinfo",
+      "configurePreset": "default-config"
+    },
+    {
+      "name": "default-config-debug",
+      "inherits": "base-config-debug",
+      "configurePreset": "default-config"
+    }
+  ]
+}

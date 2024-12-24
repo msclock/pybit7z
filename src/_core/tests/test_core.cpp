@@ -1,0 +1,60 @@
+#include "gtest/gtest.h"
+
+#include "_core.hpp"
+#include "utils.hpp"
+
+TEST(_core, version) {
+    auto version = _core::ProjectVersion();
+    EXPECT_TRUE(!version.empty());
+}
+
+using _core_pybit7z_test = test::utils::rc_dir_test;
+
+TEST_F(_core_pybit7z_test, compress) {
+    using namespace bit7z;
+
+    Bit7zLibrary lib{_core::default_lib7zip};
+    BitFileCompressor compressor{lib, BitFormat::Zip};
+
+    std::vector<std::string> files = {this->tests_dir.string() + "/test_core.cpp"};
+
+    // Creating a simple zip archive
+    compressor.compress(files, this->system_test_tmp_dir_.string() + "/output_archive.zip");
+
+    // Creating a zip archive with a custom directory structure
+    std::map<std::string, std::string> files_map = {
+        {this->tests_dir.string() + "/test_core.cpp", "alias/path/test_core.cpp"}};
+    compressor.compress(files_map, this->system_test_tmp_dir_.string() + "/custom_dir_archive.zip");
+
+    // Compressing a directory
+    compressor.compressDirectory(this->tests_dir.string() + "/.." + "/src",
+                                 this->system_test_tmp_dir_.string() + "/dir_archive.zip");
+
+    // Creating an encrypted zip archive of two files
+    compressor.setPassword("password");
+    compressor.compressFiles(files, this->system_test_tmp_dir_.string() + "/protected_archive.zip");
+
+    // Updating an existing zip archive
+    compressor.setUpdateMode(UpdateMode::Append);
+    compressor.compressFiles(files, this->system_test_tmp_dir_.string() + "/existing_archive.zip");
+
+    // Compressing a single file into a buffer
+    std::vector<bit7z::byte_t> buffer;
+    BitFileCompressor compressor2{lib, BitFormat::BZip2};
+    compressor2.compressFile(files[0], buffer);
+}
+
+TEST_F(_core_pybit7z_test, archive_writer) {
+    using namespace bit7z;
+
+    Bit7zLibrary lib{_core::default_lib7zip};
+    BitArchiveWriter archive{lib, BitFormat::SevenZip};
+
+    // Adding the items to be compressed (no compression is performed here)
+    archive.addFile(this->tests_dir.string() + "/test_core.cpp");
+    archive.addDirectory(this->tests_dir.string() + "/.." + "/include");
+    archive.addDirectory(this->tests_dir.string() + "/.." + "/src");
+
+    // Compressing the added items to the output archive
+    archive.compressTo(this->system_test_tmp_dir_.string() + "/output.7z");
+}

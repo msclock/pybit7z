@@ -1,0 +1,101 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "helpers:pinGitHubActionDigests",
+    ":enablePreCommit"
+  ],
+  "automergeType": "pr",
+  "automergeStrategy": "merge-commit",
+  "ignoreScripts": false,
+  "platformAutomerge": false,
+  "packageRules": [
+    {
+      "automerge": true,
+      "addLabels": [
+        "auto-approval"
+      ],
+      "extends": [
+        "schedule:earlyMondays",
+        "schedule:automergeMonthly"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "pin",
+        "digest"
+      ]
+    },
+    {
+      "description": "Group renovate docker tag and pre-commit-hooks tag",
+      "groupName": "renovate group",
+      "addLabels": [
+        "renovate"
+      ],
+      "matchDatasources": [
+        "docker",
+        "github-tags"
+      ],
+      "matchDepNames": [
+        "ghcr.io/renovatebot/renovate",
+        "renovatebot/pre-commit-hooks"
+      ]
+    }
+  ],
+  "customManagers": [
+    {
+      "description": "Update python packages installed with pip or pipx",
+      "customType": "regex",
+      "datasourceTemplate": "pypi",
+      "fileMatch": [
+        "^\\.github/workflows/.+\\.yml$",
+        "^\\.renovaterc\\.json$"
+      ],
+      "matchStrings": [
+        "pipx? install.* (?<depName>.*?)==(?<currentValue>.*?)[\\s\";]"
+      ]
+    },
+    {
+      "customType": "regex",
+      "datasourceTemplate": "github-runners",
+      "depTypeTemplate": "github-runner",
+      "description": "Match GitHub runner defined in GitHub Actions matrix strategy",
+      "fileMatch": [
+        "^\\.github/workflows/.+\\.yml$"
+      ],
+      "matchStringsStrategy": "recursive",
+      "matchStrings": [
+        "[-:] (.*) # renovate: github-runner",
+        "(?<depName>ubuntu|windows|macos)-(?<currentValue>[\\d\\.\\-\\w]+)"
+      ],
+      "versioningTemplate": "docker"
+    },
+    {
+      "description": "Update microsoft vcpkg baseline",
+      "customType": "regex",
+      "currentValueTemplate": "master",
+      "datasourceTemplate": "git-refs",
+      "depNameTemplate": "https://github.com/microsoft/vcpkg",
+      "depTypeTemplate": "vcpkg-baseline",
+      "fileMatch": [
+        "^vcpkg\\.json$"
+      ],
+      "matchStrings": [
+        "\"builtin-baseline\": \"(?<currentDigest>.*?)\""
+      ]
+    },
+    {
+      "description": "Update custom registry baseline",
+      "customType": "regex",
+      "currentValueTemplate": "master",
+      "datasourceTemplate": "git-refs",
+      "depTypeTemplate": "vcpkg-baseline",
+      "fileMatch": [
+        "^vcpkg\\.json$"
+      ],
+      "matchStrings": [
+        "\"baseline\": \"(?<currentDigest>.*?)\"[^}]+?\"repository\": \"(?<depName>.*?)\""
+      ]
+    }
+  ]
+}

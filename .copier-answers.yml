@@ -1,0 +1,27 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+_commit: v0.8.25
+_src_path: https://github.com/serious-scaffold/ss-pybind11
+author_email: msclock@126.com
+author_name: l.feng
+codecov_notify_builds: 1
+codecov_threshold: 5%
+compiled: true
+copyright_holder: l.feng
+copyright_license: Apache Software License
+copyright_year: '2024'
+create_devcontainer: true
+default_py: '3.10'
+docs_type: sphinx
+max_py: '3.13'
+min_py: '3.8'
+module_name: pybit7z
+organization_name: msclock
+project_description: A wrapper based on bit7z.
+project_name: pybit7z
+repo_name: pybit7z
+repo_namespace: msclock
+repo_platform: github
+use_codecov: true
+use_codeql: true
+use_conan: false
+use_cpm: false

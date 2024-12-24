@@ -1,0 +1,72 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "pybit7z",
+  "description": "A wrapper based on bit7z.",
+  "builtin-baseline": "20a72ce99b12dd0ebfea5d39f32681bd68b19d03",
+  "homepage": "https://github.com/msclock/pybit7z",
+  "dependencies": [
+    "pybind11",
+    {
+      "name": "bit7z",
+      "features": [
+        "regex-matching"
+      ]
+    },
+    "7zip",
+    "cmake-modules",
+    "robotology-cmake-ycm"
+  ],
+  "overrides": [
+    {
+      "name": "pybind11",
+      "version": "2.13.5"
+    },
+    {
+      "name": "bit7z",
+      "version": "4.0.8"
+    },
+    {
+      "name": "7zip",
+      "version-string": "24.09#1"
+    },
+    {
+      "name": "cmake-modules",
+      "version": "1.6.12"
+    },
+    {
+      "name": "robotology-cmake-ycm",
+      "version": "0.16.3"
+    }
+  ],
+  "features": {
+    "test": {
+      "description": "Dependencies for testing",
+      "dependencies": [
+        {
+          "name": "gtest",
+          "version>=": "1.14.0"
+        }
+      ]
+    }
+  },
+  "vcpkg-configuration": {
+    "registries": [
+      {
+        "kind": "git",
+        "baseline": "d97dd1ef7fecabcfd756dbf520dfd625bb562046",
+        "repository": "https://github.com/msclock/cmake-registry",
+        "packages": [
+          "cmake-modules",
+          "robotology-cmake-ycm",
+          "vcpkg-cmake-module"
+        ]
+      }
+    ],
+    "overlay-ports": [
+      "cmake/vcpkg/ports"
+    ],
+    "overlay-triplets": [
+      "cmake/vcpkg/triplets"
+    ]
+  }
+}

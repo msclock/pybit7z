@@ -1,0 +1,34 @@
+{
+  "version": 6,
+  "include": [
+    "base.json",
+    "os/windows.json",
+    "compilers/mingw.json",
+    "triplets/x64-mingw-static.json"
+  ],
+  "configurePresets": [
+    {
+      "name": "x64-mingw-static-windows-mingw",
+      "inherits": [
+        "base",
+        "windows",
+        "mingw",
+        "x64-mingw-static"
+      ]
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "x64-mingw-static-windows-mingw",
+      "inherits": "base",
+      "configurePreset": "x64-mingw-static-windows-mingw"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "x64-mingw-static-windows-mingw",
+      "inherits": "base",
+      "configurePreset": "x64-mingw-static-windows-mingw"
+    }
+  ]
+}
