@@ -39,8 +39,7 @@ target_link_libraries(${target_name_internal}
 # parts that need to be verified and tested in the target target_name_internal
 set(target_name _core)
 
-pybind11_add_module(${target_name} MODULE ${internal_srcs} ${internal_hdrs}
-                    src/pybind.cpp)
+pybind11_add_module(${target_name} MODULE src/pybind.cpp)
 warn_target(${target_name})
 harden_target(${target_name})
 sanitize_target(${target_name})
