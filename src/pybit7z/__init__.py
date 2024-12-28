@@ -6,14 +6,19 @@ pybit7z: A wrapper based on bit7z.
 
 from __future__ import annotations
 
-import os
+from pathlib import Path
 
 from importlib_metadata import distribution
+
+from pybit7z import _core
 
 from ._version import version as __version__
 
 __all__ = ["__version__"]
 
-os.environ["__PYBIT7Z_LIB7ZIP_PATH__"] = str(
-    distribution(__package__).locate_file(__package__)
-)
+if not Path(_core.set_lib7zip_path()).exists():
+    lib7zip_path = (
+        distribution(__package__).locate_file(__package__) / _core.set_lib7zip_path()
+    )
+    if lib7zip_path.exists():
+        _core.set_lib7zip_path(str(lib7zip_path))

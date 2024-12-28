@@ -23,8 +23,14 @@ PYBIND11_MODULE(_core, m) {
 
     m.def(
         "set_lib7zip_path",
-        [](const std::string &path) { _core::default_library_path() = path; },
-        py::arg("lib7zip_path"),
+        [](const std::string &path = std::string()) {
+            if (path.empty()) {
+                return _core::default_library_path();
+            }
+            _core::default_library_path() = path;
+            return _core::default_library_path();
+        },
+        py::arg("lib7zip_path") = std::string(),
         py::doc(R"pbdoc(Configure the path to the 7zip library.)pbdoc"));
 
     m.def(

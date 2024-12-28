@@ -1258,7 +1258,7 @@ def set_large_page_mode() -> None:
     Enable large page mode for 7zip library. This can improve performance on some systems.
     """
 
-def set_lib7zip_path(lib7zip_path: str) -> None:
+def set_lib7zip_path(lib7zip_path: str = "") -> str:
     """
     Configure the path to the 7zip library.
     """

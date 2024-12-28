@@ -1,7 +1,5 @@
 #include "pybit7z.hpp"
 
-#include <iostream>
-
 namespace _core {
 
 std::string& default_library_path() {
@@ -21,9 +19,7 @@ std::string& default_library_path() {
 }
 
 const bit7z::Bit7zLibrary& Bit7zipSingleton::getInstance() {
-    auto lib7zip_dir = std::getenv("__PYBIT7Z_LIB7ZIP_PATH__");
-    static const bit7z::Bit7zLibrary instance(
-        lib7zip_dir == nullptr ? default_library_path() : std::string(lib7zip_dir) + "/" + default_library_path());
+    static const bit7z::Bit7zLibrary instance(default_library_path());
     return instance;
 }
 

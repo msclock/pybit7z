@@ -14,8 +14,11 @@ from pybit7z import _core
 @pytest.fixture
 def temp_dir():
     """Fixture to provide temporary directory"""
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        yield Path(tmp_dir)
+    try:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            yield Path(tmp_dir)
+    except Exception:
+        ...  # Ignore errors from cleanup
 
 
 @pytest.fixture
@@ -82,14 +85,14 @@ def test_archive_extraction(temp_dir):
     compressor.compress([str(test_file)], str(archive_path))
 
     # Now extract it to a different directory
-    extract_dir = temp_dir / "extracted"
+    extract_dir: Path = temp_dir / "extracted"
     extract_dir.mkdir()
 
     extractor = _core.BitFileExtractor(_core.FormatSevenZip)
     extractor.extract(str(archive_path), str(extract_dir))
 
     # Verify extraction
-    extracted_file = extract_dir / "test.txt"
+    extracted_file: Path = extract_dir / "test.txt"
     assert extracted_file.exists(), "File was not extracted"
     assert (
         extracted_file.read_text() == "Hello from bit7z!"
@@ -108,20 +111,20 @@ def test_error_handling(temp_dir):
         compressor.compress([str(nonexistent_file)], str(archive_path))
 
     # Test invalid password extraction
-    test_file = temp_dir / "secret.txt"
+    test_file: Path = temp_dir / "secret.txt"
     test_file.write_text("Secret content")
 
     # Create password-protected archive
     compressor.set_password("correct_password")
     compressor.compress([str(test_file)], str(archive_path))
 
-    extract_dir = temp_dir / "extracted"
+    extract_dir: Path = temp_dir / "extracted"
     extract_dir.mkdir()
 
     extractor = _core.BitFileExtractor(_core.FormatSevenZip)
     extractor.set_password("wrong_password")
 
-    with pytest.raises(_core.BitException):
+    with pytest.raises(_core.BitException, match="wrong password"):
         extractor.extract(str(archive_path), str(extract_dir))
 
 
@@ -205,7 +208,7 @@ def test_compression_methods_comparison(temp_dir, large_file):
 
     results = {}
     for method in methods:
-        archive_path = temp_dir / f"test_{method}.7z"
+        archive_path: Path = temp_dir / f"test_{method}.7z"
         compressor = _core.BitFileCompressor(_core.FormatSevenZip)
         compressor.set_compression_method(method)
 
@@ -235,7 +238,7 @@ def test_archive_metadata(temp_dir):
     items = reader.items()
 
     assert len(items) == 1, "Expected exactly one item in archive"
-    item: _core.BitArchiveItemInfo = items[0]
+    item = items[0]
 
     # Check metadata
     assert item.name() == "test.txt"
@@ -246,6 +249,10 @@ def test_archive_metadata(temp_dir):
     # Time values should be reasonable
     assert isinstance(item.creation_time(), datetime.datetime)
     assert isinstance(item.last_write_time(), datetime.datetime)
+
+    # Extract and terminate holded resources
+    extracted_dir = temp_dir / "extracted"
+    reader.extract_to(str(extracted_dir))
 
 
 def test_mem_to_bytes():
