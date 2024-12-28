@@ -73,7 +73,7 @@ write_to = "src/pybit7z/_version.py"
 build-verbosity = 1
 test-command = "pytest {project}/tests"
 test-extras = ["test"]
-test-skip = ["*-win_arm64", "*-macosx_universal2:arm64"]
+test-skip = ["*-win_arm64", "*-macosx_arm64"]
 
 [tool.cibuildwheel.linux]
 before-build = [
