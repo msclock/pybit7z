@@ -1,6 +1,6 @@
 """
 
-Python bindings for bit7z library
+Pybind11 _core plugin
 -----------------------
 .. currentmodule:: _core
 
@@ -164,8 +164,8 @@ __all__ = [
     "Method",
     "Name",
     "NoProperty",
-    "None_",
     "Normal",
+    "Nothing",
     "NtReparse",
     "NtSecure",
     "NumAltStreams",
@@ -232,141 +232,566 @@ __all__ = [
 ]
 
 class BitAbstractArchiveCreator(BitAbstractArchiveHandler):
-    def compression_format(self) -> BitInOutFormat: ...
-    def compression_method(self) -> BitCompressionMethod: ...
-    def crypt_headers(self) -> bool: ...
-    def dictionary_size(self) -> int: ...
-    def set_compression_level(self, arg0: BitCompressionLevel) -> None: ...
-    def set_compression_method(self, arg0: BitCompressionMethod) -> None: ...
-    def set_dictionary_size(self, arg0: int) -> None: ...
+    """
+    Abstract class representing a generic archive creator.
+    """
+    def compression_format(self) -> BitInOutFormat:
+        """
+        the format used for creating/updating an archive.
+        """
+    def compression_method(self) -> BitCompressionMethod:
+        """
+        the compression method used for creating/updating an archive.
+        """
+    def crypt_headers(self) -> bool:
+        """
+        whether the creator crypts also the headers of archives or not.
+        """
+    def dictionary_size(self) -> int:
+        """
+        the dictionary size used for creating/updating an archive.
+        """
+    def set_compression_level(self, level: BitCompressionLevel) -> None:
+        """
+        Sets the compression level to be used when creating/updating an archive.
+
+        Args:
+            level: the compression level desired.
+        """
+    def set_compression_method(self, method: BitCompressionMethod) -> None:
+        """
+        Sets the compression method to be used when creating/updating an archive.
+
+        Args:
+            method: the compression method desired.
+        """
+    def set_dictionary_size(self, dictionary_size: int) -> None:
+        """
+        Sets the dictionary size to be used when creating/updating an archive.
+
+        Args:
+            dictionary_size: the dictionary size desired.
+        """
     @typing.overload
-    def set_password(self, password: str) -> None: ...
+    def set_password(self, password: str) -> None:
+        """
+        Sets up a password for the output archives.
+
+        When setting a password, the produced archives will be encrypted using the default cryptographic method of the output format. The option "crypt headers" remains unchanged, in contrast with what happens when calling the set_password(tstring, bool) method.
+
+        Args:
+            password: the password to be used when creating/updating archives.
+
+        Note:
+            Calling set_password when the output format doesn't support archive encryption (e.g., GZip, BZip2, etc...) does not have any effects (in other words, it doesn't throw exceptions, and it has no effects on compression operations).
+            After a password has been set, it will be used for every subsequent operation. To disable the use of the password, you need to call the clearPassword method (inherited from BitAbstractArchiveHandler), which is equivalent to set_password(L"").
+        """
     @typing.overload
-    def set_password(self, password: str, crypt_headers: bool) -> None: ...
-    def set_solid_mode(self, arg0: bool) -> None: ...
-    def set_store_symbolic_links(self, arg0: bool) -> None: ...
-    def set_threads_count(self, arg0: int) -> None: ...
-    def set_update_mode(self, arg0: UpdateMode) -> None: ...
-    def set_volume_size(self, arg0: int) -> None: ...
-    def set_word_size(self, arg0: int) -> None: ...
-    def solid_mode(self) -> bool: ...
-    def store_symbolic_links(self) -> bool: ...
-    def threads_count(self) -> int: ...
-    def update_mode(self) -> UpdateMode: ...
-    def volume_size(self) -> int: ...
-    def word_size(self) -> int: ...
+    def set_password(self, password: str, crypt_headers: bool) -> None:
+        """
+        Sets up a password for the output archive.
+
+        When setting a password, the produced archive will be encrypted using the default cryptographic method of the output format. If the format is 7z, and the option "cryptHeaders" is set to true, the headers of the archive will be encrypted, resulting in a password request every time the output file will be opened.
+
+        Args:
+            password: the password to be used when creating/updating archives.
+            crypt_headers: if true, the headers of the output archives will be encrypted (valid only when using the 7z format).
+
+        Note:
+            Calling set_password when the output format doesn't support archive encryption (e.g., GZip, BZip2, etc...) does not have any effects (in other words, it doesn't throw exceptions, and it has no effects on compression operations).
+            Calling set_password with "cryptHeaders" set to true does not have effects on formats different from 7z.
+            After a password has been set, it will be used for every subsequent operation. To disable the use of the password, you need to call the clearPassword method (inherited from BitAbstractArchiveHandler), which is equivalent to set_password(L"").
+        """
+    def set_solid_mode(self, solid_mode: bool) -> None:
+        """
+        Sets whether the archive creator uses solid compression or not.
+
+        Args:
+            solid_mode: the solid mode desired.
+        Note:
+            Setting the solid compression mode to true has effect only when using the 7z format with multiple input files.
+        """
+    def set_store_symbolic_links(self, store_symbolic_links: bool) -> None:
+        """
+        Sets whether the creator will store symbolic links as links in the output archive.
+
+        Args:
+            store_symbolic_links: if true, symbolic links will be stored as links.
+        """
+    def set_threads_count(self, threads_count: int) -> None:
+        """
+        Sets the number of threads to be used when creating/updating an archive.
+
+        Args:
+            threads_count: the number of threads desired.
+        """
+    def set_update_mode(self, mode: UpdateMode) -> None:
+        """
+        Sets whether and how the creator can update existing archives or not.
+
+        Args:
+            mode: the desired update mode.
+
+        Note:
+            If set to UpdateMode::None, a subsequent compression operation may throw an exception if it targets an existing archive.
+        """
+    def set_volume_size(self, volume_size: int) -> None:
+        """
+        Sets the volumeSize (in bytes) of the output archive volumes.
+
+        Args:
+            volume_size: The dimension of a volume.
+
+        Note:
+            This setting has effects only when the destination archive is on the filesystem.
+        """
+    def set_word_size(self, word_size: int) -> None:
+        """
+        Sets the word size to be used when creating/updating an archive.
+
+        Args:
+            word_size: the word size desired.
+        """
+    def solid_mode(self) -> bool:
+        """
+        whether the archive creator uses solid compression or not.
+        """
+    def store_symbolic_links(self) -> bool:
+        """
+        whether the archive creator stores symbolic links as links in the output archive.
+        """
+    def threads_count(self) -> int:
+        """
+        the number of threads used when creating/updating an archive (a 0 value means that it will use the 7-zip default value).
+        """
+    def update_mode(self) -> UpdateMode:
+        """
+        the update mode used when updating existing archives.
+        """
+    def volume_size(self) -> int:
+        """
+        the volume size (in bytes) used when creating multi-volume archives (a 0 value means that all files are going in a single archive).
+        """
+    def word_size(self) -> int:
+        """
+        the word size used for creating/updating an archive.
+        """
 
 class BitAbstractArchiveHandler:
-    def clear_password(self) -> None: ...
-    def file_callback(self) -> typing.Callable[[str], None]: ...
-    def format(self) -> BitInFormat: ...
-    def is_password_defined(self) -> bool: ...
-    def overwrite_mode(self) -> OverwriteMode: ...
-    def password(self) -> str: ...
-    def password_callback(self) -> typing.Callable[[], str]: ...
-    def progress_callback(self) -> typing.Callable[[int], bool]: ...
-    def ratio_callback(self) -> typing.Callable[[int, int], None]: ...
-    def retainDirectories(self) -> bool: ...
-    def set_file_callback(self, arg0: typing.Callable[[str], None]) -> None: ...
-    def set_overwrite_mode(self, mode: OverwriteMode) -> None: ...
-    def set_password(self, password: str) -> None: ...
-    def set_password_callback(self, callback: typing.Callable[[], str]) -> None: ...
-    def set_progress_callback(self, arg0: typing.Callable[[int], bool]) -> None: ...
-    def set_ratio_callback(self, arg0: typing.Callable[[int, int], None]) -> None: ...
-    def set_retain_directories(self, arg0: bool) -> None: ...
-    def set_total_callback(self, arg0: typing.Callable[[int], None]) -> None: ...
-    def total_callback(self) -> typing.Callable[[int], None]: ...
+    """
+    Abstract class representing a generic archive handler.
+    """
+    def clear_password(self) -> None:
+        """
+        Clear the current password used by the handler.
+
+        Calling clear_password() will disable the encryption/decryption of archives.
+
+        Note:
+            This is equivalent to calling set_password(L"").
+        """
+    def file_callback(self) -> typing.Callable[[str], None]:
+        """
+        the current file callback.
+        """
+    def format(self) -> BitInFormat:
+        """
+        the format used by the handler for extracting or compressing.
+        """
+    def is_password_defined(self) -> bool:
+        """
+        a boolean value indicating whether a password is defined or not.
+        """
+    def overwrite_mode(self) -> OverwriteMode:
+        """
+        the overwrite mode.
+        """
+    def password(self) -> str:
+        """
+        the password used to open, extract, or encrypt the archive.
+        """
+    def password_callback(self) -> typing.Callable[[], str]:
+        """
+        the current password callback.
+        """
+    def progress_callback(self) -> typing.Callable[[int], bool]:
+        """
+        the current progress callback.
+        """
+    def ratio_callback(self) -> typing.Callable[[int, int], None]:
+        """
+        the current ratio callback.
+        """
+    def retainDirectories(self) -> bool:
+        """
+        a boolean value indicating whether the directory structure must be preserved while extracting or compressing the archive.
+        """
+    def set_file_callback(self, callback: typing.Callable[[str], None]) -> None:
+        """
+        Sets the function to be called when the current file being processed changes.
+
+        Args:
+            callback: the file callback to be used.
+        """
+    def set_overwrite_mode(self, mode: OverwriteMode) -> None:
+        """
+        Sets how the handler should behave when it tries to output to an existing file or buffer.
+        Args:
+            mode: the OverwriteMode to be used by the handler.
+        """
+    def set_password(self, password: str) -> None:
+        """
+        Sets up a password to be used by the archive handler.
+
+        The password will be used to encrypt/decrypt archives by using the default cryptographic method of the archive format.
+
+        Args:
+            password: the password to be used.
+
+        Note:
+            Calling this method when the input archive is not encrypted does not have any effect on the extraction process.
+            Calling this method when the output format doesn't support archive encryption (e.g., GZip, BZip2, etc...) does not have any effects (in other words, it doesn't throw exceptions, and it has no effects on compression operations).
+            After a password has been set, it will be used for every subsequent operation. To disable the use of the password, you need to call the clear_password method, which is equivalent to calling set_password(L"").
+        """
+    def set_password_callback(self, callback: typing.Callable[[], str]) -> None:
+        """
+        Sets the function to be called when a password is needed to complete the ongoing operation.
+
+        Args:
+            callback: the password callback to be used.
+        """
+    def set_progress_callback(self, callback: typing.Callable[[int], bool]) -> None:
+        """
+        Sets the function to be called when the processed size of the ongoing operation is updated.
+
+        Args:
+            callback: the progress callback to be used.
+        Note:
+            The completion percentage of the current operation can be obtained by calculating int((100.0 * processed_size) / total_size).
+        """
+    def set_ratio_callback(self, callback: typing.Callable[[int, int], None]) -> None:
+        """
+        Sets the function to be called when the input processed size and current output size of the ongoing operation are known.
+
+        Args:
+            callback: the ratio callback to be used.
+        Note:
+            The ratio percentage of a compression operation can be obtained by calculating int((100.0 * output_size) / input_size).
+        """
+    def set_retain_directories(self, retain: bool) -> None:
+        """
+        Sets whether the operations' output will preserve the input's directory structure or not.
+
+        Args:
+            retain: the setting for preserving or not the input directory structure
+        """
+    def set_total_callback(self, callback: typing.Callable[[int], None]) -> None:
+        """
+        Sets the function to be called when the total size of an operation is available.
+
+        Args:
+            callback: the total callback to be used.
+        """
+    def total_callback(self) -> typing.Callable[[int], None]:
+        """
+        the current total callback.
+        """
 
 class BitAbstractArchiveOpener(BitAbstractArchiveHandler):
-    def extraction_format(self) -> BitInFormat: ...
+    def extraction_format(self) -> BitInFormat:
+        """
+        the archive format used by the archive opener.
+        """
 
 class BitArchiveEditor(BitArchiveWriter):
     def __init__(
         self, in_archive: str, format: BitInOutFormat, password: str = ""
-    ) -> None: ...
-    def apply_changes(self) -> None: ...
+    ) -> None:
+        """
+        Constructs a BitArchiveEditor object, reading the given archive file path.
+        """
+    def apply_changes(self) -> None:
+        """
+        Applies the requested changes (i.e., rename/update/delete operations) to the input archive.
+        """
     @typing.overload
-    def delete_item(self, index: int, policy: DeletePolicy) -> None: ...
+    def delete_item(self, index: int, policy: DeletePolicy) -> None:
+        """
+        Marks as deleted the item at the given index.
+
+        Args:
+            index: the index of the item to be deleted.
+            policy: the policy to be used when deleting items.
+
+        Exceptions:
+            BitException if the index is invalid.
+
+        Note:
+            By default, if the item is a folder, only its metadata is deleted, not the files within it. If instead the policy is set to DeletePolicy::RecurseDirs, then the items within the folder will also be deleted.
+        """
     @typing.overload
-    def delete_item(self, item_path: str, policy: DeletePolicy) -> None: ...
+    def delete_item(self, item_path: str, policy: DeletePolicy) -> None:
+        """
+        Marks as deleted the archive's item(s) with the specified path.
+
+        Args:
+            item_path: the path (in the archive) of the item to be deleted.
+            policy: the policy to be used when deleting items.
+
+        Exceptions:
+            BitException if the specified path is empty or invalid, or if no matching item could be found.
+
+        Note:
+            By default, if the marked item is a folder, only its metadata will be deleted, not the files within it. To delete the folder contents as well, set the policy to DeletePolicy::RecurseDirs.
+            The specified path must not begin with a path separator.
+            A path with a trailing separator will _only_ be considered if the policy is DeletePolicy::RecurseDirs, and will only match folders; with DeletePolicy::ItemOnly, no item will match a path with a trailing separator.
+            Generally, archives may contain multiple items with the same paths. If this is the case, all matching items will be marked as deleted according to the specified policy.
+        """
     @typing.overload
-    def rename_item(self, index: int, new_path: str) -> None: ...
+    def rename_item(self, index: int, new_path: str) -> None:
+        """
+        Requests to change the path of the item at the specified index with the given one.
+
+        Args:
+            index: the index of the item to be renamed.
+            new_path: the new path of the item.
+        """
     @typing.overload
-    def rename_item(self, old_path: str, new_path: str) -> None: ...
-    def set_update_mode(self, update_mode: UpdateMode) -> None: ...
+    def rename_item(self, old_path: str, new_path: str) -> None:
+        """
+        Requests to change the path of the item from oldPath to the newPath.
+
+        Args:
+            old_path: the current path of the item to be renamed.
+            new_path: the new path of the item.
+        """
+    def set_update_mode(self, update_mode: UpdateMode) -> None:
+        """
+        Sets how the editor performs the update of the items in the archive.
+
+        Args:
+            mode: the desired update mode (either UpdateMode::Append or UpdateMode::Overwrite).
+
+        Note:
+            BitArchiveEditor doesn't support UpdateMode::Nothing.
+        """
     @typing.overload
-    def update_item(self, index: int, in_file: str) -> None: ...
+    def update_item(self, index: int, in_file: str) -> None:
+        """
+        Requests to update the content of the item at the specified index with the data from the given file.
+
+        Args:
+            index: the index of the item to be updated.
+            in_file: the path of the file to be used for the update.
+        """
     @typing.overload
-    def update_item(self, index: int, in_buffer: bytes) -> None: ...
+    def update_item(self, index: int, in_buffer: bytes) -> None:
+        """
+        Requests to update the content of the item at the specified index with the data from the given buffer.
+
+        Args:
+            index: the index of the item to be updated.
+            in_buffer: the buffer containing the new data for the item.
+        """
     @typing.overload
-    def update_item(self, item_path: str, in_file: str) -> None: ...
+    def update_item(self, item_path: str, in_file: str) -> None:
+        """
+        Requests to update the content of the item at the specified path with the data from the given file.
+
+        Args:
+            item_path: the path of the item to be updated.
+            in_file: the path of the file to be used for the update.
+        """
     @typing.overload
-    def update_item(self, item_path: str, in_buffer: bytes) -> None: ...
+    def update_item(self, item_path: str, in_buffer: bytes) -> None:
+        """
+        Requests to update the content of the item at the specified path with the data from the given buffer.
+
+        Args:
+            item_path: the path of the item to be updated.
+            in_buffer: the buffer containing the new data for the item.
+        """
 
 class BitArchiveItem(BitGenericItem):
-    def attributes(self) -> int: ...
-    def crc(self) -> int: ...
+    """
+    The BitArchiveItem class represents a generic item inside an archive.
+    """
+    def attributes(self) -> int:
+        """
+        the item attributes.
+        """
+    def crc(self) -> int:
+        """
+        the CRC of the item.
+        """
     def creation_time(self) -> datetime.datetime: ...
-    def extension(self) -> str: ...
-    def index(self) -> int: ...
-    def is_encrypted(self) -> bool: ...
+    def extension(self) -> str:
+        """
+        the extension of the item, if available or if it can be inferred from the name; otherwise it returns an empty string (e.g., when the item is a folder).
+        """
+    def index(self) -> int:
+        """
+        the index of the item in the archive.
+        """
+    def is_encrypted(self) -> bool:
+        """
+        true if and only if the item is encrypted.
+        """
     def last_access_time(self) -> datetime.datetime: ...
     def last_write_time(self) -> datetime.datetime: ...
-    def native_path(self) -> str: ...
-    def pack_size(self) -> int: ...
+    def native_path(self) -> str:
+        """
+        the path of the item in the archive, if available or inferable from the name, or an empty string otherwise.
+        """
+    def pack_size(self) -> int:
+        """
+        the compressed size of the item.
+        """
 
 class BitArchiveItemInfo(BitArchiveItem):
-    def item_properties(self) -> dict[BitProperty, BitPropVariant]: ...
-    def item_property(self, arg0: BitProperty) -> BitPropVariant: ...
+    """
+    The BitArchiveItemInfo class represents an archived item and that stores all its properties for later use.
+    """
+    def item_properties(self) -> dict[BitProperty, BitPropVariant]:
+        """
+        a map of all the available (i.e., non-empty) item properties and their respective values.
+        """
+    def item_property(self, arg0: BitProperty) -> BitPropVariant:
+        """
+        Gets the specified item property.
+        Args:
+            property_id (bit7z::BitProperty): The ID of the property to get.
+        Returns:
+            BitPropVariant: the value of the item property, if available, or an empty BitPropVariant.
+        """
 
 class BitArchiveItemOffset(BitArchiveItem):
+    """
+    The BitArchiveItemOffset class represents an archived item but doesn't store its properties.
+    """
+
     def __iadd__(self, arg0: int) -> BitArchiveItemOffset: ...
-    def item_property(self, arg0: BitProperty) -> BitPropVariant: ...
+    def item_property(self, arg0: BitProperty) -> BitPropVariant:
+        """
+        Gets the specified item property.
+
+        Args:
+            property_id (bit7z::BitProperty): The ID of the property to get.
+
+        Returns:
+            BitPropVariant: the value of the item property, if available, or an empty BitPropVariant.
+        """
 
 class BitArchiveReader(BitAbstractArchiveOpener, BitInputArchive):
     @staticmethod
     @typing.overload
-    def is_header_encrypted(in_archive: str, format: BitInFormat) -> bool: ...
+    def is_header_encrypted(in_archive: str, format: BitInFormat) -> bool:
+        """
+        Checks if the given archive is header-encrypted or not.
+        """
     @staticmethod
     @typing.overload
-    def is_header_encrypted(in_archive: bytes, format: BitInFormat) -> bool: ...
+    def is_header_encrypted(in_archive: bytes, format: BitInFormat) -> bool:
+        """
+        Checks if the given memory buffer archive is header-encrypted or not.
+        """
     @typing.overload
     def __init__(
         self, in_archive: str, format: BitInFormat, password: str = ""
-    ) -> None: ...
+    ) -> None:
+        """
+        Constructs a BitArchiveReader object, opening the input file archive.
+
+        Args:
+            in_archive: the path to the archive to be read.
+            format: the format of the input archive.
+            password: the password needed for opening the input archive.
+        """
     @typing.overload
     def __init__(
         self, in_archive: bytes, format: BitInFormat, password: str = ""
-    ) -> None: ...
-    def archive_properties(self) -> dict[BitProperty, BitPropVariant]: ...
-    def files_count(self) -> int: ...
-    def folders_count(self) -> int: ...
-    def has_encrypted_items(self) -> bool: ...
-    def is_encrypted(self) -> bool: ...
-    def is_multi_volume(self) -> bool: ...
-    def is_solid(self) -> bool: ...
-    def items(self) -> list[BitArchiveItemInfo]: ...
-    def pack_size(self) -> int: ...
-    def size(self) -> int: ...
-    def volumes_count(self) -> int: ...
+    ) -> None:
+        """
+        Constructs a BitArchiveReader object, opening the input memory buffer archive.
+
+        Args:
+            in_archive: the input buffer containing the archive to be read.
+            format: the format of the input archive.
+            password: the password needed for opening the input archive.
+        """
+    def archive_properties(self) -> dict[BitProperty, BitPropVariant]:
+        """
+        a map of all the available (i.e., non-empty) archive properties and their respective values.
+        """
+    def files_count(self) -> int:
+        """
+        the number of files in the archive.
+        """
+    def folders_count(self) -> int:
+        """
+        the number of folders in the archive.
+        """
+    def has_encrypted_items(self) -> bool:
+        """
+        true if and only if the archive has at least one encrypted item.
+        """
+    def is_encrypted(self) -> bool:
+        """
+        true if and only if the archive has only encrypted items.
+        """
+    def is_multi_volume(self) -> bool:
+        """
+        true if and only if the archive is composed by multiple volumes.
+        """
+    def is_solid(self) -> bool:
+        """
+        true if and only if the archive was created using solid compression.
+        """
+    def items(self) -> list[BitArchiveItemInfo]:
+        """
+        the list of all the archive items as BitArchiveItem objects.
+        """
+    def pack_size(self) -> int:
+        """
+        the total compressed size of the archive content.
+        """
+    def size(self) -> int:
+        """
+        the total uncompressed size of the archive content.
+        """
+    def volumes_count(self) -> int:
+        """
+        the number of volumes in the archive.
+        """
 
 class BitArchiveWriter(BitAbstractArchiveCreator, BitOutputArchive):
     @typing.overload
-    def __init__(self, format: BitInOutFormat) -> None: ...
+    def __init__(self, format: BitInOutFormat) -> None:
+        """
+        Constructs an empty BitArchiveWriter object that can write archives of the specified format.
+        """
     @typing.overload
     def __init__(
         self, in_archive: str, format: BitInOutFormat, password: str = ""
-    ) -> None: ...
+    ) -> None:
+        """
+        Constructs a BitArchiveWriter object, reading the given archive file path.
+        """
     @typing.overload
     def __init__(
         self, in_archive: bytes, format: BitInOutFormat, password: str = ""
-    ) -> None: ...
+    ) -> None:
+        """
+        Constructs a BitArchiveWriter object, reading the given memory buffer archive.
+        """
 
 class BitCompressionLevel:
     """
+    Compression level for 7zip library
+
     Members:
 
-      None_
+      Nothing
 
       Fastest
 
@@ -384,18 +809,18 @@ class BitCompressionLevel:
         BitCompressionLevel
     ]  # value = <BitCompressionLevel.Fastest: 1>
     Max: typing.ClassVar[BitCompressionLevel]  # value = <BitCompressionLevel.Max: 7>
-    None_: typing.ClassVar[
-        BitCompressionLevel
-    ]  # value = <BitCompressionLevel.None_: 0>
     Normal: typing.ClassVar[
         BitCompressionLevel
     ]  # value = <BitCompressionLevel.Normal: 5>
+    Nothing: typing.ClassVar[
+        BitCompressionLevel
+    ]  # value = <BitCompressionLevel.Nothing: 0>
     Ultra: typing.ClassVar[
         BitCompressionLevel
     ]  # value = <BitCompressionLevel.Ultra: 9>
     __members__: typing.ClassVar[
         dict[str, BitCompressionLevel]
-    ]  # value = {'None_': <BitCompressionLevel.None_: 0>, 'Fastest': <BitCompressionLevel.Fastest: 1>, 'Fast': <BitCompressionLevel.Fast: 3>, 'Normal': <BitCompressionLevel.Normal: 5>, 'Max': <BitCompressionLevel.Max: 7>, 'Ultra': <BitCompressionLevel.Ultra: 9>}
+    ]  # value = {'Nothing': <BitCompressionLevel.Nothing: 0>, 'Fastest': <BitCompressionLevel.Fastest: 1>, 'Fast': <BitCompressionLevel.Fast: 3>, 'Normal': <BitCompressionLevel.Normal: 5>, 'Max': <BitCompressionLevel.Max: 7>, 'Ultra': <BitCompressionLevel.Ultra: 9>}
     def __eq__(self, other: typing.Any) -> bool: ...
     def __getstate__(self) -> int: ...
     def __hash__(self) -> int: ...
@@ -413,6 +838,8 @@ class BitCompressionLevel:
 
 class BitCompressionMethod:
     """
+    Compression method by bit7z when creating archives.
+
     Members:
 
       Copy
@@ -473,21 +900,72 @@ class BitException(Exception):
     pass
 
 class BitFileCompressor(BitStringCompressor):
-    def __init__(self, format: BitInOutFormat) -> None: ...
+    def __init__(self, format: BitInOutFormat) -> None:
+        """
+        Constructs a BitFileCompressor object, creating a new archive.
+        """
     @typing.overload
-    def compress(self, in_files: list[str], out_archive: str) -> None: ...
+    def compress(self, in_files: list[str], out_archive: str) -> None:
+        """
+        Compresses the given files or directories.
+
+        The items in the first argument must be the relative or absolute paths to files or directories existing on the filesystem.
+
+        Args:
+            in_files: the input files to be compressed.
+            out_archive: the path (relative or absolute) to the output archive file.
+        """
     @typing.overload
-    def compress(self, in_files: dict[str, str], out_archive: str) -> None: ...
-    def compress_directory(self, in_dir: str, out_archive: str) -> None: ...
+    def compress(self, in_files: dict[str, str], out_archive: str) -> None:
+        """
+        Compresses the given files or directories using the specified aliases.
+
+        The items in the first argument must be the relative or absolute paths to files or directories existing on the filesystem. Each pair in the map must follow the following format: {"path to file in the filesystem", "alias path in the archive"}.
+
+
+        Args:
+            in_files: a map of paths and corresponding aliases.
+            out_archive: the path (relative or absolute) to the output archive file.
+        """
+    def compress_directory(self, in_dir: str, out_archive: str) -> None:
+        """
+        Compresses an entire directory.
+
+        Args:
+            in_dir: the path (relative or absolute) to the input directory.
+            out_archive: the path (relative or absolute) to the output archive file.
+        Note:
+            This method is equivalent to compress_files with filter set to "".
+        """
     def compress_directory_contents(
         self,
         in_dir: str,
         out_archive: str,
         recursive: bool = True,
         filter_pattern: str = "*",
-    ) -> None: ...
+    ) -> None:
+        """
+        Compresses the contents of a directory.
+
+        Args:
+            in_dir: the path (relative or absolute) to the input directory.
+            out_archive: the path (relative or absolute) to the output archive file.
+            recursive: (optional) if true, it searches files inside the sub-folders of in_dir.
+            filter_pattern: the wildcard pattern to filter the files to be compressed (optional).
+        Note:
+            Unlike compress_files, this method includes also the metadata of the sub-folders.
+        """
     @typing.overload
-    def compress_files(self, in_files: list[str], out_archive: str) -> None: ...
+    def compress_files(self, in_files: list[str], out_archive: str) -> None:
+        """
+        Compresses a group of files.
+
+        Args:
+            in_files: the input files to be compressed.
+            out_archive: the path (relative or absolute) to the output archive file.
+        Note:
+            Any path to a directory or to a not-existing file will be ignored!
+        """
     @typing.overload
     def compress_files(
         self,
@@ -495,74 +973,241 @@ class BitFileCompressor(BitStringCompressor):
         out_archive: str,
         recursive: bool = True,
         filter_pattern: str = "*",
-    ) -> None: ...
+    ) -> None:
+        """
+        Compresses all the files in the given directory.
+
+        Args:
+            in_dir: the path (relative or absolute) to the input directory.
+            out_archive: the path (relative or absolute) to the output archive file.
+            recursive: (optional) if true, it searches files inside the sub-folders of in_dir.
+            filter_pattern: the wildcard pattern to filter the files to be compressed (optional).
+        """
 
 class BitGenericItem:
-    def attributes(self) -> int: ...
+    """
+    The BitGenericItem interface class represents a generic item (either inside or outside an archive).
+    """
+    def attributes(self) -> int:
+        """
+        the item attributes.
+        """
     def is_dir(self) -> bool: ...
-    def name(self) -> str: ...
-    def path(self) -> str: ...
-    def size(self) -> int: ...
+    def name(self) -> str:
+        """
+        the name of the item, if available or inferable from the path, or an empty string otherwise.
+        """
+    def path(self) -> str:
+        """
+        the path of the item.
+        """
+    def size(self) -> int:
+        """
+        the uncompressed size of the item.
+        """
 
 class BitInFormat:
-    def value(self) -> int: ...
+    """
+    The BitInFormat class specifies an extractable archive format.
+    """
+
+    def value(self) -> int:
+        """
+        the value of the format in the 7z SDK.
+        """
 
 class BitInOutFormat(BitInFormat):
-    def default_method(self) -> BitCompressionMethod: ...
-    def extension(self) -> str: ...
-    def features(self) -> FormatFeatures: ...
-    def has_feature(self, arg0: FormatFeatures) -> bool: ...
+    """
+    The BitInOutFormat class specifies a format available for creating new archives and extract old ones.
+    """
+    def default_method(self) -> BitCompressionMethod:
+        """
+        the default method used for compressing the archive format.
+        """
+    def extension(self) -> str:
+        """
+        the default file extension of the archive format.
+        """
+    def features(self) -> FormatFeatures:
+        """
+        the bitset of the features supported by the format.
+        """
+    def has_feature(self, arg0: FormatFeatures) -> bool:
+        """
+        Checks if the format has a specific feature (see FormatFeatures enum)
+        Args:
+            feature (FormatFeatures): the feature to check
+        Returns:
+            bool: a boolean value indicating whether the format has the given feature.
+        """
 
 class BitInputArchive:
-    def archive_path(self) -> str: ...
-    def archive_property(self, arg0: BitProperty) -> BitPropVariant: ...
-    def contains(self, path: str) -> bool: ...
-    def detected_format(self) -> BitInFormat: ...
-    @typing.overload
-    def extract_to(self, arg0: str) -> None: ...
-    @typing.overload
-    def extract_to(self, path: str, indices: list[int]) -> None:
+    def archive_path(self) -> str:
         """
-        Extracts the items at the specified indices to the specified path
+        the path to the archive (the empty string for buffer/stream archives).
+        """
+    def archive_property(self, arg0: BitProperty) -> BitPropVariant:
+        """
+        Gets the specified archive property.
+
+        Args:
+            property: the property to be retrieved.
+
+        Returns:
+            the current value of the archive property or an empty BitPropVariant if no value is specified.
+        """
+    def contains(self, path: str) -> bool:
+        """
+        Find if there is an item in the archive that has the given path.
+
+        Args:
+            path: the path of the file or folder to be checked.
+
+        Returns:
+            true if and only if the archive contains the specified file or folder.
+        """
+    def detected_format(self) -> BitInFormat:
+        """
+        the detected format of the file.
+        """
+    @typing.overload
+    def extract_to(self, path: str) -> None:
+        """
+        Extracts the archive to the chosen directory.
+
+        Args:
+            outDir: the output directory where the extracted files will be put.
+        """
+    @typing.overload
+    def extract_to(self, out_dir: str, indices: list[int]) -> None:
+        """
+        Extracts the specified items to the chosen directory.
+
+        Args:
+            out_dir: the output directory where the extracted files will be put.
+            indices: the array of indices of the files in the archive that must be extracted.
         """
     @typing.overload
     def extract_to(self, index: int) -> bytes:
         """
-        Extracts the item at the specified index to a byte array
+        Extracts a file to the output buffer.
+
+        Args:
+            index: the index of the file to be extracted.
         """
     @typing.overload
     def extract_to(self) -> dict[str, bytes]:
         """
-        Extracts all items to a dictionary of byte arrays
+        Extracts the content of the archive to a map of memory buffers, where the keys are the paths of the files (inside the archive), and the values are their decompressed contents.
         """
-    def is_item_encrypted(self, arg0: int) -> bool: ...
-    def is_item_folder(self, arg0: int) -> bool: ...
-    def item_at(self, index: int) -> BitArchiveItemOffset: ...
-    def item_property(self, arg0: int, arg1: BitProperty) -> BitPropVariant: ...
-    def items_count(self) -> int: ...
-    def test(self) -> None: ...
-    def test_item(self, index: int) -> None: ...
+    def is_item_encrypted(self, index: int) -> bool:
+        """
+        Whether the item at the given index is encrypted.
+
+        Args:
+            index: the index of an item in the archive.
+
+        Returns:
+            true if and only if the item at the given index is encrypted.
+        """
+    def is_item_folder(self, index: int) -> bool:
+        """
+        Whether the item at the given index is a folder.
+        Args:
+            index: the index of an item in the archive.
+
+        Returns:
+            true if and only if the item at the given index is a folder.
+        """
+    def item_at(self, index: int) -> BitArchiveItemOffset:
+        """
+        Retrieve the item at the given index.
+
+        Args:
+            index: the index of the item to be retrieved.
+
+        Returns:
+            the item at the given index within the archive.
+        """
+    def item_property(self, index: int, property: BitProperty) -> BitPropVariant:
+        """
+        Gets the specified item property.
+
+        Args:
+            index: the index of the item to retrieve the property from.
+            property: the property to be retrieved.
+
+        Returns:
+            the current value of the item property or an empty BitPropVariant if no value is specified.
+        """
+    def items_count(self) -> int:
+        """
+        the number of items in the archive.
+        """
+    def test(self) -> None:
+        """
+        Tests the archive without extracting its content.
+
+        If the archive is not valid, a BitException is thrown!
+        """
+    def test_item(self, index: int) -> None:
+        """
+        Tests the item at the given index inside the archive without extracting it.
+
+        If the archive is not valid, or there's no item at the given index, a BitException is thrown!
+        """
 
 class BitMemCompressor(BitAbstractArchiveCreator):
-    def __init__(self, format: BitInOutFormat) -> None: ...
+    def __init__(self, format: BitInOutFormat) -> None:
+        """
+        Constructs a BitMemCompressor object, creating a new archive.
+        """
     @typing.overload
-    def compress_file(
-        self, input: bytes, out_file: str, input_name: str = ""
-    ) -> None: ...
+    def compress_file(self, input: bytes, out_file: str, input_name: str = "") -> None:
+        """
+        Compresses the given memory buffer to the chosen archive.
+
+        Args:
+            input: the input memory buffer to be compressed.
+            out_file: the path (relative or absolute) to the output archive file.
+            input_name: (optional) the name to give to the compressed file inside the output archive.
+        """
     @typing.overload
-    def compress_file(self, input: bytes, input_name: str = "") -> bytes: ...
+    def compress_file(self, input: bytes, input_name: str = "") -> bytes:
+        """
+        Compresses the given memory buffer to a memory buffer.
+
+        Args:
+            input: the input memory buffer to be compressed.
+            input_name: (optional) the name to give to the compressed file inside the output archive.
+        """
 
 class BitMemExtractor(BitAbstractArchiveOpener):
-    def __init__(self, format: BitInFormat) -> None: ...
+    def __init__(self, format: BitInFormat) -> None:
+        """
+        Constructs a BitMemExtractor object, opening the input archive.
+        """
     @typing.overload
-    def extract(self, in_archive: list[int], out_dir: str = "") -> None: ...
+    def extract(self, in_archive: list[int], out_dir: str = "") -> None:
+        """
+        Extracts the given archive to the chosen directory.
+        """
     @typing.overload
-    def extract(self, in_archive: bytes, index: int) -> bytes: ...
+    def extract(self, in_archive: bytes, index: int) -> bytes:
+        """
+        Extracts the specified item from the given archive to a memory buffer.
+        """
     @typing.overload
-    def extract(self, in_archive: bytes) -> dict[str, bytes]: ...
+    def extract(self, in_archive: bytes) -> dict[str, bytes]:
+        """
+        Extracts all the items from the given archive to a dictionary of memory buffers.
+        """
     def extract_items(
         self, in_archive: list[int], indices: list[int], out_dir: str = ""
-    ) -> None: ...
+    ) -> None:
+        """
+        Extracts the specified items from the given archive to the chosen directory.
+        """
     @typing.overload
     def extract_matching(
         self,
@@ -570,11 +1215,17 @@ class BitMemExtractor(BitAbstractArchiveOpener):
         pattern: str,
         out_dir: str,
         filter_policy: FilterPolicy,
-    ) -> None: ...
+    ) -> None:
+        """
+        Extracts the files in the archive that match the given wildcard pattern to the chosen directory.
+        """
     @typing.overload
     def extract_matching(
         self, in_archive: bytes, pattern: bytes, filter_policy: FilterPolicy
-    ) -> bytes: ...
+    ) -> bytes:
+        """
+        Extracts to the output buffer the first file in the archive matching the given wildcard pattern.
+        """
     @typing.overload
     def extract_matching_regex(
         self,
@@ -582,51 +1233,167 @@ class BitMemExtractor(BitAbstractArchiveOpener):
         regex: str,
         out_dir: str,
         filter_policy: FilterPolicy,
-    ) -> None: ...
+    ) -> None:
+        """
+        Extracts the files in the archive that match the given regex pattern to the chosen directory.
+        """
     @typing.overload
     def extract_matching_regex(
         self, in_archive: bytes, regex: bytes, filter_policy: FilterPolicy
-    ) -> bytes: ...
-    def test(self, arg0: list[int]) -> None: ...
+    ) -> bytes:
+        """
+        Extracts to the output buffer the first file in the archive matching the given regex pattern.
+        """
+    def test(self, in_archive: list[int]) -> None:
+        """
+        Tests the given archive without extracting its content.
+
+        If the archive is not valid, a BitException is thrown!
+
+        Args:
+            in_archive: the input archive to be tested.
+        """
 
 class BitOutputArchive:
-    def add_directory(self, arg0: str) -> None: ...
+    def add_directory(self, in_dir: str) -> None:
+        """
+        Adds the given directory path and all its content.
+        Args:
+            in_dir: the path of the directory to be added to the archive.
+        """
     @typing.overload
-    def add_directory_contents(self, arg0: str, arg1: str, arg2: bool) -> None: ...
+    def add_directory_contents(self, in_dir: str, filter: str, recursive: bool) -> None:
+        """
+        Adds the contents of the given directory path.
+
+        This function iterates through the specified directory and adds its contents based on the provided wildcard filter. Optionally, the operation can be recursive, meaning it will include subdirectories and their contents.
+
+        Args:
+            in_dir: the directory where to search for files to be added to the output archive.
+            filter: the wildcard filter to be used for searching the files.
+            recursive: recursively search the files in the given directory and all of its subdirectories.
+        """
     @typing.overload
     def add_directory_contents(
-        self, arg0: str, arg1: str, arg2: FilterPolicy, arg3: bool
-    ) -> None: ...
+        self, in_dir: str, filter: str, recursive: FilterPolicy, policy: bool
+    ) -> None:
+        """
+        Adds the contents of the given directory path.
+
+        This function iterates through the specified directory and adds its contents based on the provided wildcard filter and policy. Optionally, the operation can be recursive, meaning it will include subdirectories and their contents.
+
+        Args:
+            in_dir: the directory where to search for files to be added to the output archive.
+            filter: the wildcard filter to be used for searching the files.
+            recursive: recursively search the files in the given directory and all of its subdirectories.
+            policy: the filtering policy to be applied to the matched items.
+        """
     @typing.overload
-    def add_file(self, arg0: str, arg1: str) -> None: ...
+    def add_file(self, in_file: str, name: str) -> None:
+        """
+        Adds the given file path, with an optional user-defined path to be used in the output archive.
+
+        Args:
+            in_file:  the path to the filesystem file to be added to the output archive.
+            name: (optional) user-defined path to be used inside the output archive.
+        Note:
+            If a directory path is given, a BitException is thrown.
+        """
     @typing.overload
-    def add_file(self, arg0: bytes, arg1: str) -> None: ...
+    def add_file(self, input: bytes, name: str) -> None:
+        """
+        Adds the given memory buffer, with an optional user-defined path to be used in the output archive.
+
+        Args:
+            input: the memory buffer to be added to the output archive.
+            name: user-defined path to be used inside the output archive.
+        """
     @typing.overload
-    def add_files(self, arg0: list[str]) -> None: ...
+    def add_files(self, in_files: list[str]) -> None:
+        """
+        Adds all the files in the given vector of filesystem paths.
+
+        Args:
+            in_files: the paths to be added to the archive.
+        Note:
+            Paths to directories are ignored.
+        """
     @typing.overload
-    def add_files(self, arg0: str, arg1: str, arg2: bool) -> None: ...
+    def add_files(self, in_dir: str, filter: str, recursive: bool) -> None:
+        """
+        Adds all the files inside the given directory path that match the given wildcard filter.
+
+        Args:
+            in_dir: the directory where to search for files to be added to the output archive.
+            filter: (optional) the filter pattern to be used to select the files to be added.
+            recursive: (optional) if true, the directory will be searched recursively.
+        Note:
+            If a file path is given, a BitException is thrown.
+        """
     @typing.overload
     def add_files(
-        self, arg0: str, arg1: str, arg2: FilterPolicy, arg3: bool
-    ) -> None: ...
+        self, in_dir: str, filter: str, recursive: FilterPolicy, policy: bool
+    ) -> None:
+        """
+        Adds all the files inside the given directory path that match the given wildcard filter, with the specified filter policy.
+
+        Args:
+            in_dir: the directory where to search for files to be added to the output archive.
+            filter: (optional) the wildcard filter to be used for searching the files.
+            recursive: (optional) recursively search the files in the given directory and all of its subdirectories.
+            policy: (optional) the filtering policy to be applied to the matched items.
+        """
     @typing.overload
-    def add_items(self, arg0: list[str]) -> None: ...
+    def add_items(self, paths: list[str]) -> None:
+        """
+        Adds all the items that can be found by indexing the given vector of filesystem paths.
+
+        Args:
+            paths: the paths to be added to the archive.
+        """
     @typing.overload
-    def add_items(self, arg0: dict[str, str]) -> None: ...
+    def add_items(self, files: dict[str, str]) -> None:
+        """
+        Adds all the items that can be found by indexing the keys of the given map of filesystem paths; the corresponding mapped values are the user-defined paths wanted inside the output archive.
+
+        Args:
+            files: the map of file paths and their contents to be added to the archive.
+        """
     @typing.overload
-    def compress_to(self, arg0: str) -> None: ...
+    def compress_to(self, out_file: str) -> None:
+        """
+        Compresses all the items added to this object to the specified archive file path.
+
+        Args:
+            out_file: the output archive file path.
+
+        Note:
+            If this object was created by passing an input archive file path, and this latter is the same as the outFile path parameter, the file will be updated.
+        """
     @typing.overload
-    def compress_to(self) -> bytes: ...
-    def items_count(self) -> int: ...
+    def compress_to(self) -> bytes:
+        """
+        Compresses all the items added to this object to the specified buffer.
+        """
+    def items_count(self) -> int:
+        """
+        the number of items in the archive.
+        """
 
 class BitPropVariant:
+    """
+    The BitPropVariant struct is a light extension to the WinAPI PROPVARIANT struct providing useful getters.
+    """
     @typing.overload
     def __init__(self) -> None: ...
     @typing.overload
     def __init__(self, value: bool) -> None: ...
     @typing.overload
     def __init__(self, value: int) -> None: ...
-    def clear(self) -> None: ...
+    def clear(self) -> None:
+        """
+        Clears the variant.
+        """
     def get_bool(self) -> bool: ...
     def get_file_time(self) -> datetime.datetime: ...
     def get_int64(self) -> int: ...
@@ -644,10 +1411,15 @@ class BitPropVariant:
     def is_uint32(self) -> bool: ...
     def is_uint64(self) -> bool: ...
     def is_uint8(self) -> bool: ...
-    def type(self) -> BitPropVariantType: ...
+    def type(self) -> BitPropVariantType:
+        """
+        Returns the type of the variant.
+        """
 
 class BitPropVariantType:
     """
+    The BitPropVariantType enum represents the possible types that a BitPropVariant can store.
+
     Members:
 
       Empty
@@ -717,6 +1489,8 @@ class BitPropVariantType:
 
 class BitProperty:
     """
+    The BitProperty enum represents the archive/item properties that 7-zip can read or write.
+
     Members:
 
       NoProperty
@@ -1041,45 +1815,95 @@ class BitProperty:
     def value(self) -> int: ...
 
 class BitStringCompressor(BitAbstractArchiveCreator):
-    def __init__(self, format: BitInOutFormat) -> None: ...
+    def __init__(self, format: BitInOutFormat) -> None:
+        """
+        Constructs a BitStringCompressor object, creating a new archive.
+        """
     @typing.overload
-    def compress_file(
-        self, in_file: str, out_file: str, input_name: str = ""
-    ) -> None: ...
+    def compress_file(self, in_file: str, out_file: str, input_name: str = "") -> None:
+        """
+        Compresses the given file to the chosen archive.
+
+        Args:
+            in_file: the input file to be compressed.
+            out_file: the path (relative or absolute) to the output archive file.
+            input_name: the name of the input file in the archive (optional).
+        """
     @typing.overload
-    def compress_file(self, in_file: str, input_name: str = "") -> bytes: ...
+    def compress_file(self, in_file: str, input_name: str = "") -> bytes:
+        """
+        Compresses the given file to a memory buffer.
+
+        Args:
+            in_file: the input file to be compressed.
+            input_name: the name of the input file in the archive (optional).
+        """
 
 class BitStringExtractor(BitAbstractArchiveOpener):
-    def __init__(self, format: BitInFormat) -> None: ...
+    def __init__(self, format: BitInFormat) -> None:
+        """
+        Constructs a BitStringExtractor object, opening the input archive.
+        """
     @typing.overload
-    def extract(self, in_archive: str, out_dir: str) -> None: ...
+    def extract(self, in_archive: str, out_dir: str) -> None:
+        """
+        Extracts the given archive to the chosen directory.
+        """
     @typing.overload
-    def extract(self, in_archive: str, index: int) -> bytes: ...
+    def extract(self, in_archive: str, index: int) -> bytes:
+        """
+        Extracts the specified item from the given archive to a memory buffer.
+        """
     @typing.overload
-    def extract(self, in_archive: str) -> dict[str, bytes]: ...
+    def extract(self, in_archive: str) -> dict[str, bytes]:
+        """
+        Extracts all the items from the given archive to a dictionary of memory buffers.
+        """
     def extract_items(
         self, in_archive: str, indices: list[int], out_dir: str = ""
     ) -> None: ...
     @typing.overload
     def extract_matching(
         self, in_archive: str, pattern: str, out_dir: str, filter_policy: FilterPolicy
-    ) -> None: ...
+    ) -> None:
+        """
+        Extracts the files in the archive that match the given wildcard pattern to the chosen directory.
+        """
     @typing.overload
     def extract_matching(
         self, in_archive: str, pattern: str, filter_policy: FilterPolicy
-    ) -> bytes: ...
+    ) -> bytes:
+        """
+        Extracts to the output buffer the first file in the archive matching the given wildcard pattern.
+        """
     @typing.overload
     def extract_matching_regex(
         self, in_archive: str, regex: str, out_dir: str, filter_policy: FilterPolicy
-    ) -> None: ...
+    ) -> None:
+        """
+        Extracts the files in the archive that match the given regex pattern to the chosen directory.
+        """
     @typing.overload
     def extract_matching_regex(
         self, in_archive: str, regex: str, filter_policy: FilterPolicy
-    ) -> bytes: ...
-    def test(self, arg0: str) -> None: ...
+    ) -> bytes:
+        """
+        Extracts to the output buffer the first file in the archive matching the given regex pattern.
+        """
+    def test(self, in_archive: str) -> None:
+        """
+        Tests the given archive without extracting its content.
+
+        If the archive is not valid, a BitException is thrown!
+
+        Args:
+            in_archive: the input archive to be tested.
+        """
 
 class DeletePolicy:
     """
+    Delete policy for archive items.
+
     Members:
 
       ItemOnly
@@ -1111,9 +1935,9 @@ class FilterPolicy:
     """
     Members:
 
-      Include
+      Include : Extract/compress the items that match the pattern.
 
-      Exclude
+      Exclude : Do not extract/compress the items that match the pattern.
     """
 
     Exclude: typing.ClassVar[FilterPolicy]  # value = <FilterPolicy.Exclude: 1>
@@ -1138,19 +1962,21 @@ class FilterPolicy:
 
 class FormatFeatures:
     """
+    Features of a format supported by bit7z
+
     Members:
 
-      MultipleFiles
+      MultipleFiles : Archive supports multiple files.
 
-      SolidArchive
+      SolidArchive : Archive supports solid mode.
 
-      CompressionLevel
+      CompressionLevel : Archive supports compression level.
 
-      Encryption
+      Encryption : Archive supports encryption.
 
-      HeaderEncryption
+      HeaderEncryption : Archive supports encrypted headers.
 
-      MultipleMethods
+      MultipleMethods : Archive supports multiple compression methods.
     """
 
     CompressionLevel: typing.ClassVar[
@@ -1191,21 +2017,23 @@ class FormatFeatures:
 
 class OverwriteMode:
     """
+    Enumeration representing how a handler should deal when an output file already exists.
+
     Members:
 
-      None_
+      Nothing : The handler will throw an exception if the output file or buffer already exists.
 
-      Overwrite
+      Overwrite : The handler will overwrite the old file or buffer with the new one.
 
-      Skip
+      Skip : The handler will skip writing to the output file or buffer.
     """
 
-    None_: typing.ClassVar[OverwriteMode]  # value = <OverwriteMode.None_: 0>
+    Nothing: typing.ClassVar[OverwriteMode]  # value = <OverwriteMode.Nothing: 0>
     Overwrite: typing.ClassVar[OverwriteMode]  # value = <OverwriteMode.Overwrite: 1>
     Skip: typing.ClassVar[OverwriteMode]  # value = <OverwriteMode.Skip: 2>
     __members__: typing.ClassVar[
         dict[str, OverwriteMode]
-    ]  # value = {'None_': <OverwriteMode.None_: 0>, 'Overwrite': <OverwriteMode.Overwrite: 1>, 'Skip': <OverwriteMode.Skip: 2>}
+    ]  # value = {'Nothing': <OverwriteMode.Nothing: 0>, 'Overwrite': <OverwriteMode.Overwrite: 1>, 'Skip': <OverwriteMode.Skip: 2>}
     def __eq__(self, other: typing.Any) -> bool: ...
     def __getstate__(self) -> int: ...
     def __hash__(self) -> int: ...
@@ -1225,7 +2053,7 @@ class UpdateMode:
     """
     Members:
 
-      None_
+      Nothing
 
       Append
 
@@ -1233,11 +2061,11 @@ class UpdateMode:
     """
 
     Append: typing.ClassVar[UpdateMode]  # value = <UpdateMode.Append: 1>
-    None_: typing.ClassVar[UpdateMode]  # value = <UpdateMode.None_: 0>
+    Nothing: typing.ClassVar[UpdateMode]  # value = <UpdateMode.Nothing: 0>
     Update: typing.ClassVar[UpdateMode]  # value = <UpdateMode.Update: 2>
     __members__: typing.ClassVar[
         dict[str, UpdateMode]
-    ]  # value = {'None_': <UpdateMode.None_: 0>, 'Append': <UpdateMode.Append: 1>, 'Update': <UpdateMode.Update: 2>}
+    ]  # value = {'Nothing': <UpdateMode.Nothing: 0>, 'Append': <UpdateMode.Append: 1>, 'Update': <UpdateMode.Update: 2>}
     def __eq__(self, other: typing.Any) -> bool: ...
     def __getstate__(self) -> int: ...
     def __hash__(self) -> int: ...
@@ -1391,8 +2219,8 @@ Max: BitCompressionLevel  # value = <BitCompressionLevel.Max: 7>
 Method: BitProperty  # value = <BitProperty.Method: 22>
 Name: BitProperty  # value = <BitProperty.Name: 4>
 NoProperty: BitProperty  # value = <BitProperty.NoProperty: 0>
-None_: OverwriteMode  # value = <OverwriteMode.None_: 0>
 Normal: BitCompressionLevel  # value = <BitCompressionLevel.Normal: 5>
+Nothing: OverwriteMode  # value = <OverwriteMode.Nothing: 0>
 NtReparse: BitProperty  # value = <BitProperty.NtReparse: 89>
 NtSecure: BitProperty  # value = <BitProperty.NtSecure: 62>
 NumAltStreams: BitProperty  # value = <BitProperty.NumAltStreams: 75>

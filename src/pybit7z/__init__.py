@@ -22,3 +22,4 @@ if not Path(_core.set_lib7zip_path()).exists():
     )
     if lib7zip_path.exists():
         _core.set_lib7zip_path(str(lib7zip_path))
+        _core.set_large_page_mode()
