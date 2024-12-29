@@ -28,7 +28,7 @@ target_include_interface_directories(
   ${target_name_internal} ${CMAKE_CURRENT_SOURCE_DIR}/include
   ${CMAKE_CURRENT_BINARY_DIR}/git_version)
 
-if(VCPKG_TARGET_ARCHITECTURE MATCHES [[64]])
+if(NOT VCPKG_TARGET_ARCHITECTURE MATCHES [[86]])
   set(bit7z_suffix 64)
 endif()
 
