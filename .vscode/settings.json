@@ -103,6 +103,11 @@
     "numbers": "cpp",
     "semaphore": "cpp",
     "codecvt": "cpp",
-    "source_location": "cpp"
+    "source_location": "cpp",
+    "complex": "cpp",
+    "csignal": "cpp",
+    "regex": "cpp",
+    "typeindex": "cpp",
+    "valarray": "cpp"
   }
 }
