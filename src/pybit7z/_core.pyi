@@ -1163,6 +1163,14 @@ class BitInputArchive:
 
         If the archive is not valid, or there's no item at the given index, a BitException is thrown!
         """
+    def use_format_property(self, name: str, property: BitPropVariant) -> None:
+        """
+        Use the given format property to read the archive. See <https://github.com/rikyoz/bit7z/issues/248> for more information.
+
+        Args:
+            name: the name of the property.
+            property: the property value.
+        """
 
 class BitMemCompressor(BitAbstractArchiveCreator):
     def __init__(self, format: BitInOutFormat) -> None:
