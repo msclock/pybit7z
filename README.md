@@ -43,11 +43,11 @@ pip install pybit7z
 from pybit7z import core
 
 try:
-    extractor = core.Extractor(core.FormatSevenZip)
+    extractor = core.BitFileExtractor(core.FormatSevenZip)
     extractor.extract("path/to/archive.7z", "out/dir/")
 
     # Extracting a specific file inside an archive
-    extractor.extractMatching("path/to/archive.7z", "file.pdf", "out/dir/")
+    extractor.extract_matching("path/to/archive.7z", "file.pdf", "out/dir/")
 
     # Extracting the first file of an archive to a buffer
     buffer: bytes = extractor.extract("path/to/archive.7z")
@@ -66,7 +66,7 @@ from pybit7z import core
 
 try:
     # Opening the archive
-     archive = core.Bit7zArchiveReader("path/to/archive.gz", BitFormat::GZip)
+     archive = core.Bit7zArchiveReader("path/to/archive.gz", core.FormatGZip)
 
     # Testing the archive
     archive.test()
@@ -105,12 +105,12 @@ try:
     compressor.compress_files(files, "protected_archive.zip")
 
     # Updating an existing zip archive
-    compressor.set_update_mode(core.UpdateMode::Append)
+    compressor.set_update_mode(core.UpdateMode.Append)
     compressor.compress_files(files, "existing_archive.zip")
 
     # Compressing a single file into a buffer
-    compressor2 = core.BitFileCompressor(BitFormat::BZip2)
-    buffer: bytes = compressor2.compressFile(files[0])
+    compressor2 = core.BitFileCompressor(core.FormatBZip2)
+    buffer: bytes = compressor2.compress_file(files[0])
 except core.BitException as e:
     ... # handle the exception
 ```
@@ -139,7 +139,7 @@ except core.BitException as e:
 from pybit7z import core
 
 try:
-    arc = core.BitArchiveReader("archive.7z", core.BitFormat::SevenZip)
+    arc = core.BitArchiveReader("archive.7z", core.FormatSevenZip)
 
     # Printing archive metadata
     print("Archive properties:",
