@@ -798,6 +798,18 @@ Returns:
         .def("archive_path",
              &bit7z::BitInputArchive::archivePath,
              py::doc(R"pydoc(the path to the archive (the empty string for buffer/stream archives).)pydoc"))
+        .def(
+            "use_format_property",
+            static_cast<void (bit7z::BitInputArchive::*)(const wchar_t *, const bit7z::BitPropVariant &) const>(
+                &bit7z::BitInputArchive::useFormatProperty),
+            py::arg("name"),
+            py::arg("property"),
+            py::doc(
+                R"pydoc(Use the given format property to read the archive. See <https://github.com/rikyoz/bit7z/issues/248> for more information.
+
+Args:
+    name: the name of the property.
+    property: the property value.)pydoc"))
         .def("extract_to",
              static_cast<void (bit7z::BitInputArchive::*)(const std::string &) const>(
                  &bit7z::BitInputArchive::extractTo),
