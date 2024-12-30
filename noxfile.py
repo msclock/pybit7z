@@ -11,7 +11,7 @@ DIR = Path(__file__).parent.resolve()
 nox.options.sessions = ["lint", "pylint", "tests"]
 
 
-@nox.session
+@nox.session(reuse_venv=True)
 def lint(session: nox.Session) -> None:
     """
     Run the linter.
@@ -76,6 +76,16 @@ def docs(session: nox.Session) -> None:
         session.run("sphinx-build", "-b", "linkcheck", *shared_args)
     else:
         session.run("sphinx-build", "--keep-going", *shared_args)
+
+
+@nox.session(reuse_venv=True)
+def pyi(session: nox.Session) -> None:
+    """
+    Generate the Pyi type stubs.
+    """
+    session.install("pybind11-stubgen")
+    session.install(".[test]")
+    session.run("pybind11-stubgen", "pybit7z._core", "-o", "src")
 
 
 @nox.session
