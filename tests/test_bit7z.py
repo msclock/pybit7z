@@ -38,6 +38,18 @@ def large_file(temp_dir):
     return file_path
 
 
+def test_format():
+    """Test format from bit7z"""
+    assert core.FormatSevenZip.extension().endswith(".7z")
+    assert core.FormatSevenZip != core.FormatZip
+    assert core.FormatSevenZip == core.FormatSevenZip
+    assert core.FormatSevenZip.has_feature(core.FormatFeatures.CompressionLevel)
+    assert core.FormatSevenZip.has_feature(core.FormatFeatures.Encryption)
+    assert core.FormatSevenZip.has_feature(core.FormatFeatures.MultipleFiles)
+    assert core.FormatSevenZip.has_feature(core.FormatFeatures.HeaderEncryption)
+    assert core.FormatSevenZip.has_feature(core.FormatFeatures.SolidArchive)
+
+
 def test_format_features():
     """Test format features detection"""
     fmt_7z = core.FormatSevenZip

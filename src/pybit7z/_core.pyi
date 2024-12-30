@@ -669,8 +669,10 @@ class BitArchiveItemOffset(BitArchiveItem):
     """
     The BitArchiveItemOffset class represents an archived item but doesn't store its properties.
     """
-
+    def __eq__(self, other: typing.Any) -> bool: ...
+    def __hash__(self) -> int: ...
     def __iadd__(self, arg0: int) -> BitArchiveItemOffset: ...
+    def __ne__(self, other: typing.Any) -> bool: ...
     def item_property(self, arg0: BitProperty) -> BitPropVariant:
         """
         Gets the specified item property.
@@ -992,7 +994,10 @@ class BitGenericItem:
         """
         the item attributes.
         """
-    def is_dir(self) -> bool: ...
+    def is_dir(self) -> bool:
+        """
+        true if and only if the item is a directory (i.e., it has the property BitProperty::IsDir)
+        """
     def name(self) -> str:
         """
         the name of the item, if available or inferable from the path, or an empty string otherwise.
@@ -1010,7 +1015,9 @@ class BitInFormat:
     """
     The BitInFormat class specifies an extractable archive format.
     """
-
+    def __eq__(self, arg0: typing.Any) -> bool: ...
+    def __hash__(self) -> int: ...
+    def __ne__(self, arg0: typing.Any) -> bool: ...
     def value(self) -> int:
         """
         the value of the format in the 7z SDK.
