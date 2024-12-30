@@ -90,8 +90,23 @@ PYBIND11_MODULE(_core, m) {
                                    "BitInFormat",
                                    R"pbdoc(The BitInFormat class specifies an extractable archive format.)pbdoc")
         .def("value", &bit7z::BitInFormat::value, py::doc(R"pbdoc(the value of the format in the 7z SDK.)pbdoc"))
-        .def("__eq__", &bit7z::BitInFormat::operator==)
-        .def("__ne__", &bit7z::BitInFormat::operator!=);
+        .def("__hash__", [](const bit7z::BitInFormat &self) { return std::hash<int>()(self.value()); })
+        .def(
+            "__eq__",
+            [](const bit7z::BitInFormat &self, const py::object &other) {
+                if (py::isinstance<bit7z::BitInFormat>(other))
+                    return self == *py::cast<bit7z::BitInFormat *>(other);
+                return false;
+            },
+            py::is_operator())
+        .def(
+            "__ne__",
+            [](const bit7z::BitInFormat &self, const py::object &other) {
+                if (py::isinstance<bit7z::BitInFormat>(other))
+                    return self != *py::cast<bit7z::BitInFormat *>(other);
+                return false;
+            },
+            py::is_operator());
 
     // bit7z::BitInOutFormat class bindings
     py::class_<bit7z::BitInOutFormat, bit7z::BitInFormat>(
@@ -329,7 +344,11 @@ Returns:
         "BitGenericItem",
 
         R"pbdoc(The BitGenericItem interface class represents a generic item (either inside or outside an archive).)pbdoc")
-        .def("is_dir", &bit7z::BitGenericItem::isDir)
+        .def(
+            "is_dir",
+            &bit7z::BitGenericItem::isDir,
+            py::doc(
+                R"pbdoc(true if and only if the item is a directory (i.e., it has the property BitProperty::IsDir))pbdoc"))
         .def("size", &bit7z::BitGenericItem::size, py::doc(R"pbdoc(the uncompressed size of the item.)pbdoc"))
         .def(
             "name",
@@ -370,9 +389,41 @@ Returns:
         m,
         "BitArchiveItemOffset",
         R"pbdoc(The BitArchiveItemOffset class represents an archived item but doesn't store its properties.)pbdoc")
-        .def("__eq__", &bit7z::BitArchiveItemOffset::operator==)
-        .def("__ne__", &bit7z::BitArchiveItemOffset::operator!=)
-        .def("__iadd__", [](bit7z::BitArchiveItemOffset &self, int val) { return self.operator++(val); })
+        .def(
+            "__eq__",
+            [](const bit7z::BitArchiveItemOffset &self, py::object other) {
+                if (py::isinstance<bit7z::BitArchiveItemOffset>(other))
+                    return self == *py::cast<bit7z::BitArchiveItemOffset *>(other);
+                return false;
+            },
+            py::arg("other"),
+            py::is_operator())
+        .def("__hash__",
+             [](const bit7z::BitArchiveItemOffset &self) {
+                 return std::hash<uint32_t>()(self.index()) ^ (std::hash<bool>()(self.isDir()) << 1)
+                        ^ (std::hash<uint64_t>()(self.size()) << 2) ^ (std::hash<uint64_t>()(self.packSize()) << 3)
+                        ^ (std::hash<uint32_t>()(self.crc()) << 4)
+                        ^ (std::hash<int64_t>()(self.creationTime().time_since_epoch().count()) << 5)
+                        ^ (std::hash<int64_t>()(self.lastAccessTime().time_since_epoch().count()) << 6)
+                        ^ (std::hash<int64_t>()(self.lastWriteTime().time_since_epoch().count()) << 7)
+                        ^ (std::hash<uint32_t>()(self.attributes()) << 8) ^ (std::hash<std::string>()(self.path()) << 9)
+                        ^ (std::hash<std::string>()(self.name()) << 10)
+                        ^ (std::hash<std::string>()(self.extension()) << 11)
+                        ^ (std::hash<std::string>()(self.nativePath()) << 12);
+             })
+        .def(
+            "__ne__",
+            [](const bit7z::BitArchiveItemOffset &self, py::object other) {
+                if (py::isinstance<bit7z::BitArchiveItemOffset>(other))
+                    return self != *py::cast<bit7z::BitArchiveItemOffset *>(other);
+                return false;
+            },
+            py::arg("other"),
+            py::is_operator())
+        .def(
+            "__iadd__",
+            [](bit7z::BitArchiveItemOffset &self, int val) { return self.operator++(val); },
+            py::is_operator())
         .def("item_property",
              &bit7z::BitArchiveItemOffset::itemProperty,
              py::doc(R"pbdoc(Gets the specified item property.
