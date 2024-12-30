@@ -409,7 +409,7 @@ Returns:
                         ^ (std::hash<uint32_t>()(self.attributes()) << 8) ^ (std::hash<std::string>()(self.path()) << 9)
                         ^ (std::hash<std::string>()(self.name()) << 10)
                         ^ (std::hash<std::string>()(self.extension()) << 11)
-                        ^ (std::hash<std::string>()(self.nativePath()) << 12);
+                        ^ (std::hash<std::string>()(bit7z::to_tstring(self.nativePath())) << 12);
              })
         .def(
             "__ne__",
