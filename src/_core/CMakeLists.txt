@@ -28,12 +28,14 @@ target_include_interface_directories(
   ${target_name_internal} ${CMAKE_CURRENT_SOURCE_DIR}/include
   ${CMAKE_CURRENT_BINARY_DIR}/git_version)
 
-if(NOT VCPKG_TARGET_ARCHITECTURE MATCHES [[86]])
-  set(bit7z_suffix 64)
-endif()
+get_property(
+  imported_targets
+  DIRECTORY
+  PROPERTY IMPORTED_TARGETS)
+list(FILTER imported_targets INCLUDE REGEX [[bit7z::]])
 
-target_link_libraries(${target_name_internal}
-                      PUBLIC 7zip::7zip unofficial::bit7z::bit7z${bit7z_suffix})
+target_link_libraries(${target_name_internal} PUBLIC 7zip::7zip
+                                                     ${imported_targets})
 
 # The main target only contains main logits. Here it is recommended to put the
 # parts that need to be verified and tested in the target target_name_internal
