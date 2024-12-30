@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from pybit7z import _core
+from pybit7z import core
 
 
 @pytest.fixture
@@ -24,7 +24,7 @@ def temp_dir():
 @pytest.fixture
 def large_file(temp_dir):
     """Fixture to create a large test file (10MB)"""
-    file_path = temp_dir / "large_file.dat"
+    file_path: Path = temp_dir / "large_file.dat"
     size_mb = 10
     chunk_size = 1024 * 1024  # 1MB chunks
 
@@ -40,13 +40,13 @@ def large_file(temp_dir):
 
 def test_format_features():
     """Test format features detection"""
-    fmt_7z = _core.FormatSevenZip
-    assert isinstance(fmt_7z, _core.BitInOutFormat)
+    fmt_7z = core.FormatSevenZip
+    assert isinstance(fmt_7z, core.BitInOutFormat)
 
     # Test format properties
-    assert fmt_7z.has_feature(_core.FormatFeatures.CompressionLevel)
-    assert fmt_7z.has_feature(_core.FormatFeatures.Encryption)
-    assert fmt_7z.has_feature(_core.FormatFeatures.MultipleFiles)
+    assert fmt_7z.has_feature(core.FormatFeatures.CompressionLevel)
+    assert fmt_7z.has_feature(core.FormatFeatures.Encryption)
+    assert fmt_7z.has_feature(core.FormatFeatures.MultipleFiles)
 
     assert fmt_7z.extension() == ".7z"
 
@@ -61,11 +61,11 @@ def test_basic_compression(temp_dir):
     archive_path: Path = temp_dir / "test.7z"
 
     # Create a compressor for 7z format
-    compressor = _core.BitFileCompressor(_core.FormatSevenZip)
+    compressor = core.BitFileCompressor(core.FormatSevenZip)
 
     # Set compression options
-    compressor.set_compression_level(_core.BitCompressionLevel.Normal)
-    compressor.set_compression_method(_core.BitCompressionMethod.Lzma2)
+    compressor.set_compression_level(core.BitCompressionLevel.Normal)
+    compressor.set_compression_method(core.BitCompressionMethod.Lzma2)
 
     # Compress the file
     compressor.compress_files([str(test_file)], str(archive_path))
@@ -81,14 +81,14 @@ def test_archive_extraction(temp_dir):
     test_file.write_text("Hello from bit7z!")
 
     archive_path = temp_dir / "test.7z"
-    compressor = _core.BitFileCompressor(_core.FormatSevenZip)
+    compressor = core.BitFileCompressor(core.FormatSevenZip)
     compressor.compress([str(test_file)], str(archive_path))
 
     # Now extract it to a different directory
     extract_dir: Path = temp_dir / "extracted"
     extract_dir.mkdir()
 
-    extractor = _core.BitFileExtractor(_core.FormatSevenZip)
+    extractor = core.BitFileExtractor(core.FormatSevenZip)
     extractor.extract(str(archive_path), str(extract_dir))
 
     # Verify extraction
@@ -105,9 +105,9 @@ def test_error_handling(temp_dir):
     nonexistent_file = temp_dir / "nonexistent.txt"
     archive_path = temp_dir / "test.7z"
 
-    compressor = _core.BitFileCompressor(_core.FormatSevenZip)
+    compressor = core.BitFileCompressor(core.FormatSevenZip)
 
-    with pytest.raises(_core.BitException):
+    with pytest.raises(core.BitException):
         compressor.compress([str(nonexistent_file)], str(archive_path))
 
     # Test invalid password extraction
@@ -121,10 +121,10 @@ def test_error_handling(temp_dir):
     extract_dir: Path = temp_dir / "extracted"
     extract_dir.mkdir()
 
-    extractor = _core.BitFileExtractor(_core.FormatSevenZip)
+    extractor = core.BitFileExtractor(core.FormatSevenZip)
     extractor.set_password("wrong_password")
 
-    with pytest.raises(_core.BitException, match="wrong password"):
+    with pytest.raises(core.BitException, match="wrong password"):
         extractor.extract(str(archive_path), str(extract_dir))
 
 
@@ -133,12 +133,12 @@ def test_large_file_handling(temp_dir, large_file):
 
     # Test different compression levels with large file
     for level in [
-        _core.BitCompressionLevel.Fastest,
-        _core.BitCompressionLevel.Normal,
-        _core.BitCompressionLevel.Max,
+        core.BitCompressionLevel.Fastest,
+        core.BitCompressionLevel.Normal,
+        core.BitCompressionLevel.Max,
     ]:
         level_archive = temp_dir / f"large_{level}.7z"
-        compressor = _core.BitFileCompressor(_core.FormatSevenZip)
+        compressor = core.BitFileCompressor(core.FormatSevenZip)
         compressor.set_compression_level(level)
 
         compressor.compress([str(large_file)], str(level_archive))
@@ -148,14 +148,14 @@ def test_large_file_handling(temp_dir, large_file):
 
     # Extract and verify
     for level in [
-        _core.BitCompressionLevel.Fastest,
-        _core.BitCompressionLevel.Normal,
-        _core.BitCompressionLevel.Max,
+        core.BitCompressionLevel.Fastest,
+        core.BitCompressionLevel.Normal,
+        core.BitCompressionLevel.Max,
     ]:
         level_archive = temp_dir / f"large_{level}.7z"
         extract_dir: Path = temp_dir / "extracted_large"
 
-        extractor = _core.BitFileExtractor(_core.FormatSevenZip)
+        extractor = core.BitFileExtractor(core.FormatSevenZip)
         extractor.extract(str(level_archive), str(extract_dir))
 
         extracted_file: Path = extract_dir / large_file.name
@@ -182,12 +182,12 @@ def test_multi_file_archive(temp_dir):
 
     # Create archive
     archive_path = temp_dir / "multi.7z"
-    compressor = _core.BitFileCompressor(_core.FormatSevenZip)
+    compressor = core.BitFileCompressor(core.FormatSevenZip)
     compressor.compress([str(temp_dir)], str(archive_path))
 
     # Extract to new location
     extract_dir = temp_dir / "extracted_multi"
-    extractor = _core.BitFileExtractor(_core.FormatSevenZip)
+    extractor = core.BitFileExtractor(core.FormatSevenZip)
     extractor.extract(str(archive_path), str(extract_dir))
 
     # Verify all files
@@ -200,26 +200,26 @@ def test_multi_file_archive(temp_dir):
 def test_compression_methods_comparison(temp_dir, large_file):
     """Test and compare different compression methods"""
     methods = [
-        _core.BitCompressionMethod.Lzma2,
-        _core.BitCompressionMethod.Lzma,
-        _core.BitCompressionMethod.BZip2,
-        _core.BitCompressionMethod.Copy,
+        core.BitCompressionMethod.Lzma2,
+        core.BitCompressionMethod.Lzma,
+        core.BitCompressionMethod.BZip2,
+        core.BitCompressionMethod.Copy,
     ]
 
     results = {}
     for method in methods:
         archive_path: Path = temp_dir / f"test_{method}.7z"
-        compressor = _core.BitFileCompressor(_core.FormatSevenZip)
+        compressor = core.BitFileCompressor(core.FormatSevenZip)
         compressor.set_compression_method(method)
 
         compressor.compress([str(large_file)], str(archive_path))
         results[method] = archive_path.stat().st_size
 
     # Verify that COPY method creates the largest archive
-    assert results[_core.BitCompressionMethod.Copy] >= max(
+    assert results[core.BitCompressionMethod.Copy] >= max(
         size
         for method, size in results.items()
-        if method != _core.BitCompressionMethod.Copy
+        if method != core.BitCompressionMethod.Copy
     ), "COPY method should create the largest archive"
 
 
@@ -230,11 +230,11 @@ def test_archive_metadata(temp_dir):
     test_file.write_text("Test content")
 
     archive_path = temp_dir / "test.7z"
-    compressor = _core.BitFileCompressor(_core.FormatSevenZip)
+    compressor = core.BitFileCompressor(core.FormatSevenZip)
     compressor.compress([str(test_file)], str(archive_path))
 
     # Read archive
-    reader = _core.BitArchiveReader(str(archive_path), _core.FormatAuto)
+    reader = core.BitArchiveReader(str(archive_path), core.FormatAuto)
     items = reader.items()
 
     assert len(items) == 1, "Expected exactly one item in archive"
@@ -261,11 +261,11 @@ def test_mem_to_bytes():
     test_data = b"Stream compression test data" * 1000
 
     # Compress to memory
-    mem_compressor = _core.BitMemCompressor(_core.FormatSevenZip)
+    mem_compressor = core.BitMemCompressor(core.FormatSevenZip)
     compressed_data = mem_compressor.compress_file(test_data)
 
     # Extract to memory
-    mem_extractor = _core.BitMemExtractor(_core.FormatSevenZip)
+    mem_extractor = core.BitMemExtractor(core.FormatSevenZip)
     extracted_data = mem_extractor.extract(compressed_data)
 
     assert (
@@ -280,15 +280,15 @@ def test_different_formats(temp_dir):
     test_file.write_text("Testing different formats")
 
     formats = [
-        (_core.FormatSevenZip, "test.7z"),
-        (_core.FormatZip, "test.zip"),
-        (_core.FormatBZip2, "test.txt.bz2"),
-        (_core.FormatGZip, "test.gz"),
+        (core.FormatSevenZip, "test.7z"),
+        (core.FormatZip, "test.zip"),
+        (core.FormatBZip2, "test.txt.bz2"),
+        (core.FormatGZip, "test.gz"),
     ]
 
     for format_type, filename in formats:
         archive_path: Path = temp_dir / filename
-        compressor = _core.BitFileCompressor(format_type)
+        compressor = core.BitFileCompressor(format_type)
         compressor.compress([str(test_file)], str(archive_path))
 
         assert archive_path.exists(), f"Archive {filename} was not created"
@@ -299,7 +299,7 @@ def test_different_formats(temp_dir):
         # Test extraction
         extract_dir = temp_dir / f"extracted_{filename}"
 
-        extractor = _core.BitFileExtractor(format_type)
+        extractor = core.BitFileExtractor(format_type)
         extractor.extract(str(archive_path), str(extract_dir))
 
         extracted_file: Path = extract_dir / "test.txt"
