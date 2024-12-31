@@ -284,7 +284,7 @@ class BitAbstractArchiveCreator(BitAbstractArchiveHandler):
 
         Note:
             Calling set_password when the output format doesn't support archive encryption (e.g., GZip, BZip2, etc...) does not have any effects (in other words, it doesn't throw exceptions, and it has no effects on compression operations).
-            After a password has been set, it will be used for every subsequent operation. To disable the use of the password, you need to call the clearPassword method (inherited from BitAbstractArchiveHandler), which is equivalent to set_password(L"").
+            After a password has been set, it will be used for every subsequent operation. To disable the use of the password, you need to call the clearPassword method (inherited from BitAbstractArchiveHandler), which is equivalent to set_password("").
         """
     @typing.overload
     def set_password(self, password: str, crypt_headers: bool) -> None:
@@ -300,7 +300,7 @@ class BitAbstractArchiveCreator(BitAbstractArchiveHandler):
         Note:
             Calling set_password when the output format doesn't support archive encryption (e.g., GZip, BZip2, etc...) does not have any effects (in other words, it doesn't throw exceptions, and it has no effects on compression operations).
             Calling set_password with "cryptHeaders" set to true does not have effects on formats different from 7z.
-            After a password has been set, it will be used for every subsequent operation. To disable the use of the password, you need to call the clearPassword method (inherited from BitAbstractArchiveHandler), which is equivalent to set_password(L"").
+            After a password has been set, it will be used for every subsequent operation. To disable the use of the password, you need to call the clearPassword method (inherited from BitAbstractArchiveHandler), which is equivalent to set_password("").
         """
     def set_solid_mode(self, solid_mode: bool) -> None:
         """
@@ -388,7 +388,7 @@ class BitAbstractArchiveHandler:
         Calling clear_password() will disable the encryption/decryption of archives.
 
         Note:
-            This is equivalent to calling set_password(L"").
+            This is equivalent to calling set_password("").
         """
     def file_callback(self) -> typing.Callable[[str], None]:
         """
@@ -449,8 +449,8 @@ class BitAbstractArchiveHandler:
             password: the password to be used.
 
         Note:
-            Calling this method when the input archive is not encrypted does not have any effect on the extraction process.
-            Calling this method when the output format doesn't support archive encryption (e.g., GZip, BZip2, etc...) does not have any effects (in other words, it doesn't throw exceptions, and it has no effects on compression operations).
+            Calling this set_password when the input archive is not encrypted does not have any effect on the extraction process.
+            Calling this set_password when the output format doesn't support archive encryption (e.g., GZip, BZip2, etc...) does not have any effects (in other words, it doesn't throw exceptions, and it has no effects on compression operations).
             After a password has been set, it will be used for every subsequent operation. To disable the use of the password, you need to call the clear_password method, which is equivalent to calling set_password(L"").
         """
     def set_password_callback(self, callback: typing.Callable[[], str]) -> None:
@@ -515,13 +515,13 @@ class BitArchiveEditor(BitArchiveWriter):
         Applies the requested changes (i.e., rename/update/delete operations) to the input archive.
         """
     @typing.overload
-    def delete_item(self, index: int, policy: DeletePolicy) -> None:
+    def delete_item(self, index: int, policy: DeletePolicy = ...) -> None:
         """
         Marks as deleted the item at the given index.
 
         Args:
             index: the index of the item to be deleted.
-            policy: the policy to be used when deleting items.
+            policy: the policy to be used when deleting items. Default to DeletePolicy.ItemOnly.
 
         Exceptions:
             BitException if the index is invalid.
@@ -530,13 +530,13 @@ class BitArchiveEditor(BitArchiveWriter):
             By default, if the item is a folder, only its metadata is deleted, not the files within it. If instead the policy is set to DeletePolicy::RecurseDirs, then the items within the folder will also be deleted.
         """
     @typing.overload
-    def delete_item(self, item_path: str, policy: DeletePolicy) -> None:
+    def delete_item(self, item_path: str, policy: DeletePolicy = ...) -> None:
         """
         Marks as deleted the archive's item(s) with the specified path.
 
         Args:
             item_path: the path (in the archive) of the item to be deleted.
-            policy: the policy to be used when deleting items.
+            policy: the policy to be used when deleting items. Default to DeletePolicy.ItemOnly.
 
         Exceptions:
             BitException if the specified path is empty or invalid, or if no matching item could be found.
@@ -585,13 +585,13 @@ class BitArchiveEditor(BitArchiveWriter):
             in_file: the path of the file to be used for the update.
         """
     @typing.overload
-    def update_item(self, index: int, in_buffer: bytes) -> None:
+    def update_item(self, index: int, input_buffer: bytes) -> None:
         """
         Requests to update the content of the item at the specified index with the data from the given buffer.
 
         Args:
             index: the index of the item to be updated.
-            in_buffer: the buffer containing the new data for the item.
+            input_buffer: the buffer containing the new data for the item.
         """
     @typing.overload
     def update_item(self, item_path: str, in_file: str) -> None:
@@ -603,13 +603,13 @@ class BitArchiveEditor(BitArchiveWriter):
             in_file: the path of the file to be used for the update.
         """
     @typing.overload
-    def update_item(self, item_path: str, in_buffer: bytes) -> None:
+    def update_item(self, item_path: str, input_buffer: bytes) -> None:
         """
         Requests to update the content of the item at the specified path with the data from the given buffer.
 
         Args:
             item_path: the path of the item to be updated.
-            in_buffer: the buffer containing the new data for the item.
+            input_buffer: the buffer containing the new data for the item.
         """
 
 class BitArchiveItem(BitGenericItem):
@@ -659,8 +659,10 @@ class BitArchiveItemInfo(BitArchiveItem):
     def item_property(self, arg0: BitProperty) -> BitPropVariant:
         """
         Gets the specified item property.
+
         Args:
             property_id (bit7z::BitProperty): The ID of the property to get.
+
         Returns:
             BitPropVariant: the value of the item property, if available, or an empty BitPropVariant.
         """
@@ -687,38 +689,46 @@ class BitArchiveItemOffset(BitArchiveItem):
 class BitArchiveReader(BitAbstractArchiveOpener, BitInputArchive):
     @staticmethod
     @typing.overload
-    def is_header_encrypted(in_archive: str, format: BitInFormat) -> bool:
+    def is_header_encrypted(in_archive: str, format: BitInFormat = ...) -> bool:
         """
         Checks if the given archive is header-encrypted or not.
+
+        Args:
+            in_archive: the path to the archive to be checked.
+            format: the format of the input archive. Default is FormatAuto.
         """
     @staticmethod
     @typing.overload
-    def is_header_encrypted(in_archive: bytes, format: BitInFormat) -> bool:
+    def is_header_encrypted(in_archive: bytes, format: BitInFormat = ...) -> bool:
         """
         Checks if the given memory buffer archive is header-encrypted or not.
+
+        Args:
+            in_archive: the input buffer containing the archive to be checked.
+            format: the format of the input archive. Default is FormatAuto.
         """
     @typing.overload
     def __init__(
-        self, in_archive: str, format: BitInFormat, password: str = ""
+        self, in_archive: str, format: BitInFormat = ..., password: str = ""
     ) -> None:
         """
         Constructs a BitArchiveReader object, opening the input file archive.
 
         Args:
             in_archive: the path to the archive to be read.
-            format: the format of the input archive.
+            format: the format of the input archive. Default is FormatAuto.
             password: the password needed for opening the input archive.
         """
     @typing.overload
     def __init__(
-        self, in_archive: bytes, format: BitInFormat, password: str = ""
+        self, in_archive: bytes, format: BitInFormat = ..., password: str = ""
     ) -> None:
         """
         Constructs a BitArchiveReader object, opening the input memory buffer archive.
 
         Args:
             in_archive: the input buffer containing the archive to be read.
-            format: the format of the input archive.
+            format: the format of the input archive. Default is FormatAuto.
             password: the password needed for opening the input archive.
         """
     def archive_properties(self) -> dict[BitProperty, BitPropVariant]:
@@ -1203,9 +1213,13 @@ class BitMemExtractor(BitAbstractArchiveOpener):
         Constructs a BitMemExtractor object, opening the input archive.
         """
     @typing.overload
-    def extract(self, in_archive: list[int], out_dir: str = "") -> None:
+    def extract(self, in_archive: bytes, out_dir: str) -> None:
         """
         Extracts the given archive to the chosen directory.
+
+        Args:
+            in_archive: the input archive to be extracted.
+            out_dir: the directory where to extract the files.
         """
     @typing.overload
     def extract(self, in_archive: bytes, index: int) -> bytes:
@@ -1218,48 +1232,69 @@ class BitMemExtractor(BitAbstractArchiveOpener):
         Extracts all the items from the given archive to a dictionary of memory buffers.
         """
     def extract_items(
-        self, in_archive: list[int], indices: list[int], out_dir: str = ""
+        self, in_archive: bytes, indices: list[int], out_dir: str = ""
     ) -> None:
         """
         Extracts the specified items from the given archive to the chosen directory.
+
+        Args:
+            in_archive: the input archive to extract from.
+            indices: the indices of the files in the archive that should be extracted.
+            out_dir: the output directory where the extracted files will be placed.
         """
     @typing.overload
     def extract_matching(
         self,
-        in_archive: list[int],
+        in_archive: bytes,
         pattern: str,
-        out_dir: str,
-        filter_policy: FilterPolicy,
+        out_dir: str = "",
+        policy: FilterPolicy = ...,
     ) -> None:
         """
         Extracts the files in the archive that match the given wildcard pattern to the chosen directory.
+
+        Args:
+            in_archive: the input archive to be extracted.
+            pattern: the wildcard pattern to be used for matching the files.
+            out_dir: the directory where to extract the matching files.
+            policy: the filtering policy to be applied to the matched items. Default is FilterPolicy.Include.
         """
     @typing.overload
     def extract_matching(
-        self, in_archive: bytes, pattern: bytes, filter_policy: FilterPolicy
+        self, in_archive: bytes, pattern: str, policy: FilterPolicy = ...
     ) -> bytes:
         """
         Extracts to the output buffer the first file in the archive matching the given wildcard pattern.
+        Args:
+            in_archive: the input archive to extract from.
+            pattern: the wildcard pattern to be used for matching the files.
+            policy: the filtering policy to be applied to the matched items. Default is FilterPolicy.Include.
         """
     @typing.overload
     def extract_matching_regex(
         self,
-        in_archive: list[int],
+        in_archive: bytes,
         regex: str,
-        out_dir: str,
-        filter_policy: FilterPolicy,
+        out_dir: str = "",
+        policy: FilterPolicy = ...,
     ) -> None:
         """
         Extracts the files in the archive that match the given regex pattern to the chosen directory.
+
+        Args:
+            in_archive: the input archive to extract from.
+            regex: the regex pattern to be used for matching the files.
+            out_dir: the output directory where the extracted files will be placed.
+            policy: the filtering policy to be applied to the matched items. Default is FilterPolicy.Include.
         """
     @typing.overload
     def extract_matching_regex(
-        self, in_archive: bytes, regex: bytes, filter_policy: FilterPolicy
+        self, in_archive: bytes, regex: str, policy: FilterPolicy = ...
     ) -> bytes:
         """
         Extracts to the output buffer the first file in the archive matching the given regex pattern.
         """
-    def test(self, in_archive: list[int]) -> None:
+    def test(self, in_archive: bytes) -> None:
         """
         Tests the given archive without extracting its content.
 
@@ -1273,6 +1308,7 @@ class BitOutputArchive:
     def add_directory(self, in_dir: str) -> None:
         """
         Adds the given directory path and all its content.
+
         Args:
             in_dir: the path of the directory to be added to the archive.
         """
@@ -1290,7 +1326,11 @@ class BitOutputArchive:
         """
     @typing.overload
     def add_directory_contents(
-        self, in_dir: str, filter: str, recursive: FilterPolicy, policy: bool
+        self,
+        in_dir: str,
+        filter: str = "*",
+        policy: FilterPolicy = ...,
+        recursive: bool = True,
     ) -> None:
         """
         Adds the contents of the given directory path.
@@ -1301,15 +1341,15 @@ class BitOutputArchive:
             in_dir: the directory where to search for files to be added to the output archive.
             filter: the wildcard filter to be used for searching the files.
             recursive: recursively search the files in the given directory and all of its subdirectories.
-            policy: the filtering policy to be applied to the matched items.
+            policy: the filtering policy to be applied to the matched items. Default is FilterPolicy.Include.
         """
     @typing.overload
-    def add_file(self, in_file: str, name: str) -> None:
+    def add_file(self, in_file: str, name: str = "") -> None:
         """
         Adds the given file path, with an optional user-defined path to be used in the output archive.
 
         Args:
-            in_file:  the path to the filesystem file to be added to the output archive.
+            in_file: the path to the filesystem file to be added to the output archive.
             name: (optional) user-defined path to be used inside the output archive.
         Note:
             If a directory path is given, a BitException is thrown.
@@ -1347,7 +1387,11 @@ class BitOutputArchive:
         """
     @typing.overload
     def add_files(
-        self, in_dir: str, filter: str, recursive: FilterPolicy, policy: bool
+        self,
+        in_dir: str,
+        filter: str = "*",
+        policy: FilterPolicy = ...,
+        recursive: bool = True,
     ) -> None:
         """
         Adds all the files inside the given directory path that match the given wildcard filter, with the specified filter policy.
@@ -1356,7 +1400,7 @@ class BitOutputArchive:
             in_dir: the directory where to search for files to be added to the output archive.
             filter: (optional) the wildcard filter to be used for searching the files.
             recursive: (optional) recursively search the files in the given directory and all of its subdirectories.
-            policy: (optional) the filtering policy to be applied to the matched items.
+            policy: (optional) the filtering policy to be applied to the matched items. Default is FilterPolicy.Include.
         """
     @typing.overload
     def add_items(self, paths: list[str]) -> None:
@@ -1383,7 +1427,7 @@ class BitOutputArchive:
             out_file: the output archive file path.
 
         Note:
-            If this object was created by passing an input archive file path, and this latter is the same as the outFile path parameter, the file will be updated.
+            If this object was created by passing an input archive file path, and this latter is the same as the out_file path parameter, the file will be updated.
         """
     @typing.overload
     def compress_to(self) -> bytes:
@@ -1876,34 +1920,67 @@ class BitStringExtractor(BitAbstractArchiveOpener):
         """
     def extract_items(
         self, in_archive: str, indices: list[int], out_dir: str = ""
-    ) -> None: ...
+    ) -> None:
+        """
+        Extracts the specified items from the given archive to the chosen directory.
+
+        Args:
+            in_archive: the input archive to extract from.
+            indices: the indices of the files in the archive that should be extracted.
+            out_dir: the output directory where the extracted files will be placed.
+        """
     @typing.overload
     def extract_matching(
-        self, in_archive: str, pattern: str, out_dir: str, filter_policy: FilterPolicy
+        self,
+        in_archive: str,
+        pattern: str,
+        out_dir: str = "",
+        policy: FilterPolicy = ...,
     ) -> None:
         """
         Extracts the files in the archive that match the given wildcard pattern to the chosen directory.
+        Args:
+            in_archive: the input archive to be extracted.
+            pattern: the wildcard pattern to be used for matching the files.
+            out_dir: the directory where to extract the matching files.
+            policy: the filtering policy to be applied to the matched items. Default is FilterPolicy.Include.
         """
     @typing.overload
     def extract_matching(
-        self, in_archive: str, pattern: str, filter_policy: FilterPolicy
+        self, in_archive: str, pattern: str, policy: FilterPolicy = ...
     ) -> bytes:
         """
         Extracts to the output buffer the first file in the archive matching the given wildcard pattern.
+
+        Args:
+            in_archive: the input archive to extract from.
+            pattern: the wildcard pattern to be used for matching the files.
+            policy: the filtering policy to be applied to the matched items. Default is FilterPolicy.Include.
         """
     @typing.overload
     def extract_matching_regex(
-        self, in_archive: str, regex: str, out_dir: str, filter_policy: FilterPolicy
+        self, in_archive: str, regex: str, out_dir: str, policy: FilterPolicy = ...
     ) -> None:
         """
         Extracts the files in the archive that match the given regex pattern to the chosen directory.
+
+        Args:
+            in_archive: the input archive to extract from.
+            regex: the regex pattern to be used for matching the files.
+            out_dir: the output directory where the extracted files will be placed.
+            policy: the filtering policy to be applied to the matched items. Default is FilterPolicy.Include.
         """
     @typing.overload
     def extract_matching_regex(
-        self, in_archive: str, regex: str, filter_policy: FilterPolicy
+        self, in_archive: str, regex: str, policy: FilterPolicy = ...
     ) -> bytes:
         """
         Extracts to the output buffer the first file in the archive matching the given regex pattern.
+
+        Args:
+            in_archive: the input archive to extract from.
+            regex: the regex pattern to be used for matching the files.
+            policy: the filtering policy to be applied to the matched items. Default is FilterPolicy.Include.
         """
     def test(self, in_archive: str) -> None:
         """
@@ -2103,7 +2180,7 @@ def set_large_page_mode() -> None:
 
 def set_lib7zip_path(lib7zip_path: str = "") -> str:
     """
-    Configure the path to the 7zip library.
+    Set the path to the 7zip library.
     """
 
 def version() -> str:

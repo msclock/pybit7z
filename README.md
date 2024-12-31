@@ -66,7 +66,7 @@ from pybit7z import core
 
 try:
     # Opening the archive
-     archive = core.Bit7zArchiveReader("path/to/archive.gz", core.FormatGZip)
+     archive = core.BitArchiveReader("path/to/archive.gz", core.FormatGZip)
 
     # Testing the archive
     archive.test()
@@ -121,7 +121,7 @@ Work on a single archive:
 from pybit7z import core
 
 try:
-    archive = core.BitArchiveWriter(core.BitFormat::SevenZip)
+    archive = core.BitArchiveWriter(core.FormatSevenZip)
 
     # Adding the items to be compressed (no compression is performed here)
     archive.add_file("path/to/file.txt")
