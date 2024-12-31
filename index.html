@@ -282,10 +282,10 @@
 <h2>Example<a class="headerlink" href="#example" title="Link to this heading">¶</a></h2>
 <section id="extract-files-from-an-archive">
 <h3>Extract Files from an Archive<a class="headerlink" href="#extract-files-from-an-archive" title="Link to this heading">¶</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pybit7z</span> <span class="kn">import</span> <span class="n">core</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pybit7z</span>
 
 <span class="k">try</span><span class="p">:</span>
-    <span class="n">extractor</span> <span class="o">=</span> <span class="n">core</span><span class="o">.</span><span class="n">BitFileExtractor</span><span class="p">(</span><span class="n">core</span><span class="o">.</span><span class="n">FormatSevenZip</span><span class="p">)</span>
+    <span class="n">extractor</span> <span class="o">=</span> <span class="n">pybit7z</span><span class="o">.</span><span class="n">BitFileExtractor</span><span class="p">(</span><span class="n">pybit7z</span><span class="o">.</span><span class="n">FormatSevenZip</span><span class="p">)</span>
     <span class="n">extractor</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="s2">&quot;path/to/archive.7z&quot;</span><span class="p">,</span> <span class="s2">&quot;out/dir/&quot;</span><span class="p">)</span>
 
     <span class="c1"># Extracting a specific file inside an archive</span>
@@ -297,33 +297,33 @@
     <span class="c1"># Extracting an encrypted archive</span>
     <span class="n">extractor</span><span class="o">.</span><span class="n">set_password</span><span class="p">(</span><span class="s2">&quot;password&quot;</span><span class="p">)</span>
     <span class="n">extractor</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="s2">&quot;path/to/another/archive.7z&quot;</span><span class="p">,</span> <span class="s2">&quot;out/dir/&quot;</span><span class="p">)</span>
-<span class="k">except</span> <span class="n">core</span><span class="o">.</span><span class="n">BitException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<span class="k">except</span> <span class="n">pybit7z</span><span class="o">.</span><span class="n">BitException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
     <span class="o">...</span> <span class="c1"># handle the exception</span>
 </pre></div>
 </div>
 <p>Work on a single archive:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pybit7z</span> <span class="kn">import</span> <span class="n">core</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pybit7z</span>
 
 <span class="k">try</span><span class="p">:</span>
     <span class="c1"># Opening the archive</span>
-     <span class="n">archive</span> <span class="o">=</span> <span class="n">core</span><span class="o">.</span><span class="n">BitArchiveReader</span><span class="p">(</span><span class="s2">&quot;path/to/archive.gz&quot;</span><span class="p">,</span> <span class="n">core</span><span class="o">.</span><span class="n">FormatGZip</span><span class="p">)</span>
+     <span class="n">archive</span> <span class="o">=</span> <span class="n">pybit7z</span><span class="o">.</span><span class="n">BitArchiveReader</span><span class="p">(</span><span class="s2">&quot;path/to/archive.gz&quot;</span><span class="p">,</span> <span class="n">pybit7z</span><span class="o">.</span><span class="n">FormatGZip</span><span class="p">)</span>
 
     <span class="c1"># Testing the archive</span>
     <span class="n">archive</span><span class="o">.</span><span class="n">test</span><span class="p">()</span>
 
     <span class="c1"># Extracting the archive</span>
     <span class="n">archive</span><span class="o">.</span><span class="n">extract_to</span><span class="p">(</span><span class="s2">&quot;out/dir/&quot;</span><span class="p">)</span>
-<span class="k">except</span> <span class="n">core</span><span class="o">.</span><span class="n">BitException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<span class="k">except</span> <span class="n">pybit7z</span><span class="o">.</span><span class="n">BitException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
     <span class="o">...</span> <span class="c1"># handle the exception</span>
 </pre></div>
 </div>
 </section>
 <section id="compress-files-into-an-archive">
 <h3>Compress Files into an Archive<a class="headerlink" href="#compress-files-into-an-archive" title="Link to this heading">¶</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pybit7z</span> <span class="kn">import</span> <span class="n">core</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pybit7z</span>
 
 <span class="k">try</span><span class="p">:</span>
-    <span class="n">compressor</span> <span class="o">=</span> <span class="n">core</span><span class="o">.</span><span class="n">BitFileCompressor</span><span class="p">(</span><span class="n">core</span><span class="o">.</span><span class="n">FormatSevenZip</span><span class="p">)</span>
+    <span class="n">compressor</span> <span class="o">=</span> <span class="n">pybit7z</span><span class="o">.</span><span class="n">BitFileCompressor</span><span class="p">(</span><span class="n">pybit7z</span><span class="o">.</span><span class="n">FormatSevenZip</span><span class="p">)</span>
 
     <span class="n">files</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;path/to/file1.jpg&quot;</span><span class="p">,</span> <span class="s2">&quot;path/to/file2.pdf&quot;</span><span class="p">]</span>
 
@@ -345,21 +345,21 @@
     <span class="n">compressor</span><span class="o">.</span><span class="n">compress_files</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="s2">&quot;protected_archive.zip&quot;</span><span class="p">)</span>
 
     <span class="c1"># Updating an existing zip archive</span>
-    <span class="n">compressor</span><span class="o">.</span><span class="n">set_update_mode</span><span class="p">(</span><span class="n">core</span><span class="o">.</span><span class="n">UpdateMode</span><span class="o">.</span><span class="n">Append</span><span class="p">)</span>
+    <span class="n">compressor</span><span class="o">.</span><span class="n">set_update_mode</span><span class="p">(</span><span class="n">pybit7z</span><span class="o">.</span><span class="n">UpdateMode</span><span class="o">.</span><span class="n">Append</span><span class="p">)</span>
     <span class="n">compressor</span><span class="o">.</span><span class="n">compress_files</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="s2">&quot;existing_archive.zip&quot;</span><span class="p">)</span>
 
     <span class="c1"># Compressing a single file into a buffer</span>
-    <span class="n">compressor2</span> <span class="o">=</span> <span class="n">core</span><span class="o">.</span><span class="n">BitFileCompressor</span><span class="p">(</span><span class="n">core</span><span class="o">.</span><span class="n">FormatBZip2</span><span class="p">)</span>
+    <span class="n">compressor2</span> <span class="o">=</span> <span class="n">pybit7z</span><span class="o">.</span><span class="n">BitFileCompressor</span><span class="p">(</span><span class="n">pybit7z</span><span class="o">.</span><span class="n">FormatBZip2</span><span class="p">)</span>
     <span class="n">buffer</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">=</span> <span class="n">compressor2</span><span class="o">.</span><span class="n">compress_file</span><span class="p">(</span><span class="n">files</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-<span class="k">except</span> <span class="n">core</span><span class="o">.</span><span class="n">BitException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<span class="k">except</span> <span class="n">pybit7z</span><span class="o">.</span><span class="n">BitException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
     <span class="o">...</span> <span class="c1"># handle the exception</span>
 </pre></div>
 </div>
 <p>Work on a single archive:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pybit7z</span> <span class="kn">import</span> <span class="n">core</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pybit7z</span>
 
 <span class="k">try</span><span class="p">:</span>
-    <span class="n">archive</span> <span class="o">=</span> <span class="n">core</span><span class="o">.</span><span class="n">BitArchiveWriter</span><span class="p">(</span><span class="n">core</span><span class="o">.</span><span class="n">FormatSevenZip</span><span class="p">)</span>
+    <span class="n">archive</span> <span class="o">=</span> <span class="n">pybit7z</span><span class="o">.</span><span class="n">BitArchiveWriter</span><span class="p">(</span><span class="n">pybit7z</span><span class="o">.</span><span class="n">FormatSevenZip</span><span class="p">)</span>
 
     <span class="c1"># Adding the items to be compressed (no compression is performed here)</span>
     <span class="n">archive</span><span class="o">.</span><span class="n">add_file</span><span class="p">(</span><span class="s2">&quot;path/to/file.txt&quot;</span><span class="p">)</span>
@@ -367,17 +367,17 @@
 
     <span class="c1"># Compressing the added items to the output archive</span>
     <span class="n">archive</span><span class="o">.</span><span class="n">compress_to</span><span class="p">(</span><span class="s2">&quot;output.7z&quot;</span><span class="p">)</span>
-<span class="k">except</span> <span class="n">core</span><span class="o">.</span><span class="n">BitException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<span class="k">except</span> <span class="n">pybit7z</span><span class="o">.</span><span class="n">BitException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
     <span class="o">...</span> <span class="c1"># handle the exception</span>
 </pre></div>
 </div>
 </section>
 <section id="read-archive-metadata">
 <h3>Read Archive Metadata<a class="headerlink" href="#read-archive-metadata" title="Link to this heading">¶</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pybit7z</span> <span class="kn">import</span> <span class="n">core</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pybit7z</span>
 
 <span class="k">try</span><span class="p">:</span>
-    <span class="n">arc</span> <span class="o">=</span> <span class="n">core</span><span class="o">.</span><span class="n">BitArchiveReader</span><span class="p">(</span><span class="s2">&quot;archive.7z&quot;</span><span class="p">,</span> <span class="n">core</span><span class="o">.</span><span class="n">FormatSevenZip</span><span class="p">)</span>
+    <span class="n">arc</span> <span class="o">=</span> <span class="n">pybit7z</span><span class="o">.</span><span class="n">BitArchiveReader</span><span class="p">(</span><span class="s2">&quot;archive.7z&quot;</span><span class="p">,</span> <span class="n">pybit7z</span><span class="o">.</span><span class="n">FormatSevenZip</span><span class="p">)</span>
 
     <span class="c1"># Printing archive metadata</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Archive properties:&quot;</span><span class="p">,</span>
@@ -398,7 +398,7 @@
             <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">    Size: &quot;</span>          <span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">size</span><span class="p">(),</span>
             <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">    Packed size: &quot;</span>   <span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">pack_size</span><span class="p">(),</span>
             <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">    CRC: &quot;</span>           <span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">crc</span><span class="p">())</span>
-<span class="k">except</span> <span class="n">core</span><span class="o">.</span><span class="n">BitException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<span class="k">except</span> <span class="n">pybit7z</span><span class="o">.</span><span class="n">BitException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
     <span class="o">...</span> <span class="c1"># handle the exception</span>
 </pre></div>
 </div>
