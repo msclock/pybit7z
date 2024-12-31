@@ -337,7 +337,7 @@
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Calling set_password when the output format doesn’t support archive encryption (e.g., GZip, BZip2, etc…) does not have any effects (in other words, it doesn’t throw exceptions, and it has no effects on compression operations).
-After a password has been set, it will be used for every subsequent operation. To disable the use of the password, you need to call the clearPassword method (inherited from BitAbstractArchiveHandler), which is equivalent to set_password(L””).</p>
+After a password has been set, it will be used for every subsequent operation. To disable the use of the password, you need to call the clearPassword method (inherited from BitAbstractArchiveHandler), which is equivalent to set_password(“”).</p>
 </div>
 <ol class="arabic simple" start="2">
 <li><p>set_password(self: pybit7z._core.BitAbstractArchiveCreator, password: str, crypt_headers: bool) -&gt; None</p></li>
@@ -356,7 +356,7 @@ After a password has been set, it will be used for every subsequent operation. T
 <p class="admonition-title">Note</p>
 <p>Calling set_password when the output format doesn’t support archive encryption (e.g., GZip, BZip2, etc…) does not have any effects (in other words, it doesn’t throw exceptions, and it has no effects on compression operations).
 Calling set_password with “cryptHeaders” set to true does not have effects on formats different from 7z.
-After a password has been set, it will be used for every subsequent operation. To disable the use of the password, you need to call the clearPassword method (inherited from BitAbstractArchiveHandler), which is equivalent to set_password(L””).</p>
+After a password has been set, it will be used for every subsequent operation. To disable the use of the password, you need to call the clearPassword method (inherited from BitAbstractArchiveHandler), which is equivalent to set_password(“”).</p>
 </div>
 </dd></dl>
 
@@ -488,7 +488,7 @@ After a password has been set, it will be used for every subsequent operation. T
 <p>Calling clear_password() will disable the encryption/decryption of archives.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>This is equivalent to calling set_password(L””).</p>
+<p>This is equivalent to calling set_password(“”).</p>
 </div>
 </dd></dl>
 
@@ -576,8 +576,8 @@ After a password has been set, it will be used for every subsequent operation. T
 </dl>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Calling this method when the input archive is not encrypted does not have any effect on the extraction process.
-Calling this method when the output format doesn’t support archive encryption (e.g., GZip, BZip2, etc…) does not have any effects (in other words, it doesn’t throw exceptions, and it has no effects on compression operations).
+<p>Calling this set_password when the input archive is not encrypted does not have any effect on the extraction process.
+Calling this set_password when the output format doesn’t support archive encryption (e.g., GZip, BZip2, etc…) does not have any effects (in other words, it doesn’t throw exceptions, and it has no effects on compression operations).
 After a password has been set, it will be used for every subsequent operation. To disable the use of the password, you need to call the clear_password method, which is equivalent to calling set_password(L””).</p>
 </div>
 </dd></dl>
@@ -680,14 +680,14 @@ After a password has been set, it will be used for every subsequent operation. T
 <span class="sig-name descname"><span class="pre">delete_item</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pybit7z._core.BitArchiveEditor.delete_item" title="Link to this definition">¶</a></dt>
 <dd><p>Overloaded function.</p>
 <ol class="arabic simple">
-<li><p>delete_item(self: pybit7z._core.BitArchiveEditor, index: int, policy: pybit7z._core.DeletePolicy) -&gt; None</p></li>
+<li><p>delete_item(self: pybit7z._core.BitArchiveEditor, index: int, policy: pybit7z._core.DeletePolicy = DeletePolicy.ItemOnly) -&gt; None</p></li>
 </ol>
 <p>Marks as deleted the item at the given index.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>index</strong> – the index of the item to be deleted.</p></li>
-<li><p><strong>policy</strong> – the policy to be used when deleting items.</p></li>
+<li><p><strong>policy</strong> – the policy to be used when deleting items. Default to DeletePolicy.ItemOnly.</p></li>
 </ul>
 </dd>
 </dl>
@@ -700,14 +700,14 @@ After a password has been set, it will be used for every subsequent operation. T
 <p>By default, if the item is a folder, only its metadata is deleted, not the files within it. If instead the policy is set to DeletePolicy::RecurseDirs, then the items within the folder will also be deleted.</p>
 </div>
 <ol class="arabic simple" start="2">
-<li><p>delete_item(self: pybit7z._core.BitArchiveEditor, item_path: str, policy: pybit7z._core.DeletePolicy) -&gt; None</p></li>
+<li><p>delete_item(self: pybit7z._core.BitArchiveEditor, item_path: str, policy: pybit7z._core.DeletePolicy = DeletePolicy.ItemOnly) -&gt; None</p></li>
 </ol>
 <p>Marks as deleted the archive’s item(s) with the specified path.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>item_path</strong> – the path (in the archive) of the item to be deleted.</p></li>
-<li><p><strong>policy</strong> – the policy to be used when deleting items.</p></li>
+<li><p><strong>policy</strong> – the policy to be used when deleting items. Default to DeletePolicy.ItemOnly.</p></li>
 </ul>
 </dd>
 </dl>
@@ -786,14 +786,14 @@ Generally, archives may contain multiple items with the same paths. If this is t
 </dd>
 </dl>
 <ol class="arabic simple" start="2">
-<li><p>update_item(self: pybit7z._core.BitArchiveEditor, index: int, in_buffer: bytes) -&gt; None</p></li>
+<li><p>update_item(self: pybit7z._core.BitArchiveEditor, index: int, input_buffer: bytes) -&gt; None</p></li>
 </ol>
 <p>Requests to update the content of the item at the specified index with the data from the given buffer.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>index</strong> – the index of the item to be updated.</p></li>
-<li><p><strong>in_buffer</strong> – the buffer containing the new data for the item.</p></li>
+<li><p><strong>input_buffer</strong> – the buffer containing the new data for the item.</p></li>
 </ul>
 </dd>
 </dl>
@@ -810,14 +810,14 @@ Generally, archives may contain multiple items with the same paths. If this is t
 </dd>
 </dl>
 <ol class="arabic simple" start="4">
-<li><p>update_item(self: pybit7z._core.BitArchiveEditor, item_path: str, in_buffer: bytes) -&gt; None</p></li>
+<li><p>update_item(self: pybit7z._core.BitArchiveEditor, item_path: str, input_buffer: bytes) -&gt; None</p></li>
 </ol>
 <p>Requests to update the content of the item at the specified path with the data from the given buffer.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>item_path</strong> – the path of the item to be updated.</p></li>
-<li><p><strong>in_buffer</strong> – the buffer containing the new data for the item.</p></li>
+<li><p><strong>input_buffer</strong> – the buffer containing the new data for the item.</p></li>
 </ul>
 </dd>
 </dl>
@@ -903,15 +903,16 @@ Generally, archives may contain multiple items with the same paths. If this is t
 <dl class="py method">
 <dt class="sig sig-object py" id="pybit7z._core.BitArchiveItemInfo.item_property">
 <span class="sig-name descname"><span class="pre">item_property</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z._core.BitArchiveItemInfo" title="pybit7z._core.BitArchiveItemInfo"><span class="pre">pybit7z._core.BitArchiveItemInfo</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">arg0</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z._core.BitProperty" title="pybit7z._core.BitProperty"><span class="pre">pybit7z._core.BitProperty</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pybit7z._core.BitPropVariant" title="pybit7z._core.BitPropVariant"><span class="pre">pybit7z._core.BitPropVariant</span></a></span></span><a class="headerlink" href="#pybit7z._core.BitArchiveItemInfo.item_property" title="Link to this definition">¶</a></dt>
-<dd><p>Gets the specified item property.
-:param property_id: The ID of the property to get.
-:type property_id: bit7z::BitProperty</p>
+<dd><p>Gets the specified item property.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>the value of the item property, if available, or an empty BitPropVariant.</p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>property_id</strong> (<em>bit7z::BitProperty</em>) – The ID of the property to get.</p>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="#pybit7z._core.BitPropVariant" title="pybit7z._core.BitPropVariant">BitPropVariant</a></p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the value of the item property, if available, or an empty BitPropVariant.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#pybit7z._core.BitPropVariant" title="pybit7z._core.BitPropVariant">BitPropVariant</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -981,13 +982,29 @@ Generally, archives may contain multiple items with the same paths. If this is t
 <em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_header_encrypted</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pybit7z._core.BitArchiveReader.is_header_encrypted" title="Link to this definition">¶</a></dt>
 <dd><p>Overloaded function.</p>
 <ol class="arabic simple">
-<li><p>is_header_encrypted(in_archive: str, format: pybit7z._core.BitInFormat) -&gt; bool</p></li>
+<li><p>is_header_encrypted(in_archive: str, format: pybit7z._core.BitInFormat = FormatAuto) -&gt; bool</p></li>
 </ol>
 <p>Checks if the given archive is header-encrypted or not.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>in_archive</strong> – the path to the archive to be checked.</p></li>
+<li><p><strong>format</strong> – the format of the input archive. Default is FormatAuto.</p></li>
+</ul>
+</dd>
+</dl>
 <ol class="arabic simple" start="2">
-<li><p>is_header_encrypted(in_archive: bytes, format: pybit7z._core.BitInFormat) -&gt; bool</p></li>
+<li><p>is_header_encrypted(in_archive: bytes, format: pybit7z._core.BitInFormat = FormatAuto) -&gt; bool</p></li>
 </ol>
 <p>Checks if the given memory buffer archive is header-encrypted or not.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>in_archive</strong> – the input buffer containing the archive to be checked.</p></li>
+<li><p><strong>format</strong> – the format of the input archive. Default is FormatAuto.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -1590,9 +1607,17 @@ Generally, archives may contain multiple items with the same paths. If this is t
 <span class="sig-name descname"><span class="pre">extract</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pybit7z._core.BitMemExtractor.extract" title="Link to this definition">¶</a></dt>
 <dd><p>Overloaded function.</p>
 <ol class="arabic simple">
-<li><p>extract(self: pybit7z._core.BitMemExtractor, in_archive: list[int], out_dir: str = ‘’) -&gt; None</p></li>
+<li><p>extract(self: pybit7z._core.BitMemExtractor, in_archive: bytes, out_dir: str) -&gt; None</p></li>
 </ol>
 <p>Extracts the given archive to the chosen directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>in_archive</strong> – the input archive to be extracted.</p></li>
+<li><p><strong>out_dir</strong> – the directory where to extract the files.</p></li>
+</ul>
+</dd>
+</dl>
 <ol class="arabic simple" start="2">
 <li><p>extract(self: pybit7z._core.BitMemExtractor, in_archive: bytes, index: int) -&gt; bytes</p></li>
 </ol>
@@ -1605,8 +1630,17 @@ Generally, archives may contain multiple items with the same paths. If this is t
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pybit7z._core.BitMemExtractor.extract_items">
-<span class="sig-name descname"><span class="pre">extract_items</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z._core.BitMemExtractor" title="pybit7z._core.BitMemExtractor"><span class="pre">pybit7z._core.BitMemExtractor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_archive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#pybit7z._core.BitMemExtractor.extract_items" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">extract_items</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z._core.BitMemExtractor" title="pybit7z._core.BitMemExtractor"><span class="pre">pybit7z._core.BitMemExtractor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_archive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.13)"><span class="pre">bytes</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">indices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#pybit7z._core.BitMemExtractor.extract_items" title="Link to this definition">¶</a></dt>
 <dd><p>Extracts the specified items from the given archive to the chosen directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>in_archive</strong> – the input archive to extract from.</p></li>
+<li><p><strong>indices</strong> – the indices of the files in the archive that should be extracted.</p></li>
+<li><p><strong>out_dir</strong> – the output directory where the extracted files will be placed.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -1614,13 +1648,26 @@ Generally, archives may contain multiple items with the same paths. If this is t
 <span class="sig-name descname"><span class="pre">extract_matching</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pybit7z._core.BitMemExtractor.extract_matching" title="Link to this definition">¶</a></dt>
 <dd><p>Overloaded function.</p>
 <ol class="arabic simple">
-<li><p>extract_matching(self: pybit7z._core.BitMemExtractor, in_archive: list[int], pattern: str, out_dir: str, filter_policy: pybit7z._core.FilterPolicy) -&gt; None</p></li>
+<li><p>extract_matching(self: pybit7z._core.BitMemExtractor, in_archive: bytes, pattern: str, out_dir: str = ‘’, policy: pybit7z._core.FilterPolicy = FilterPolicy.Include) -&gt; None</p></li>
 </ol>
 <p>Extracts the files in the archive that match the given wildcard pattern to the chosen directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>in_archive</strong> – the input archive to be extracted.</p></li>
+<li><p><strong>pattern</strong> – the wildcard pattern to be used for matching the files.</p></li>
+<li><p><strong>out_dir</strong> – the directory where to extract the matching files.</p></li>
+<li><p><strong>policy</strong> – the filtering policy to be applied to the matched items. Default is FilterPolicy.Include.</p></li>
+</ul>
+</dd>
+</dl>
 <ol class="arabic simple" start="2">
-<li><p>extract_matching(self: pybit7z._core.BitMemExtractor, in_archive: bytes, pattern: bytes, filter_policy: pybit7z._core.FilterPolicy) -&gt; bytes</p></li>
+<li><p>extract_matching(self: pybit7z._core.BitMemExtractor, in_archive: bytes, pattern: str, policy: pybit7z._core.FilterPolicy = FilterPolicy.Include) -&gt; bytes</p></li>
 </ol>
-<p>Extracts to the output buffer the first file in the archive matching the given wildcard pattern.</p>
+<p>Extracts to the output buffer the first file in the archive matching the given wildcard pattern.
+:param in_archive: the input archive to extract from.
+:param pattern: the wildcard pattern to be used for matching the files.
+:param policy: the filtering policy to be applied to the matched items. Default is FilterPolicy.Include.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1628,18 +1675,28 @@ Generally, archives may contain multiple items with the same paths. If this is t
 <span class="sig-name descname"><span class="pre">extract_matching_regex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pybit7z._core.BitMemExtractor.extract_matching_regex" title="Link to this definition">¶</a></dt>
 <dd><p>Overloaded function.</p>
 <ol class="arabic simple">
-<li><p>extract_matching_regex(self: pybit7z._core.BitMemExtractor, in_archive: list[int], regex: str, out_dir: str, filter_policy: pybit7z._core.FilterPolicy) -&gt; None</p></li>
+<li><p>extract_matching_regex(self: pybit7z._core.BitMemExtractor, in_archive: bytes, regex: str, out_dir: str = ‘’, policy: pybit7z._core.FilterPolicy = FilterPolicy.Include) -&gt; None</p></li>
 </ol>
 <p>Extracts the files in the archive that match the given regex pattern to the chosen directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>in_archive</strong> – the input archive to extract from.</p></li>
+<li><p><strong>regex</strong> – the regex pattern to be used for matching the files.</p></li>
+<li><p><strong>out_dir</strong> – the output directory where the extracted files will be placed.</p></li>
+<li><p><strong>policy</strong> – the filtering policy to be applied to the matched items. Default is FilterPolicy.Include.</p></li>
+</ul>
+</dd>
+</dl>
 <ol class="arabic simple" start="2">
-<li><p>extract_matching_regex(self: pybit7z._core.BitMemExtractor, in_archive: bytes, regex: bytes, filter_policy: pybit7z._core.FilterPolicy) -&gt; bytes</p></li>
+<li><p>extract_matching_regex(self: pybit7z._core.BitMemExtractor, in_archive: bytes, regex: str, policy: pybit7z._core.FilterPolicy = FilterPolicy.Include) -&gt; bytes</p></li>
 </ol>
 <p>Extracts to the output buffer the first file in the archive matching the given regex pattern.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pybit7z._core.BitMemExtractor.test">
-<span class="sig-name descname"><span class="pre">test</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z._core.BitMemExtractor" title="pybit7z._core.BitMemExtractor"><span class="pre">pybit7z._core.BitMemExtractor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_archive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#pybit7z._core.BitMemExtractor.test" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">test</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z._core.BitMemExtractor" title="pybit7z._core.BitMemExtractor"><span class="pre">pybit7z._core.BitMemExtractor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_archive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.13)"><span class="pre">bytes</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#pybit7z._core.BitMemExtractor.test" title="Link to this definition">¶</a></dt>
 <dd><p>Tests the given archive without extracting its content.</p>
 <p>If the archive is not valid, a BitException is thrown!</p>
 <dl class="field-list simple">
@@ -1658,8 +1715,12 @@ Generally, archives may contain multiple items with the same paths. If this is t
 <dl class="py method">
 <dt class="sig sig-object py" id="pybit7z._core.BitOutputArchive.add_directory">
 <span class="sig-name descname"><span class="pre">add_directory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z._core.BitOutputArchive" title="pybit7z._core.BitOutputArchive"><span class="pre">pybit7z._core.BitOutputArchive</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#pybit7z._core.BitOutputArchive.add_directory" title="Link to this definition">¶</a></dt>
-<dd><p>Adds the given directory path and all its content.
-:param in_dir: the path of the directory to be added to the archive.</p>
+<dd><p>Adds the given directory path and all its content.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>in_dir</strong> – the path of the directory to be added to the archive.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -1681,7 +1742,7 @@ Generally, archives may contain multiple items with the same paths. If this is t
 </dd>
 </dl>
 <ol class="arabic simple" start="2">
-<li><p>add_directory_contents(self: pybit7z._core.BitOutputArchive, in_dir: str, filter: str, recursive: pybit7z._core.FilterPolicy, policy: bool) -&gt; None</p></li>
+<li><p>add_directory_contents(self: pybit7z._core.BitOutputArchive, in_dir: str, filter: str = ‘*’, policy: pybit7z._core.FilterPolicy = FilterPolicy.Include, recursive: bool = True) -&gt; None</p></li>
 </ol>
 <p>Adds the contents of the given directory path.</p>
 <p>This function iterates through the specified directory and adds its contents based on the provided wildcard filter and policy. Optionally, the operation can be recursive, meaning it will include subdirectories and their contents.</p>
@@ -1691,7 +1752,7 @@ Generally, archives may contain multiple items with the same paths. If this is t
 <li><p><strong>in_dir</strong> – the directory where to search for files to be added to the output archive.</p></li>
 <li><p><strong>filter</strong> – the wildcard filter to be used for searching the files.</p></li>
 <li><p><strong>recursive</strong> – recursively search the files in the given directory and all of its subdirectories.</p></li>
-<li><p><strong>policy</strong> – the filtering policy to be applied to the matched items.</p></li>
+<li><p><strong>policy</strong> – the filtering policy to be applied to the matched items. Default is FilterPolicy.Include.</p></li>
 </ul>
 </dd>
 </dl>
@@ -1702,7 +1763,7 @@ Generally, archives may contain multiple items with the same paths. If this is t
 <span class="sig-name descname"><span class="pre">add_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pybit7z._core.BitOutputArchive.add_file" title="Link to this definition">¶</a></dt>
 <dd><p>Overloaded function.</p>
 <ol class="arabic simple">
-<li><p>add_file(self: pybit7z._core.BitOutputArchive, in_file: str, name: str) -&gt; None</p></li>
+<li><p>add_file(self: pybit7z._core.BitOutputArchive, in_file: str, name: str = ‘’) -&gt; None</p></li>
 </ol>
 <p>Adds the given file path, with an optional user-defined path to be used in the output archive.</p>
 <dl class="field-list simple">
@@ -1766,7 +1827,7 @@ Generally, archives may contain multiple items with the same paths. If this is t
 <p>If a file path is given, a BitException is thrown.</p>
 </div>
 <ol class="arabic simple" start="3">
-<li><p>add_files(self: pybit7z._core.BitOutputArchive, in_dir: str, filter: str, recursive: pybit7z._core.FilterPolicy, policy: bool) -&gt; None</p></li>
+<li><p>add_files(self: pybit7z._core.BitOutputArchive, in_dir: str, filter: str = ‘*’, policy: pybit7z._core.FilterPolicy = FilterPolicy.Include, recursive: bool = True) -&gt; None</p></li>
 </ol>
 <p>Adds all the files inside the given directory path that match the given wildcard filter, with the specified filter policy.</p>
 <dl class="field-list simple">
@@ -1775,7 +1836,7 @@ Generally, archives may contain multiple items with the same paths. If this is t
 <li><p><strong>in_dir</strong> – the directory where to search for files to be added to the output archive.</p></li>
 <li><p><strong>filter</strong> – (optional) the wildcard filter to be used for searching the files.</p></li>
 <li><p><strong>recursive</strong> – (optional) recursively search the files in the given directory and all of its subdirectories.</p></li>
-<li><p><strong>policy</strong> – (optional) the filtering policy to be applied to the matched items.</p></li>
+<li><p><strong>policy</strong> – (optional) the filtering policy to be applied to the matched items. Default is FilterPolicy.Include.</p></li>
 </ul>
 </dd>
 </dl>
@@ -1820,7 +1881,7 @@ Generally, archives may contain multiple items with the same paths. If this is t
 </dl>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>If this object was created by passing an input archive file path, and this latter is the same as the outFile path parameter, the file will be updated.</p>
+<p>If this object was created by passing an input archive file path, and this latter is the same as the out_file path parameter, the file will be updated.</p>
 </div>
 <ol class="arabic simple" start="2">
 <li><p>compress_to(self: pybit7z._core.BitOutputArchive) -&gt; bytes</p></li>
@@ -2690,20 +2751,43 @@ Generally, archives may contain multiple items with the same paths. If this is t
 <dl class="py method">
 <dt class="sig sig-object py" id="pybit7z._core.BitStringExtractor.extract_items">
 <span class="sig-name descname"><span class="pre">extract_items</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z._core.BitStringExtractor" title="pybit7z._core.BitStringExtractor"><span class="pre">pybit7z._core.BitStringExtractor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_archive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">indices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#pybit7z._core.BitStringExtractor.extract_items" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Extracts the specified items from the given archive to the chosen directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>in_archive</strong> – the input archive to extract from.</p></li>
+<li><p><strong>indices</strong> – the indices of the files in the archive that should be extracted.</p></li>
+<li><p><strong>out_dir</strong> – the output directory where the extracted files will be placed.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pybit7z._core.BitStringExtractor.extract_matching">
 <span class="sig-name descname"><span class="pre">extract_matching</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pybit7z._core.BitStringExtractor.extract_matching" title="Link to this definition">¶</a></dt>
 <dd><p>Overloaded function.</p>
 <ol class="arabic simple">
-<li><p>extract_matching(self: pybit7z._core.BitStringExtractor, in_archive: str, pattern: str, out_dir: str, filter_policy: pybit7z._core.FilterPolicy) -&gt; None</p></li>
+<li><p>extract_matching(self: pybit7z._core.BitStringExtractor, in_archive: str, pattern: str, out_dir: str = ‘’, policy: pybit7z._core.FilterPolicy = FilterPolicy.Include) -&gt; None</p></li>
 </ol>
-<p>Extracts the files in the archive that match the given wildcard pattern to the chosen directory.</p>
+<p>Extracts the files in the archive that match the given wildcard pattern to the chosen directory.
+:param in_archive: the input archive to be extracted.
+:param pattern: the wildcard pattern to be used for matching the files.
+:param out_dir: the directory where to extract the matching files.
+:param policy: the filtering policy to be applied to the matched items. Default is FilterPolicy.Include.</p>
 <ol class="arabic simple" start="2">
-<li><p>extract_matching(self: pybit7z._core.BitStringExtractor, in_archive: str, pattern: str, filter_policy: pybit7z._core.FilterPolicy) -&gt; bytes</p></li>
+<li><p>extract_matching(self: pybit7z._core.BitStringExtractor, in_archive: str, pattern: str, policy: pybit7z._core.FilterPolicy = FilterPolicy.Include) -&gt; bytes</p></li>
 </ol>
 <p>Extracts to the output buffer the first file in the archive matching the given wildcard pattern.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>in_archive</strong> – the input archive to extract from.</p></li>
+<li><p><strong>pattern</strong> – the wildcard pattern to be used for matching the files.</p></li>
+<li><p><strong>policy</strong> – the filtering policy to be applied to the matched items. Default is FilterPolicy.Include.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -2711,13 +2795,32 @@ Generally, archives may contain multiple items with the same paths. If this is t
 <span class="sig-name descname"><span class="pre">extract_matching_regex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pybit7z._core.BitStringExtractor.extract_matching_regex" title="Link to this definition">¶</a></dt>
 <dd><p>Overloaded function.</p>
 <ol class="arabic simple">
-<li><p>extract_matching_regex(self: pybit7z._core.BitStringExtractor, in_archive: str, regex: str, out_dir: str, filter_policy: pybit7z._core.FilterPolicy) -&gt; None</p></li>
+<li><p>extract_matching_regex(self: pybit7z._core.BitStringExtractor, in_archive: str, regex: str, out_dir: str, policy: pybit7z._core.FilterPolicy = FilterPolicy.Include) -&gt; None</p></li>
 </ol>
 <p>Extracts the files in the archive that match the given regex pattern to the chosen directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>in_archive</strong> – the input archive to extract from.</p></li>
+<li><p><strong>regex</strong> – the regex pattern to be used for matching the files.</p></li>
+<li><p><strong>out_dir</strong> – the output directory where the extracted files will be placed.</p></li>
+<li><p><strong>policy</strong> – the filtering policy to be applied to the matched items. Default is FilterPolicy.Include.</p></li>
+</ul>
+</dd>
+</dl>
 <ol class="arabic simple" start="2">
-<li><p>extract_matching_regex(self: pybit7z._core.BitStringExtractor, in_archive: str, regex: str, filter_policy: pybit7z._core.FilterPolicy) -&gt; bytes</p></li>
+<li><p>extract_matching_regex(self: pybit7z._core.BitStringExtractor, in_archive: str, regex: str, policy: pybit7z._core.FilterPolicy = FilterPolicy.Include) -&gt; bytes</p></li>
 </ol>
 <p>Extracts to the output buffer the first file in the archive matching the given regex pattern.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>in_archive</strong> – the input archive to extract from.</p></li>
+<li><p><strong>regex</strong> – the regex pattern to be used for matching the files.</p></li>
+<li><p><strong>policy</strong> – the filtering policy to be applied to the matched items. Default is FilterPolicy.Include.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -2933,7 +3036,7 @@ Generally, archives may contain multiple items with the same paths. If this is t
 <dl class="py function">
 <dt class="sig sig-object py" id="pybit7z._core.set_lib7zip_path">
 <span class="sig-prename descclassname"><span class="pre">pybit7z._core.</span></span><span class="sig-name descname"><span class="pre">set_lib7zip_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lib7zip_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></span><a class="headerlink" href="#pybit7z._core.set_lib7zip_path" title="Link to this definition">¶</a></dt>
-<dd><p>Configure the path to the 7zip library.</p>
+<dd><p>Set the path to the 7zip library.</p>
 </dd></dl>
 
 <dl class="py function">

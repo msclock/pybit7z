@@ -306,7 +306,7 @@
 
 <span class="k">try</span><span class="p">:</span>
     <span class="c1"># Opening the archive</span>
-     <span class="n">archive</span> <span class="o">=</span> <span class="n">core</span><span class="o">.</span><span class="n">Bit7zArchiveReader</span><span class="p">(</span><span class="s2">&quot;path/to/archive.gz&quot;</span><span class="p">,</span> <span class="n">core</span><span class="o">.</span><span class="n">FormatGZip</span><span class="p">)</span>
+     <span class="n">archive</span> <span class="o">=</span> <span class="n">core</span><span class="o">.</span><span class="n">BitArchiveReader</span><span class="p">(</span><span class="s2">&quot;path/to/archive.gz&quot;</span><span class="p">,</span> <span class="n">core</span><span class="o">.</span><span class="n">FormatGZip</span><span class="p">)</span>
 
     <span class="c1"># Testing the archive</span>
     <span class="n">archive</span><span class="o">.</span><span class="n">test</span><span class="p">()</span>
@@ -359,7 +359,7 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pybit7z</span> <span class="kn">import</span> <span class="n">core</span>
 
 <span class="k">try</span><span class="p">:</span>
-    <span class="n">archive</span> <span class="o">=</span> <span class="n">core</span><span class="o">.</span><span class="n">BitArchiveWriter</span><span class="p">(</span><span class="n">core</span><span class="o">.</span><span class="n">BitFormat</span><span class="p">::</span><span class="n">SevenZip</span><span class="p">)</span>
+    <span class="n">archive</span> <span class="o">=</span> <span class="n">core</span><span class="o">.</span><span class="n">BitArchiveWriter</span><span class="p">(</span><span class="n">core</span><span class="o">.</span><span class="n">FormatSevenZip</span><span class="p">)</span>
 
     <span class="c1"># Adding the items to be compressed (no compression is performed here)</span>
     <span class="n">archive</span><span class="o">.</span><span class="n">add_file</span><span class="p">(</span><span class="s2">&quot;path/to/file.txt&quot;</span><span class="p">)</span>
