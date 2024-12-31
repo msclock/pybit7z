@@ -6,12 +6,3 @@
    :undoc-members:
    :show-inheritance:
 ```
-
-## Submodules
-
-```{eval-rst}
-.. automodule:: pybit7z._core
-   :members:
-   :undoc-members:
-   :show-inheritance:
-```

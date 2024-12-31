@@ -40,10 +40,10 @@ pip install pybit7z
 ### Extract Files from an Archive
 
 ```python
-from pybit7z import core
+import pybit7z
 
 try:
-    extractor = core.BitFileExtractor(core.FormatSevenZip)
+    extractor = pybit7z.BitFileExtractor(pybit7z.FormatSevenZip)
     extractor.extract("path/to/archive.7z", "out/dir/")
 
     # Extracting a specific file inside an archive
@@ -55,35 +55,35 @@ try:
     # Extracting an encrypted archive
     extractor.set_password("password")
     extractor.extract("path/to/another/archive.7z", "out/dir/")
-except core.BitException as e:
+except pybit7z.BitException as e:
     ... # handle the exception
 ```
 
 Work on a single archive:
 
 ```python
-from pybit7z import core
+import pybit7z
 
 try:
     # Opening the archive
-     archive = core.BitArchiveReader("path/to/archive.gz", core.FormatGZip)
+     archive = pybit7z.BitArchiveReader("path/to/archive.gz", pybit7z.FormatGZip)
 
     # Testing the archive
     archive.test()
 
     # Extracting the archive
     archive.extract_to("out/dir/")
-except core.BitException as e:
+except pybit7z.BitException as e:
     ... # handle the exception
 ```
 
 ### Compress Files into an Archive
 
 ```python
-from pybit7z import core
+import pybit7z
 
 try:
-    compressor = core.BitFileCompressor(core.FormatSevenZip)
+    compressor = pybit7z.BitFileCompressor(pybit7z.FormatSevenZip)
 
     files = ["path/to/file1.jpg", "path/to/file2.pdf"]
 
@@ -105,23 +105,23 @@ try:
     compressor.compress_files(files, "protected_archive.zip")
 
     # Updating an existing zip archive
-    compressor.set_update_mode(core.UpdateMode.Append)
+    compressor.set_update_mode(pybit7z.UpdateMode.Append)
     compressor.compress_files(files, "existing_archive.zip")
 
     # Compressing a single file into a buffer
-    compressor2 = core.BitFileCompressor(core.FormatBZip2)
+    compressor2 = pybit7z.BitFileCompressor(pybit7z.FormatBZip2)
     buffer: bytes = compressor2.compress_file(files[0])
-except core.BitException as e:
+except pybit7z.BitException as e:
     ... # handle the exception
 ```
 
 Work on a single archive:
 
 ```python
-from pybit7z import core
+import pybit7z
 
 try:
-    archive = core.BitArchiveWriter(core.FormatSevenZip)
+    archive = pybit7z.BitArchiveWriter(pybit7z.FormatSevenZip)
 
     # Adding the items to be compressed (no compression is performed here)
     archive.add_file("path/to/file.txt")
@@ -129,17 +129,17 @@ try:
 
     # Compressing the added items to the output archive
     archive.compress_to("output.7z")
-except core.BitException as e:
+except pybit7z.BitException as e:
     ... # handle the exception
 ```
 
 ### Read Archive Metadata
 
 ```python
-from pybit7z import core
+import pybit7z
 
 try:
-    arc = core.BitArchiveReader("archive.7z", core.FormatSevenZip)
+    arc = pybit7z.BitArchiveReader("archive.7z", pybit7z.FormatSevenZip)
 
     # Printing archive metadata
     print("Archive properties:",
@@ -160,7 +160,7 @@ try:
             "\n    Size: "          , item.size(),
             "\n    Packed size: "   , item.pack_size(),
             "\n    CRC: "           , item.crc())
-except core.BitException as e:
+except pybit7z.BitException as e:
     ... # handle the exception
 ```
 
