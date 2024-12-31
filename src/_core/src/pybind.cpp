@@ -3,6 +3,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/stl_bind.h>
+#include <pybind11/typing.h>
 
 #include "_core.hpp"
 #include "pybit7z.hpp"
@@ -23,15 +24,15 @@ PYBIND11_MODULE(_core, m) {
 
     m.def(
         "set_lib7zip_path",
-        [](const std::string &path = std::string()) {
+        [](const std::string &path = "") {
             if (path.empty()) {
                 return _core::default_library_path();
             }
             _core::default_library_path() = path;
             return _core::default_library_path();
         },
-        py::arg("lib7zip_path") = std::string(),
-        py::doc(R"pbdoc(Configure the path to the 7zip library.)pbdoc"));
+        py::arg("lib7zip_path") = "",
+        py::doc(R"pbdoc(Set the path to the 7zip library.)pbdoc"));
 
     m.def(
         "set_large_page_mode",
@@ -444,8 +445,10 @@ Returns:
         .def("item_property",
              &bit7z::BitArchiveItemInfo::itemProperty,
              py::doc(R"pbdoc(Gets the specified item property.
+
 Args:
     property_id (bit7z::BitProperty): The ID of the property to get.
+
 Returns:
     BitPropVariant: the value of the item property, if available, or an empty BitPropVariant.
 )pbdoc"))
@@ -517,8 +520,8 @@ Args:
     password: the password to be used.
 
 Note:
-    Calling this method when the input archive is not encrypted does not have any effect on the extraction process.
-    Calling this method when the output format doesn't support archive encryption (e.g., GZip, BZip2, etc...) does not have any effects (in other words, it doesn't throw exceptions, and it has no effects on compression operations).
+    Calling this set_password when the input archive is not encrypted does not have any effect on the extraction process.
+    Calling this set_password when the output format doesn't support archive encryption (e.g., GZip, BZip2, etc...) does not have any effects (in other words, it doesn't throw exceptions, and it has no effects on compression operations).
     After a password has been set, it will be used for every subsequent operation. To disable the use of the password, you need to call the clear_password method, which is equivalent to calling set_password(L"").)pbdoc"))
         .def("clear_password",
              &bit7z::BitAbstractArchiveHandler::clearPassword,
@@ -527,7 +530,7 @@ Note:
 Calling clear_password() will disable the encryption/decryption of archives.
 
 Note:
-    This is equivalent to calling set_password(L"").)pbdoc"))
+    This is equivalent to calling set_password("").)pbdoc"))
         .def("set_retain_directories",
              &bit7z::BitAbstractArchiveHandler::setRetainDirectories,
              py::arg("retain"),
@@ -653,7 +656,7 @@ Args:
 
 Note:
     Calling set_password when the output format doesn't support archive encryption (e.g., GZip, BZip2, etc...) does not have any effects (in other words, it doesn't throw exceptions, and it has no effects on compression operations).
-    After a password has been set, it will be used for every subsequent operation. To disable the use of the password, you need to call the clearPassword method (inherited from BitAbstractArchiveHandler), which is equivalent to set_password(L"").)pydoc"))
+    After a password has been set, it will be used for every subsequent operation. To disable the use of the password, you need to call the clearPassword method (inherited from BitAbstractArchiveHandler), which is equivalent to set_password("").)pydoc"))
         .def("set_password",
              static_cast<void (bit7z::BitAbstractArchiveCreator::*)(const std::string &, bool)>(
                  &bit7z::BitAbstractArchiveCreator::setPassword),
@@ -670,7 +673,7 @@ Args:
 Note:
     Calling set_password when the output format doesn't support archive encryption (e.g., GZip, BZip2, etc...) does not have any effects (in other words, it doesn't throw exceptions, and it has no effects on compression operations).
     Calling set_password with "cryptHeaders" set to true does not have effects on formats different from 7z.
-    After a password has been set, it will be used for every subsequent operation. To disable the use of the password, you need to call the clearPassword method (inherited from BitAbstractArchiveHandler), which is equivalent to set_password(L"").)pydoc"))
+    After a password has been set, it will be used for every subsequent operation. To disable the use of the password, you need to call the clearPassword method (inherited from BitAbstractArchiveHandler), which is equivalent to set_password("").)pydoc"))
         .def("set_compression_level",
              &bit7z::BitAbstractArchiveCreator::setCompressionLevel,
              py::arg("level"),
@@ -843,12 +846,12 @@ Args:
     index: the index of the file to be extracted.)pydoc"))
         .def(
             "extract_to",
-            [](bit7z::BitInputArchive &self) -> std::map<std::string, py::bytes> {
+            [](bit7z::BitInputArchive &self) -> py::typing::Dict<py::str, py::bytes> {
                 std::map<std::string, std::vector<bit7z::byte_t>> out_buffer;
                 self.extractTo(out_buffer);
-                std::map<std::string, py::bytes> result;
+                py::typing::Dict<py::str, py::bytes> result;
                 for (auto const &item : out_buffer) {
-                    result[item.first] =
+                    result[item.first.c_str()] =
                         py::bytes(reinterpret_cast<const char *>(item.second.data()), item.second.size());
                 }
                 return result;
@@ -921,20 +924,20 @@ Args:
              static_cast<void (bit7z::BitOutputArchive::*)(const std::string &, const std::string &)>(
                  &bit7z::BitOutputArchive::addFile),
              py::arg("in_file"),
-             py::arg("name"),
+             py::arg("name") = "",
              py::doc(
                  R"pydoc(Adds the given file path, with an optional user-defined path to be used in the output archive.
 
 Args:
-    in_file:  the path to the filesystem file to be added to the output archive.
+    in_file: the path to the filesystem file to be added to the output archive.
     name: (optional) user-defined path to be used inside the output archive.
 Note:
     If a directory path is given, a BitException is thrown.
 )pydoc"))
         .def(
             "add_file",
-            [](bit7z::BitOutputArchive &self, py::bytes input, const std::string &path) {
-                auto input_str = input.cast<std::string>();
+            [](bit7z::BitOutputArchive &self, const py::bytes &input, const std::string &path) {
+                auto input_str = input.cast<std::string_view>();
                 std::vector<bit7z::byte_t> input_bytes(input_str.begin(), input_str.end());
                 self.addFile(input_bytes, path);
             },
@@ -978,9 +981,9 @@ Note:
                 bit7z::BitOutputArchive::*)(const std::string &, const std::string &, bit7z::FilterPolicy, bool)>(
                 &bit7z::BitOutputArchive::addFiles),
             py::arg("in_dir"),
-            py::arg("filter"),
-            py::arg("recursive"),
-            py::arg("policy"),
+            py::arg("filter") = "*",
+            py::arg_v("policy", bit7z::FilterPolicy::Include, "FilterPolicy.Include"),
+            py::arg("recursive") = true,
             py::doc(
                 R"pydoc(Adds all the files inside the given directory path that match the given wildcard filter, with the specified filter policy.
 
@@ -988,13 +991,14 @@ Args:
     in_dir: the directory where to search for files to be added to the output archive.
     filter: (optional) the wildcard filter to be used for searching the files.
     recursive: (optional) recursively search the files in the given directory and all of its subdirectories.
-    policy: (optional) the filtering policy to be applied to the matched items.
+    policy: (optional) the filtering policy to be applied to the matched items. Default is FilterPolicy.Include.
 )pydoc"))
         .def("add_directory",
              &bit7z::BitOutputArchive::addDirectory,
              py::arg("in_dir"),
              py::doc(
                  R"pydoc(Adds the given directory path and all its content.
+
 Args:
     in_dir: the path of the directory to be added to the archive.)pydoc"))
         .def("add_directory_contents",
@@ -1017,9 +1021,9 @@ Args:
                  bit7z::BitOutputArchive::*)(const std::string &, const std::string &, bit7z::FilterPolicy, bool)>(
                  &bit7z::BitOutputArchive::addDirectoryContents),
              py::arg("in_dir"),
-             py::arg("filter"),
-             py::arg("recursive"),
-             py::arg("policy"),
+             py::arg("filter") = "*",
+             py::arg_v("policy", bit7z::FilterPolicy::Include, "FilterPolicy.Include"),
+             py::arg("recursive") = true,
              py::doc(
                  R"pydoc(Adds the contents of the given directory path.
 
@@ -1029,7 +1033,7 @@ Args:
     in_dir: the directory where to search for files to be added to the output archive.
     filter: the wildcard filter to be used for searching the files.
     recursive: recursively search the files in the given directory and all of its subdirectories.
-    policy: the filtering policy to be applied to the matched items.
+    policy: the filtering policy to be applied to the matched items. Default is FilterPolicy.Include.
 )pydoc"))
         .def("compress_to",
              static_cast<void (bit7z::BitOutputArchive::*)(const std::string &)>(&bit7z::BitOutputArchive::compressTo),
@@ -1040,7 +1044,7 @@ Args:
     out_file: the output archive file path.
 
 Note:
-    If this object was created by passing an input archive file path, and this latter is the same as the outFile path parameter, the file will be updated.
+    If this object was created by passing an input archive file path, and this latter is the same as the out_file path parameter, the file will be updated.
 )pydoc"))
         .def(
             "compress_to",
@@ -1056,39 +1060,38 @@ Note:
 
     // bit7z::BitArchiveReader class bindings
     py::class_<bit7z::BitArchiveReader, bit7z::BitAbstractArchiveOpener, bit7z::BitInputArchive>(m, "BitArchiveReader")
-        .def(py::init([](const std::string &in_archive,
-                         const bit7z::BitInFormat &format,
-                         const std::string &password = std::string()) {
-                 return new bit7z::BitArchiveReader(_core::Bit7zipSingleton::getInstance(),
-                                                    in_archive,
-                                                    format,
-                                                    password);
-             }),
+        .def(py::init(
+                 [](const std::string &in_archive, const bit7z::BitInFormat &format, const std::string &password = "") {
+                     return new bit7z::BitArchiveReader(_core::Bit7zipSingleton::getInstance(),
+                                                        in_archive,
+                                                        format,
+                                                        password);
+                 }),
              py::arg("in_archive"),
-             py::arg("format"),
-             py::arg("password") = std::string(),
+             py::arg_v("format", py::cast(bit7z::BitFormat::Auto, py::return_value_policy::reference), "FormatAuto"),
+             py::arg("password") = "",
              py::doc(R"pydoc(Constructs a BitArchiveReader object, opening the input file archive.
 
 Args:
     in_archive: the path to the archive to be read.
-    format: the format of the input archive.
+    format: the format of the input archive. Default is FormatAuto.
     password: the password needed for opening the input archive.)pydoc"))
-        .def(
-            py::init([](py::bytes in_archive,
-                        const bit7z::BitInFormat &format,
-                        const std::string &password = std::string()) {
-                std::string in_archive_str = py::cast<std::string>(in_archive);
-                std::vector<bit7z::byte_t> in_buffer(in_archive_str.begin(), in_archive_str.end());
-                return new bit7z::BitArchiveReader(_core::Bit7zipSingleton::getInstance(), in_buffer, format, password);
-            }),
-            py::arg("in_archive"),
-            py::arg("format"),
-            py::arg("password") = std::string(),
-            py::doc(R"pydoc(Constructs a BitArchiveReader object, opening the input memory buffer archive.
+        .def(py::init([](py::bytes in_archive, const bit7z::BitInFormat &format, const std::string &password = "") {
+                 auto in_archive_str = in_archive.cast<std::string_view>();
+                 std::vector<bit7z::byte_t> input_buffer(in_archive_str.begin(), in_archive_str.end());
+                 return new bit7z::BitArchiveReader(_core::Bit7zipSingleton::getInstance(),
+                                                    input_buffer,
+                                                    format,
+                                                    password);
+             }),
+             py::arg("in_archive"),
+             py::arg_v("format", py::cast(bit7z::BitFormat::Auto, py::return_value_policy::reference), "FormatAuto"),
+             py::arg("password") = "",
+             py::doc(R"pydoc(Constructs a BitArchiveReader object, opening the input memory buffer archive.
 
 Args:
     in_archive: the input buffer containing the archive to be read.
-    format: the format of the input archive.
+    format: the format of the input archive. Default is FormatAuto.
     password: the password needed for opening the input archive.)pydoc"))
         .def("items",
              &bit7z::BitArchiveReader::items,
@@ -1133,20 +1136,28 @@ Args:
                                                                   format);
             },
             py::arg("in_archive"),
-            py::arg("format"),
-            py::doc(R"pydoc(Checks if the given archive is header-encrypted or not.)pydoc"))
+            py::arg_v("format", py::cast(bit7z::BitFormat::Auto, py::return_value_policy::reference), "FormatAuto"),
+            py::doc(R"pydoc(Checks if the given archive is header-encrypted or not.
+
+Args:
+    in_archive: the path to the archive to be checked.
+    format: the format of the input archive. Default is FormatAuto.)pydoc"))
         .def_static(
             "is_header_encrypted",
             [](py::bytes in_archive, const bit7z::BitInFormat &format) -> bool {
-                std::string in_archive_str = py::cast<std::string>(in_archive);
-                std::vector<bit7z::byte_t> in_buffer(in_archive_str.begin(), in_archive_str.end());
+                auto in_archive_str = py::cast<std::string_view>(in_archive);
+                std::vector<bit7z::byte_t> input_buffer(in_archive_str.begin(), in_archive_str.end());
                 return bit7z::BitArchiveReader::isHeaderEncrypted(_core::Bit7zipSingleton::getInstance(),
-                                                                  in_buffer,
+                                                                  input_buffer,
                                                                   format);
             },
             py::arg("in_archive"),
-            py::arg("format"),
-            py::doc(R"pydoc(Checks if the given memory buffer archive is header-encrypted or not.)pydoc"));
+            py::arg_v("format", py::cast(bit7z::BitFormat::Auto, py::return_value_policy::reference), "FormatAuto"),
+            py::doc(R"pydoc(Checks if the given memory buffer archive is header-encrypted or not.
+
+Args:
+    in_archive: the input buffer containing the archive to be checked.
+    format: the format of the input archive. Default is FormatAuto.)pydoc"));
 
     // bit7z::BitArchiveWriter class bindings
     py::class_<bit7z::BitArchiveWriter, bit7z::BitAbstractArchiveCreator, bit7z::BitOutputArchive>(m,
@@ -1160,7 +1171,7 @@ Args:
                 R"pydoc(Constructs an empty BitArchiveWriter object that can write archives of the specified format.)pydoc"))
         .def(py::init([](const std::string &in_archive,
                          const bit7z::BitInOutFormat &format,
-                         const std::string &password = std::string()) {
+                         const std::string &password = "") {
                  return new bit7z::BitArchiveWriter(_core::Bit7zipSingleton::getInstance(),
                                                     in_archive,
                                                     format,
@@ -1168,20 +1179,20 @@ Args:
              }),
              py::arg("in_archive"),
              py::arg("format"),
-             py::arg("password") = std::string(),
+             py::arg("password") = "",
              py::doc(R"pydoc(Constructs a BitArchiveWriter object, reading the given archive file path.)pydoc"))
-        .def(
-            py::init([](py::bytes in_archive,
-                        const bit7z::BitInOutFormat &format,
-                        const std::string &password = std::string()) {
-                std::string in_archive_str = py::cast<std::string>(in_archive);
-                std::vector<bit7z::byte_t> in_buffer(in_archive_str.begin(), in_archive_str.end());
-                return new bit7z::BitArchiveWriter(_core::Bit7zipSingleton::getInstance(), in_buffer, format, password);
-            }),
-            py::arg("in_archive"),
-            py::arg("format"),
-            py::arg("password") = std::string(),
-            py::doc(R"pydoc(Constructs a BitArchiveWriter object, reading the given memory buffer archive.)pydoc"));
+        .def(py::init([](py::bytes in_archive, const bit7z::BitInOutFormat &format, const std::string &password = "") {
+                 auto in_archive_str = py::cast<std::string_view>(in_archive);
+                 std::vector<bit7z::byte_t> input_buffer(in_archive_str.begin(), in_archive_str.end());
+                 return new bit7z::BitArchiveWriter(_core::Bit7zipSingleton::getInstance(),
+                                                    input_buffer,
+                                                    format,
+                                                    password);
+             }),
+             py::arg("in_archive"),
+             py::arg("format"),
+             py::arg("password") = "",
+             py::doc(R"pydoc(Constructs a BitArchiveWriter object, reading the given memory buffer archive.)pydoc"));
 
     // BitExtractor class bindings
     using BitStringExtractInput = const std::string &;
@@ -1211,12 +1222,12 @@ Args:
             py::doc(R"pydoc(Extracts the specified item from the given archive to a memory buffer.)pydoc"))
         .def(
             "extract",
-            [](BitStringExtractor &self, const std::string &input) -> std::map<std::string, py::bytes> {
+            [](BitStringExtractor &self, const std::string &input) -> py::typing::Dict<py::str, py::bytes> {
                 std::map<std::string, std::vector<bit7z::byte_t>> out_buffer;
                 self.extract(input, out_buffer);
-                std::map<std::string, py::bytes> result;
+                py::typing::Dict<py::str, py::bytes> result;
                 for (const auto &item : out_buffer) {
-                    result[item.first] =
+                    result[item.first.c_str()] =
                         py::bytes(reinterpret_cast<const char *>(item.second.data()), item.second.size());
                 }
                 return result;
@@ -1231,58 +1242,89 @@ Args:
                                                      bit7z::FilterPolicy) const>(&BitStringExtractor::extractMatching),
             py::arg("in_archive"),
             py::arg("pattern"),
-            py::arg("out_dir"),
-            py::arg("filter_policy"),
+            py::arg("out_dir") = "",
+            py::arg_v("policy", bit7z::FilterPolicy::Include, "FilterPolicy.Include"),
             py::doc(
-                R"pydoc(Extracts the files in the archive that match the given wildcard pattern to the chosen directory.)pydoc"))
+                R"pydoc(Extracts the files in the archive that match the given wildcard pattern to the chosen directory.
+Args:
+    in_archive: the input archive to be extracted.
+    pattern: the wildcard pattern to be used for matching the files.
+    out_dir: the directory where to extract the matching files.
+    policy: the filtering policy to be applied to the matched items. Default is FilterPolicy.Include.
+)pydoc"))
         .def(
             "extract_matching",
             [](BitStringExtractor &self,
-               const std::string &input,
+               BitStringExtractInput input,
                const std::string &pattern,
-               bit7z::FilterPolicy filter_policy) -> py::bytes {
+               bit7z::FilterPolicy policy) -> py::bytes {
                 std::vector<bit7z::byte_t> out_buffer;
-                self.extractMatching(input, pattern, out_buffer, filter_policy);
+                self.extractMatching(input, pattern, out_buffer, policy);
                 return py::bytes(reinterpret_cast<const char *>(out_buffer.data()), out_buffer.size());
             },
             py::arg("in_archive"),
             py::arg("pattern"),
-            py::arg("filter_policy"),
+            py::arg_v("policy", bit7z::FilterPolicy::Include, "FilterPolicy.Include"),
             py::doc(
-                R"pydoc(Extracts to the output buffer the first file in the archive matching the given wildcard pattern.)pydoc"))
+                R"pydoc(Extracts to the output buffer the first file in the archive matching the given wildcard pattern.
+
+Args:
+    in_archive: the input archive to extract from.
+    pattern: the wildcard pattern to be used for matching the files.
+    policy: the filtering policy to be applied to the matched items. Default is FilterPolicy.Include.
+)pydoc"))
         .def("extract_items",
              &BitStringExtractor::extractItems,
              py::arg("in_archive"),
              py::arg("indices"),
-             py::arg("out_dir") = std::string())
-        .def(
-            "extract_matching_regex",
-            static_cast<void (BitStringExtractor::*)(BitStringExtractInput,
-                                                     const std::string &,
-                                                     const std::string &,
-                                                     bit7z::FilterPolicy) const>(
-                &BitStringExtractor::extractMatchingRegex),
-            py::arg("in_archive"),
-            py::arg("regex"),
-            py::arg("out_dir"),
-            py::arg("filter_policy"),
-            py::doc(
-                R"pydoc(Extracts the files in the archive that match the given regex pattern to the chosen directory.)pydoc"))
+             py::arg("out_dir") = "",
+             py::doc(R"pydoc(Extracts the specified items from the given archive to the chosen directory.
+
+Args:
+    in_archive: the input archive to extract from.
+    indices: the indices of the files in the archive that should be extracted.
+    out_dir: the output directory where the extracted files will be placed.
+)pydoc"))
+        .def("extract_matching_regex",
+             static_cast<void (BitStringExtractor::*)(BitStringExtractInput,
+                                                      const std::string &,
+                                                      const std::string &,
+                                                      bit7z::FilterPolicy) const>(
+                 &BitStringExtractor::extractMatchingRegex),
+             py::arg("in_archive"),
+             py::arg("regex"),
+             py::arg("out_dir"),
+             py::arg_v("policy", bit7z::FilterPolicy::Include, "FilterPolicy.Include"),
+             py::doc(
+                 R"pydoc(Extracts the files in the archive that match the given regex pattern to the chosen directory.
+
+Args:
+    in_archive: the input archive to extract from.
+    regex: the regex pattern to be used for matching the files.
+    out_dir: the output directory where the extracted files will be placed.
+    policy: the filtering policy to be applied to the matched items. Default is FilterPolicy.Include.
+)pydoc"))
         .def(
             "extract_matching_regex",
             [](BitStringExtractor &self,
-               const std::string &input,
+               BitStringExtractInput input,
                const std::string &regex,
-               bit7z::FilterPolicy filter_policy) -> py::bytes {
+               bit7z::FilterPolicy policy) -> py::bytes {
                 std::vector<bit7z::byte_t> out_buffer;
-                self.extractMatchingRegex(input, regex, out_buffer, filter_policy);
+                self.extractMatchingRegex(input, regex, out_buffer, policy);
                 return py::bytes(reinterpret_cast<const char *>(out_buffer.data()), out_buffer.size());
             },
             py::arg("in_archive"),
             py::arg("regex"),
-            py::arg("filter_policy"),
+            py::arg_v("policy", bit7z::FilterPolicy::Include, "FilterPolicy.Include"),
             py::doc(
-                R"pydoc(Extracts to the output buffer the first file in the archive matching the given regex pattern.)pydoc"))
+                R"pydoc(Extracts to the output buffer the first file in the archive matching the given regex pattern.
+
+Args:
+    in_archive: the input archive to extract from.
+    regex: the regex pattern to be used for matching the files.
+    policy: the filtering policy to be applied to the matched items. Default is FilterPolicy.Include.
+)pydoc"))
         .def("test",
              &BitStringExtractor::test,
              py::arg("in_archive"),
@@ -1297,26 +1339,35 @@ Args:
 
     // bit7z::BitMemExtractor class bindings
     using BitMemExtractorInput = const std::vector<bit7z::byte_t> &;
-    using BitMemExtractor = bit7z::BitExtractor<const std::vector<bit7z::byte_t> &>;
+    using BitMemExtractor = bit7z::BitExtractor<BitMemExtractorInput>;
     py::class_<BitMemExtractor, bit7z::BitAbstractArchiveOpener>(m, "BitMemExtractor")
         .def(py::init([](const bit7z::BitInFormat &format) {
                  return new BitMemExtractor(_core::Bit7zipSingleton::getInstance(), format);
              }),
              py::arg("format"),
              py::doc(R"pydoc(Constructs a BitMemExtractor object, opening the input archive.)pydoc"))
-        .def("extract",
-             static_cast<void (BitMemExtractor::*)(BitMemExtractorInput, const std::string &) const>(
-                 &BitMemExtractor::extract),
-             py::arg("in_archive"),
-             py::arg("out_dir") = std::string(),
-             py::doc(R"pydoc(Extracts the given archive to the chosen directory.)pydoc"))
         .def(
             "extract",
-            [](BitMemExtractor &self, py::bytes input, uint32_t index) -> py::bytes {
+            [](BitMemExtractor &self, const py::bytes &input, const std::string &out_dir) {
+                auto input_str = input.cast<std::string_view>();
+                std::vector<bit7z::byte_t> input_buffer(input_str.begin(), input_str.end());
+                self.extract(input_buffer, out_dir);
+            },
+            py::arg("in_archive"),
+            py::arg("out_dir"),
+            py::doc(R"pydoc(Extracts the given archive to the chosen directory.
+
+Args:
+    in_archive: the input archive to be extracted.
+    out_dir: the directory where to extract the files.
+)pydoc"))
+        .def(
+            "extract",
+            [](BitMemExtractor &self, const py::bytes &input, uint32_t index) -> py::bytes {
                 std::vector<bit7z::byte_t> out_buffer;
-                std::string input_str = py::cast<std::string>(input);
-                std::vector<bit7z::byte_t> in_buffer(input_str.begin(), input_str.end());
-                self.extract(in_buffer, out_buffer, index);
+                auto input_str = py::cast<std::string_view>(input);
+                std::vector<bit7z::byte_t> input_buffer(input_str.begin(), input_str.end());
+                self.extract(input_buffer, out_buffer, index);
                 return py::bytes(reinterpret_cast<const char *>(out_buffer.data()), out_buffer.size());
             },
             py::arg("in_archive"),
@@ -1324,14 +1375,14 @@ Args:
             py::doc(R"pydoc(Extracts the specified item from the given archive to a memory buffer.)pydoc"))
         .def(
             "extract",
-            [](BitMemExtractor &self, py::bytes input) -> std::map<std::string, py::bytes> {
+            [](BitMemExtractor &self, const py::bytes &input) -> py::typing::Dict<py::str, py::bytes> {
                 std::map<std::string, std::vector<bit7z::byte_t>> out_buffer;
-                std::string input_str = py::cast<std::string>(input);
-                std::vector<bit7z::byte_t> in_buffer(input_str.begin(), input_str.end());
-                self.extract(in_buffer, out_buffer);
-                std::map<std::string, py::bytes> result;
+                auto input_str = input.cast<std::string_view>();
+                std::vector<bit7z::byte_t> input_buffer(input_str.begin(), input_str.end());
+                self.extract(input_buffer, out_buffer);
+                py::typing::Dict<py::str, py::bytes> result;
                 for (const auto &item : out_buffer) {
-                    result[item.first] =
+                    result[item.first.c_str()] =
                         py::bytes(reinterpret_cast<const char *>(item.second.data()), item.second.size());
                 }
                 return result;
@@ -1340,68 +1391,116 @@ Args:
             py::doc(R"pydoc(Extracts all the items from the given archive to a dictionary of memory buffers.)pydoc"))
         .def(
             "extract_matching",
-            static_cast<void (
-                BitMemExtractor::*)(BitMemExtractorInput, const std::string &, const std::string &, bit7z::FilterPolicy)
-                            const>(&BitMemExtractor::extractMatching),
+            [](BitMemExtractor &self,
+               const py::bytes &input,
+               const std::string &pattern,
+               const std::string &out_dir,
+               bit7z::FilterPolicy policy) {
+                auto input_str = input.cast<std::string_view>();
+                std::vector<bit7z::byte_t> input_buffer(input_str.begin(), input_str.end());
+                self.extractMatching(input_buffer, pattern, out_dir, policy);
+            },
             py::arg("in_archive"),
             py::arg("pattern"),
-            py::arg("out_dir"),
-            py::arg("filter_policy"),
+            py::arg("out_dir") = "",
+            py::arg_v("policy", bit7z::FilterPolicy::Include, "FilterPolicy.Include"),
             py::doc(
-                R"pydoc(Extracts the files in the archive that match the given wildcard pattern to the chosen directory.)pydoc"))
+                R"pydoc(Extracts the files in the archive that match the given wildcard pattern to the chosen directory.
+
+Args:
+    in_archive: the input archive to be extracted.
+    pattern: the wildcard pattern to be used for matching the files.
+    out_dir: the directory where to extract the matching files.
+    policy: the filtering policy to be applied to the matched items. Default is FilterPolicy.Include.
+)pydoc"))
         .def(
             "extract_matching",
-            [](BitMemExtractor &self, py::bytes input, py::bytes pattern, bit7z::FilterPolicy filter_policy)
+            [](BitMemExtractor &self, const py::bytes &input, const std::string &pattern, bit7z::FilterPolicy policy)
                 -> py::bytes {
                 std::vector<bit7z::byte_t> out_buffer;
-                std::string input_str = py::cast<std::string>(input);
-                std::vector<bit7z::byte_t> in_buffer(input_str.begin(), input_str.end());
-                std::string pattern_str = py::cast<std::string>(pattern);
-                self.extractMatching(in_buffer, pattern_str, out_buffer, filter_policy);
+                auto input_str = input.cast<std::string_view>();
+                std::vector<bit7z::byte_t> input_buffer(input_str.begin(), input_str.end());
+                self.extractMatching(input_buffer, pattern, out_buffer, policy);
                 return py::bytes(reinterpret_cast<const char *>(out_buffer.data()), out_buffer.size());
             },
             py::arg("in_archive"),
             py::arg("pattern"),
-            py::arg("filter_policy"),
+            py::arg_v("policy", bit7z::FilterPolicy::Include, "FilterPolicy.Include"),
             py::doc(
-                R"pydoc(Extracts to the output buffer the first file in the archive matching the given wildcard pattern.)pydoc"))
-        .def("extract_items",
-             &BitMemExtractor::extractItems,
-             py::arg("in_archive"),
-             py::arg("indices"),
-             py::arg("out_dir") = std::string(),
-             py::doc(R"pydoc(Extracts the specified items from the given archive to the chosen directory.)pydoc"))
+                R"pydoc(Extracts to the output buffer the first file in the archive matching the given wildcard pattern.
+Args:
+    in_archive: the input archive to extract from.
+    pattern: the wildcard pattern to be used for matching the files.
+    policy: the filtering policy to be applied to the matched items. Default is FilterPolicy.Include.
+)pydoc"))
+        .def(
+            "extract_items",
+            [](BitMemExtractor &self,
+               const py::bytes &input,
+               const std::vector<uint32_t> &indices,
+               const std::string &out_dir) {
+                auto input_str = input.cast<std::string_view>();
+                std::vector<bit7z::byte_t> input_buffer(input_str.begin(), input_str.end());
+                self.extractItems(input_buffer, indices, out_dir);
+            },
+            py::arg("in_archive"),
+            py::arg("indices"),
+            py::arg("out_dir") = "",
+            py::doc(R"pydoc(Extracts the specified items from the given archive to the chosen directory.
+
+Args:
+    in_archive: the input archive to extract from.
+    indices: the indices of the files in the archive that should be extracted.
+    out_dir: the output directory where the extracted files will be placed.
+)pydoc"))
         .def(
             "extract_matching_regex",
-            static_cast<void (
-                BitMemExtractor::*)(BitMemExtractorInput, const std::string &, const std::string &, bit7z::FilterPolicy)
-                            const>(&BitMemExtractor::extractMatchingRegex),
+            [](BitMemExtractor &self,
+               const py::bytes &input,
+               const std::string &regex,
+               std::string out_dir,
+               bit7z::FilterPolicy policy) {
+                auto input_str = input.cast<std::string_view>();
+                std::vector<bit7z::byte_t> input_buffer(input_str.begin(), input_str.end());
+                self.extractMatchingRegex(input_buffer, regex, out_dir, policy);
+            },
             py::arg("in_archive"),
             py::arg("regex"),
-            py::arg("out_dir"),
-            py::arg("filter_policy"),
+            py::arg("out_dir") = "",
+            py::arg_v("policy", bit7z::FilterPolicy::Include, "FilterPolicy.Include"),
             py::doc(
-                R"pydoc(Extracts the files in the archive that match the given regex pattern to the chosen directory.)pydoc"))
+                R"pydoc(Extracts the files in the archive that match the given regex pattern to the chosen directory.
+
+Args:
+    in_archive: the input archive to extract from.
+    regex: the regex pattern to be used for matching the files.
+    out_dir: the output directory where the extracted files will be placed.
+    policy: the filtering policy to be applied to the matched items. Default is FilterPolicy.Include.
+)pydoc"))
         .def(
             "extract_matching_regex",
-            [](BitMemExtractor &self, py::bytes input, py::bytes regex, bit7z::FilterPolicy filter_policy)
+            [](BitMemExtractor &self, const py::bytes &input, const std::string &regex, bit7z::FilterPolicy policy)
                 -> py::bytes {
                 std::vector<bit7z::byte_t> out_buffer;
-                std::string input_str = py::cast<std::string>(input);
-                std::vector<bit7z::byte_t> in_buffer(input_str.begin(), input_str.end());
-                std::string regex_str = py::cast<std::string>(regex);
-                self.extractMatchingRegex(in_buffer, regex_str, out_buffer, filter_policy);
+                auto input_str = input.cast<std::string_view>();
+                std::vector<bit7z::byte_t> input_buffer(input_str.begin(), input_str.end());
+                self.extractMatchingRegex(input_buffer, regex, out_buffer, policy);
                 return py::bytes(reinterpret_cast<const char *>(out_buffer.data()), out_buffer.size());
             },
             py::arg("in_archive"),
             py::arg("regex"),
-            py::arg("filter_policy"),
+            py::arg_v("policy", bit7z::FilterPolicy::Include, "FilterPolicy.Include"),
             py::doc(
                 R"pydoc(Extracts to the output buffer the first file in the archive matching the given regex pattern.)pydoc"))
-        .def("test",
-             &BitMemExtractor::test,
-             py::arg("in_archive"),
-             py::doc(R"pydoc(Tests the given archive without extracting its content.
+        .def(
+            "test",
+            [](BitMemExtractor &self, const py::bytes &input) {
+                auto input_str = input.cast<std::string_view>();
+                std::vector<bit7z::byte_t> input_buffer(input_str.begin(), input_str.end());
+                self.test(input_buffer);
+            },
+            py::arg("in_archive"),
+            py::doc(R"pydoc(Tests the given archive without extracting its content.
 
 If the archive is not valid, a BitException is thrown!
 
@@ -1422,7 +1521,7 @@ Args:
                              const>(&BitStringCompressor::compressFile),
              py::arg("in_file"),
              py::arg("out_file"),
-             py::arg("input_name") = std::string(),
+             py::arg("input_name") = "",
              py::doc(R"pydoc(Compresses the given file to the chosen archive.
 
 Args:
@@ -1437,7 +1536,7 @@ Args:
                 return py::bytes(reinterpret_cast<const char *>(out_buffer.data()), out_buffer.size());
             },
             py::arg("in_file"),
-            py::arg("input_name") = std::string(),
+            py::arg("input_name") = "",
             py::doc(R"pydoc(Compresses the given file to a memory buffer.
 
 Args:
@@ -1541,14 +1640,17 @@ Note:
              py::doc(R"pydoc(Constructs a BitMemCompressor object, creating a new archive.)pydoc"))
         .def(
             "compress_file",
-            [](BitMemCompressor &self, py::bytes input, const std::string &out_file, const std::string &input_name) {
-                std::string input_str = py::cast<std::string>(input);
-                std::vector<bit7z::byte_t> in_buffer(input_str.begin(), input_str.end());
-                self.compressFile(in_buffer, out_file, input_name);
+            [](BitMemCompressor &self,
+               const py::bytes &input,
+               const std::string &out_file,
+               const std::string &input_name) {
+                auto input_str = input.cast<std::string_view>();
+                std::vector<bit7z::byte_t> input_buffer(input_str.begin(), input_str.end());
+                self.compressFile(input_buffer, out_file, input_name);
             },
             py::arg("input"),
             py::arg("out_file"),
-            py::arg("input_name") = std::string(),
+            py::arg("input_name") = "",
             py::doc(R"pydoc(Compresses the given memory buffer to the chosen archive.
 
 Args:
@@ -1557,15 +1659,15 @@ Args:
     input_name: (optional) the name to give to the compressed file inside the output archive.)pydoc"))
         .def(
             "compress_file",
-            [](BitMemCompressor &self, py::bytes input, const std::string &input_name) -> py::bytes {
+            [](BitMemCompressor &self, const py::bytes &input, const std::string &input_name) -> py::bytes {
                 std::vector<bit7z::byte_t> out_buffer;
-                std::string input_str = py::cast<std::string>(input);
-                std::vector<bit7z::byte_t> in_buffer(input_str.begin(), input_str.end());
-                self.compressFile(in_buffer, out_buffer, input_name);
+                auto input_str = input.cast<std::string_view>();
+                std::vector<bit7z::byte_t> input_buffer(input_str.begin(), input_str.end());
+                self.compressFile(input_buffer, out_buffer, input_name);
                 return py::bytes(reinterpret_cast<const char *>(out_buffer.data()), out_buffer.size());
             },
             py::arg("input"),
-            py::arg("input_name") = std::string(),
+            py::arg("input_name") = "",
             py::doc(R"pydoc(Compresses the given memory buffer to a memory buffer.
 
 Args:
@@ -1583,7 +1685,7 @@ Args:
                  }),
              py::arg("in_archive"),
              py::arg("format"),
-             py::arg("password") = std::string(),
+             py::arg("password") = "",
              py::doc(R"pydoc(Constructs a BitArchiveEditor object, reading the given archive file path.)pydoc"))
         .def("set_update_mode",
              &bit7z::BitArchiveEditor::setUpdateMode,
@@ -1629,19 +1731,19 @@ Args:
     in_file: the path of the file to be used for the update.)pydoc"))
         .def(
             "update_item",
-            [](bit7z::BitArchiveEditor &self, uint32_t index, py::bytes input) {
-                std::string input_str = py::cast<std::string>(input);
-                std::vector<bit7z::byte_t> in_buffer(input_str.begin(), input_str.end());
-                self.updateItem(index, in_buffer);
+            [](bit7z::BitArchiveEditor &self, uint32_t index, const py::bytes &input) {
+                auto input_str = input.cast<std::string_view>();
+                std::vector<bit7z::byte_t> input_buffer(input_str.begin(), input_str.end());
+                self.updateItem(index, input_buffer);
             },
             py::arg("index"),
-            py::arg("in_buffer"),
+            py::arg("input_buffer"),
             py::doc(
                 R"pydoc(Requests to update the content of the item at the specified index with the data from the given buffer.
 
 Args:
     index: the index of the item to be updated.
-    in_buffer: the buffer containing the new data for the item.)pydoc"))
+    input_buffer: the buffer containing the new data for the item.)pydoc"))
         .def(
             "update_item",
             static_cast<void (bit7z::BitArchiveEditor::*)(const std::string &, const std::string &)>(
@@ -1656,29 +1758,29 @@ Args:
     in_file: the path of the file to be used for the update.)pydoc"))
         .def(
             "update_item",
-            [](bit7z::BitArchiveEditor &self, const std::string &item_path, py::bytes input) {
-                std::string input_str = py::cast<std::string>(input);
-                std::vector<bit7z::byte_t> in_buffer(input_str.begin(), input_str.end());
-                self.updateItem(item_path, in_buffer);
+            [](bit7z::BitArchiveEditor &self, const std::string &item_path, const py::bytes &input) {
+                auto input_str = input.cast<std::string_view>();
+                std::vector<bit7z::byte_t> input_buffer(input_str.begin(), input_str.end());
+                self.updateItem(item_path, input_buffer);
             },
             py::arg("item_path"),
-            py::arg("in_buffer"),
+            py::arg("input_buffer"),
             py::doc(
                 R"pydoc(Requests to update the content of the item at the specified path with the data from the given buffer.
 
 Args:
     item_path: the path of the item to be updated.
-    in_buffer: the buffer containing the new data for the item.)pydoc"))
+    input_buffer: the buffer containing the new data for the item.)pydoc"))
         .def("delete_item",
              static_cast<void (bit7z::BitArchiveEditor::*)(uint32_t, bit7z::DeletePolicy)>(
                  &bit7z::BitArchiveEditor::deleteItem),
              py::arg("index"),
-             py::arg("policy"),
+             py::arg_v("policy", bit7z::DeletePolicy::ItemOnly, "DeletePolicy.ItemOnly"),
              py::doc(R"pydoc(Marks as deleted the item at the given index.
 
 Args:
     index: the index of the item to be deleted.
-    policy: the policy to be used when deleting items.
+    policy: the policy to be used when deleting items. Default to DeletePolicy.ItemOnly.
 
 Exceptions:
     BitException if the index is invalid.
@@ -1689,12 +1791,12 @@ Note:
              static_cast<void (bit7z::BitArchiveEditor::*)(const std::string &, bit7z::DeletePolicy)>(
                  &bit7z::BitArchiveEditor::deleteItem),
              py::arg("item_path"),
-             py::arg("policy"),
+             py::arg_v("policy", bit7z::DeletePolicy::ItemOnly, "DeletePolicy.ItemOnly"),
              py::doc(R"pydoc(Marks as deleted the archive's item(s) with the specified path.
 
 Args:
     item_path: the path (in the archive) of the item to be deleted.
-    policy: the policy to be used when deleting items.
+    policy: the policy to be used when deleting items. Default to DeletePolicy.ItemOnly.
 
 Exceptions:
     BitException if the specified path is empty or invalid, or if no matching item could be found.
