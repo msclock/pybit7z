@@ -800,8 +800,9 @@ Returns:
              py::doc(R"pydoc(the path to the archive (the empty string for buffer/stream archives).)pydoc"))
         .def(
             "use_format_property",
-            static_cast<void (bit7z::BitInputArchive::*)(const wchar_t *, const bit7z::BitPropVariant &) const>(
-                &bit7z::BitInputArchive::useFormatProperty),
+            [](bit7z::BitInputArchive &self, const std::wstring &name, const bit7z::BitPropVariant &property) {
+                self.useFormatProperty(name.c_str(), property);
+            },
             py::arg("name"),
             py::arg("property"),
             py::doc(
