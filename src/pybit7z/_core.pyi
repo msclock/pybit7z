@@ -226,8 +226,9 @@ __all__ = [
     "Warning",
     "WarningFlags",
     "ZerosTailIsAllowed",
+    "lib7zip_path",
+    "platform_lib7zip_name",
     "set_large_page_mode",
-    "set_lib7zip_path",
     "version",
 ]
 
@@ -2173,14 +2174,19 @@ class UpdateMode:
     @property
     def value(self) -> int: ...
 
+def lib7zip_path(path: str = "") -> str:
+    """
+    The path to the 7zip library.
+    """
+
+def platform_lib7zip_name() -> str:
+    """
+    lib7zip library name for current platform.
+    """
+
 def set_large_page_mode() -> None:
     """
     Enable large page mode for 7zip library. This can improve performance on some systems.
-    """
-
-def set_lib7zip_path(lib7zip_path: str = "") -> str:
-    """
-    Set the path to the 7zip library.
     """
 
 def version() -> str:

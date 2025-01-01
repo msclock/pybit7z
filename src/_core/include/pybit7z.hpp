@@ -4,7 +4,9 @@
 
 namespace _core {
 
-std::string& default_library_path();
+const char* platform_lib7zip_name();
+
+std::string& lib7zipPath();
 
 class Bit7zipSingleton {
 public:

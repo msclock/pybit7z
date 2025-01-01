@@ -22,17 +22,21 @@ PYBIND11_MODULE(_core, m) {
         The _core plugin version.
     )pbdoc");
 
+    m.def("platform_lib7zip_name",
+          _core::platform_lib7zip_name,
+          R"pbdoc(lib7zip library name for current platform.)pbdoc");
+
     m.def(
-        "set_lib7zip_path",
+        "lib7zip_path",
         [](const std::string &path = "") {
             if (path.empty()) {
-                return _core::default_library_path();
+                return _core::lib7zipPath();
             }
-            _core::default_library_path() = path;
-            return _core::default_library_path();
+            _core::lib7zipPath() = path;
+            return _core::lib7zipPath();
         },
-        py::arg("lib7zip_path") = "",
-        py::doc(R"pbdoc(Set the path to the 7zip library.)pbdoc"));
+        py::arg("path") = "",
+        py::doc(R"pbdoc(The path to the 7zip library.)pbdoc"));
 
     m.def(
         "set_large_page_mode",

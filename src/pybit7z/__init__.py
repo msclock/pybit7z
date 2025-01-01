@@ -6,6 +6,7 @@ pybit7z: A wrapper based on bit7z.
 
 from __future__ import annotations
 
+import os
 import pathlib
 
 from importlib_metadata import distribution
@@ -98,8 +99,9 @@ from pybit7z._core import (
     FormatZip,
     OverwriteMode,
     UpdateMode,
+    lib7zip_path,
+    platform_lib7zip_name,
     set_large_page_mode,
-    set_lib7zip_path,
 )
 
 from ._version import version as __version__
@@ -195,10 +197,20 @@ __all__ = [
     "__version__",
 ]
 
-if not pathlib.Path(set_lib7zip_path()).exists():
-    lib7zip_path = (
-        distribution(__package__).locate_file(__package__) / set_lib7zip_path()
-    )
-    if lib7zip_path.exists():
-        set_lib7zip_path(str(lib7zip_path))
+
+def _load_7zip() -> None:
+    if os.environ.get("PYBIT7Z_LIB7ZIP_PATH", None):
+        lib_path = os.environ["PYBIT7Z_LIB7ZIP_PATH"]
+    else:
+        lib_path = str(
+            distribution(__package__).locate_file(__package__) / platform_lib7zip_name()
+        )
+
+    if pathlib.Path(lib_path).exists():
+        lib7zip_path(lib_path)
         set_large_page_mode()
+    else:
+        raise FileNotFoundError("lib7zip not found at " + lib_path)
+
+
+_load_7zip()
