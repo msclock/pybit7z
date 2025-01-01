@@ -2,24 +2,33 @@
 
 namespace _core {
 
-std::string& default_library_path() {
+const char* platform_lib7zip_name() {
 #ifdef WIN32
 #if defined(_MSC_VER)
-    constexpr auto default_lib7zip = "7zip.dll";
+    constexpr auto lib7zip_name = "7zip.dll";
 #else
-    constexpr auto default_lib7zip = "lib7zip.dll";
+    constexpr auto lib7zip_name = "lib7zip.dll";
 #endif
 #elif __APPLE__
-    constexpr auto default_lib7zip = "lib7zip.dylib";
+    constexpr auto lib7zip_name = "lib7zip.dylib";
 #else
-    constexpr auto default_lib7zip = "lib7zip.so";
+    constexpr auto lib7zip_name = "lib7zip.so";
 #endif
-    static std::string default_path(default_lib7zip);
-    return default_path;
+    return lib7zip_name;
+}
+
+std::string& lib7zipPath() {
+    static std::string lib7zip_path;
+    return lib7zip_path;
 }
 
 const bit7z::Bit7zLibrary& Bit7zipSingleton::getInstance() {
-    static const bit7z::Bit7zLibrary instance(default_library_path());
+    static const bit7z::Bit7zLibrary instance([]() {
+        if (lib7zipPath().empty()) {
+            return platform_lib7zip_name();
+        }
+        return lib7zipPath().c_str();
+    }());
     return instance;
 }
 
