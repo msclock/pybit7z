@@ -61,14 +61,14 @@ install(
   RUNTIME_DEPENDENCY_SET
   plugins_runtime
   DESTINATION
-  ${SKBUILD_PROJECT_NAME}
+  ${CMAKE_PROJECT_NAME}
   COMPONENT
   Runtime)
 
-install(TARGETS ${target_name} DESTINATION ${SKBUILD_PROJECT_NAME})
+install(TARGETS ${target_name} DESTINATION ${CMAKE_PROJECT_NAME})
 
 install_dependency(TARGETS ${target_name} DEPENDS_DESTINATION
-                   ${SKBUILD_PROJECT_NAME})
+                   ${CMAKE_PROJECT_NAME})
 
 if(BUILD_TESTING)
   add_test_subdirectory(tests)
