@@ -1,19 +1,11 @@
 cmake_minimum_required(VERSION 3.25)
 message(STATUS "CMAKE VERSION:${CMAKE_VERSION}")
 
-if(NOT DEFINED SKBUILD_PROJECT_NAME)
-  set(SKBUILD_PROJECT_NAME _core)
-  set(SKBUILD_PROJECT_VERSION 0.0.0)
-endif()
-
-message(
-  STATUS
-    "Building CMake project ${SKBUILD_PROJECT_NAME} ${SKBUILD_PROJECT_VERSION}")
-
 project(
-  ${SKBUILD_PROJECT_NAME}
-  VERSION ${SKBUILD_PROJECT_VERSION}
-  LANGUAGES C CXX)
+  pybit7z
+  LANGUAGES C CXX
+  HOMEPAGE_URL "https://github.com/msclock/pybit7z"
+  DESCRIPTION "A wrapper based on bit7z.")
 
 # Project default module
 find_package(cmake-modules REQUIRED)
