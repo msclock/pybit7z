@@ -1,23 +1,27 @@
 from __future__ import annotations
 
-import importlib
-import os
-import sys
-
 import pytest
 
-
-@pytest.fixture(autouse=True)
-def clean_import_cache():
-    for module in list(sys.modules.keys()):
-        if module.startswith("pybit7z"):
-            del sys.modules[module]
+import pybit7z
 
 
 def test_custom_dummy():
-    os.environ["PYBIT7Z_LIB7ZIP_PATH"] = "/path/to/custom/lib7zip.so"
+    dummy = "/path/to/custom/lib7zip.so"
     with pytest.raises(
         FileNotFoundError,
-        match=f"lib7zip not found at {os.environ['PYBIT7Z_LIB7ZIP_PATH']}",
-    ):
-        import pybit7z
+        match=f"lib7zip not found at {dummy}",
+    ), pybit7z.lib7zip_context(dummy):
+        pass
+
+
+def test_invalid_path():
+    with pytest.raises(
+        pybit7z.BitException,
+        match="Failed to load the 7-zip library: ",
+    ), pybit7z.lib7zip_context(__file__):
+        pass
+
+
+def test_custom_lib7zip():
+    with pybit7z.lib7zip_context(pybit7z.default_lib7zip()):
+        pass

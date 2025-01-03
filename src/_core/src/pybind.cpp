@@ -26,22 +26,17 @@ PYBIND11_MODULE(_core, m) {
           _core::platform_lib7zip_name,
           R"pbdoc(lib7zip library name for current platform.)pbdoc");
 
-    m.def(
-        "lib7zip_path",
-        [](const std::string &path = "") {
-            if (path.empty()) {
-                return _core::lib7zipPath();
-            }
-            _core::lib7zipPath() = path;
-            return _core::lib7zipPath();
-        },
-        py::arg("path") = "",
-        py::doc(R"pbdoc(The path to the 7zip library.)pbdoc"));
-
-    m.def(
-        "set_large_page_mode",
-        []() { const_cast<bit7z::Bit7zLibrary &>(_core::Bit7zipSingleton::getInstance()).setLargePageMode(); },
-        py::doc(R"pbdoc(Enable large page mode for 7zip library. This can improve performance on some systems.)pbdoc"));
+    // bit7z::Bit7zLibrary class bindings
+    py::class_<bit7z::Bit7zLibrary>(
+        m,
+        "Bit7zLibrary",
+        R"pbdoc(The Bit7zLibrary class allows accessing the basic functionalities provided by the 7z DLLs.)pbdoc")
+        .def(py::init<const std::string &>(), py::arg("lib_path") = "")
+        .def(
+            "set_large_page_mode",
+            &bit7z::Bit7zLibrary::setLargePageMode,
+            py::doc(
+                R"pbdoc(Enable large page mode for 7zip library. This can improve performance on some systems.)pbdoc"));
 
     // Exception handling
     py::register_exception<bit7z::BitException>(m, "BitException");
@@ -1064,36 +1059,41 @@ Note:
 
     // bit7z::BitArchiveReader class bindings
     py::class_<bit7z::BitArchiveReader, bit7z::BitAbstractArchiveOpener, bit7z::BitInputArchive>(m, "BitArchiveReader")
-        .def(py::init(
-                 [](const std::string &in_archive, const bit7z::BitInFormat &format, const std::string &password = "") {
-                     return new bit7z::BitArchiveReader(_core::Bit7zipSingleton::getInstance(),
-                                                        in_archive,
-                                                        format,
-                                                        password);
-                 }),
+        .def(py::init([](const bit7z::Bit7zLibrary &library,
+                         const std::string &in_archive,
+                         const bit7z::BitInFormat &format,
+                         const std::string &password = "") {
+                 return new bit7z::BitArchiveReader(library, in_archive, format, password);
+             }),
+             py::arg("library"),
              py::arg("in_archive"),
              py::arg_v("format", py::cast(bit7z::BitFormat::Auto, py::return_value_policy::reference), "FormatAuto"),
              py::arg("password") = "",
+             py::keep_alive<1, 2>(),
              py::doc(R"pydoc(Constructs a BitArchiveReader object, opening the input file archive.
 
 Args:
+    library: the library used for decompression.
     in_archive: the path to the archive to be read.
     format: the format of the input archive. Default is FormatAuto.
     password: the password needed for opening the input archive.)pydoc"))
-        .def(py::init([](py::bytes in_archive, const bit7z::BitInFormat &format, const std::string &password = "") {
+        .def(py::init([](const bit7z::Bit7zLibrary &library,
+                         py::bytes in_archive,
+                         const bit7z::BitInFormat &format,
+                         const std::string &password = "") {
                  auto in_archive_str = in_archive.cast<std::string_view>();
                  std::vector<bit7z::byte_t> input_buffer(in_archive_str.begin(), in_archive_str.end());
-                 return new bit7z::BitArchiveReader(_core::Bit7zipSingleton::getInstance(),
-                                                    input_buffer,
-                                                    format,
-                                                    password);
+                 return new bit7z::BitArchiveReader(library, input_buffer, format, password);
              }),
+             py::arg("library"),
              py::arg("in_archive"),
              py::arg_v("format", py::cast(bit7z::BitFormat::Auto, py::return_value_policy::reference), "FormatAuto"),
              py::arg("password") = "",
+             py::keep_alive<1, 2>(),
              py::doc(R"pydoc(Constructs a BitArchiveReader object, opening the input memory buffer archive.
 
 Args:
+    library: the library used for decompression.
     in_archive: the input buffer containing the archive to be read.
     format: the format of the input archive. Default is FormatAuto.
     password: the password needed for opening the input archive.)pydoc"))
@@ -1134,32 +1134,31 @@ Args:
              py::doc(R"pydoc(true if and only if the archive was created using solid compression.)pydoc"))
         .def_static(
             "is_header_encrypted",
-            [](const std::string &in_archive, const bit7z::BitInFormat &format) -> bool {
-                return bit7z::BitArchiveReader::isHeaderEncrypted(_core::Bit7zipSingleton::getInstance(),
-                                                                  in_archive,
-                                                                  format);
-            },
+            [](const bit7z::Bit7zLibrary &library, const std::string &in_archive, const bit7z::BitInFormat &format)
+                -> bool { return bit7z::BitArchiveReader::isHeaderEncrypted(library, in_archive, format); },
+            py::arg("library"),
             py::arg("in_archive"),
             py::arg_v("format", py::cast(bit7z::BitFormat::Auto, py::return_value_policy::reference), "FormatAuto"),
             py::doc(R"pydoc(Checks if the given archive is header-encrypted or not.
 
 Args:
+    library: the library used for decompression.
     in_archive: the path to the archive to be checked.
     format: the format of the input archive. Default is FormatAuto.)pydoc"))
         .def_static(
             "is_header_encrypted",
-            [](py::bytes in_archive, const bit7z::BitInFormat &format) -> bool {
+            [](const bit7z::Bit7zLibrary &library, py::bytes in_archive, const bit7z::BitInFormat &format) -> bool {
                 auto in_archive_str = py::cast<std::string_view>(in_archive);
                 std::vector<bit7z::byte_t> input_buffer(in_archive_str.begin(), in_archive_str.end());
-                return bit7z::BitArchiveReader::isHeaderEncrypted(_core::Bit7zipSingleton::getInstance(),
-                                                                  input_buffer,
-                                                                  format);
+                return bit7z::BitArchiveReader::isHeaderEncrypted(library, input_buffer, format);
             },
+            py::arg("library"),
             py::arg("in_archive"),
             py::arg_v("format", py::cast(bit7z::BitFormat::Auto, py::return_value_policy::reference), "FormatAuto"),
             py::doc(R"pydoc(Checks if the given memory buffer archive is header-encrypted or not.
 
 Args:
+    library: the library used for decompression.
     in_archive: the input buffer containing the archive to be checked.
     format: the format of the input archive. Default is FormatAuto.)pydoc"));
 
@@ -1167,32 +1166,33 @@ Args:
     py::class_<bit7z::BitArchiveWriter, bit7z::BitAbstractArchiveCreator, bit7z::BitOutputArchive>(m,
                                                                                                    "BitArchiveWriter")
         .def(
-            py::init([](const bit7z::BitInOutFormat &format) {
-                return new bit7z::BitArchiveWriter(_core::Bit7zipSingleton::getInstance(), format);
+            py::init([](const bit7z::Bit7zLibrary &library, const bit7z::BitInOutFormat &format) {
+                return new bit7z::BitArchiveWriter(library, format);
             }),
+            py::arg("library"),
             py::arg("format"),
             py::doc(
                 R"pydoc(Constructs an empty BitArchiveWriter object that can write archives of the specified format.)pydoc"))
-        .def(py::init([](const std::string &in_archive,
+        .def(py::init([](const bit7z::Bit7zLibrary &library,
+                         const std::string &in_archive,
                          const bit7z::BitInOutFormat &format,
                          const std::string &password = "") {
-                 return new bit7z::BitArchiveWriter(_core::Bit7zipSingleton::getInstance(),
-                                                    in_archive,
-                                                    format,
-                                                    password);
+                 return new bit7z::BitArchiveWriter(library, in_archive, format, password);
              }),
+             py::arg("library"),
              py::arg("in_archive"),
              py::arg("format"),
              py::arg("password") = "",
              py::doc(R"pydoc(Constructs a BitArchiveWriter object, reading the given archive file path.)pydoc"))
-        .def(py::init([](py::bytes in_archive, const bit7z::BitInOutFormat &format, const std::string &password = "") {
+        .def(py::init([](const bit7z::Bit7zLibrary &library,
+                         py::bytes in_archive,
+                         const bit7z::BitInOutFormat &format,
+                         const std::string &password = "") {
                  auto in_archive_str = py::cast<std::string_view>(in_archive);
                  std::vector<bit7z::byte_t> input_buffer(in_archive_str.begin(), in_archive_str.end());
-                 return new bit7z::BitArchiveWriter(_core::Bit7zipSingleton::getInstance(),
-                                                    input_buffer,
-                                                    format,
-                                                    password);
+                 return new bit7z::BitArchiveWriter(library, input_buffer, format, password);
              }),
+             py::arg("library"),
              py::arg("in_archive"),
              py::arg("format"),
              py::arg("password") = "",
@@ -1203,9 +1203,10 @@ Args:
     using BitStringExtractor = bit7z::BitExtractor<BitStringExtractInput>;
     py::class_<BitStringExtractor, bit7z::BitAbstractArchiveOpener> bitStringExtractor(m, "BitStringExtractor");
     bitStringExtractor
-        .def(py::init([](const bit7z::BitInFormat &format) {
-                 return new BitStringExtractor(_core::Bit7zipSingleton::getInstance(), format);
+        .def(py::init([](const bit7z::Bit7zLibrary &library, const bit7z::BitInFormat &format) {
+                 return new BitStringExtractor(library, format);
              }),
+             py::arg("library"),
              py::arg("format"),
              py::doc(R"pydoc(Constructs a BitStringExtractor object, opening the input archive.)pydoc"))
         .def("extract",
@@ -1345,9 +1346,10 @@ Args:
     using BitMemExtractorInput = const std::vector<bit7z::byte_t> &;
     using BitMemExtractor = bit7z::BitExtractor<BitMemExtractorInput>;
     py::class_<BitMemExtractor, bit7z::BitAbstractArchiveOpener>(m, "BitMemExtractor")
-        .def(py::init([](const bit7z::BitInFormat &format) {
-                 return new BitMemExtractor(_core::Bit7zipSingleton::getInstance(), format);
+        .def(py::init([](const bit7z::Bit7zLibrary &library, const bit7z::BitInFormat &format) {
+                 return new BitMemExtractor(library, format);
              }),
+             py::arg("library"),
              py::arg("format"),
              py::doc(R"pydoc(Constructs a BitMemExtractor object, opening the input archive.)pydoc"))
         .def(
@@ -1515,9 +1517,10 @@ Args:
     using BitStringCompressInput = const std::string &;
     using BitStringCompressor = bit7z::BitCompressor<BitStringCompressInput>;
     py::class_<BitStringCompressor, bit7z::BitAbstractArchiveCreator>(m, "BitStringCompressor", py::is_final())
-        .def(py::init([](const bit7z::BitInOutFormat &format) {
-                 return new BitStringCompressor(_core::Bit7zipSingleton::getInstance(), format);
+        .def(py::init([](const bit7z::Bit7zLibrary &library, const bit7z::BitInOutFormat &format) {
+                 return new BitStringCompressor(library, format);
              }),
+             py::arg("library"),
              py::arg("format"),
              py::doc(R"pydoc(Constructs a BitStringCompressor object, creating a new archive.)pydoc"))
         .def("compress_file",
@@ -1548,9 +1551,10 @@ Args:
     input_name: the name of the input file in the archive (optional).)pydoc"));
 
     py::class_<bit7z::BitFileCompressor, BitStringCompressor>(m, "BitFileCompressor", py::is_final())
-        .def(py::init([](const bit7z::BitInOutFormat &format) {
-                 return new bit7z::BitFileCompressor(_core::Bit7zipSingleton::getInstance(), format);
+        .def(py::init([](const bit7z::Bit7zLibrary &library, const bit7z::BitInOutFormat &format) {
+                 return new bit7z::BitFileCompressor(library, format);
              }),
+             py::arg("library"),
              py::arg("format"),
              py::doc(R"pydoc(Constructs a BitFileCompressor object, creating a new archive.)pydoc"))
         .def("compress",
@@ -1637,9 +1641,10 @@ Note:
     using BitMemCompressorInput = const std::vector<bit7z::byte_t> &;
     using BitMemCompressor = bit7z::BitCompressor<BitMemCompressorInput>;
     py::class_<BitMemCompressor, bit7z::BitAbstractArchiveCreator>(m, "BitMemCompressor")
-        .def(py::init([](const bit7z::BitInOutFormat &format) {
-                 return new BitMemCompressor(_core::Bit7zipSingleton::getInstance(), format);
+        .def(py::init([](const bit7z::Bit7zLibrary &library, const bit7z::BitInOutFormat &format) {
+                 return new BitMemCompressor(library, format);
              }),
+             py::arg("library"),
              py::arg("format"),
              py::doc(R"pydoc(Constructs a BitMemCompressor object, creating a new archive.)pydoc"))
         .def(
@@ -1680,13 +1685,13 @@ Args:
 
     // bit7z::BitArchiveEditor class bindings
     py::class_<bit7z::BitArchiveEditor, bit7z::BitArchiveWriter>(m, "BitArchiveEditor")
-        .def(py::init(
-                 [](const std::string &in_archive, const bit7z::BitInOutFormat &format, const std::string &password) {
-                     return new bit7z::BitArchiveEditor(_core::Bit7zipSingleton::getInstance(),
-                                                        in_archive,
-                                                        format,
-                                                        password);
-                 }),
+        .def(py::init([](const bit7z::Bit7zLibrary &library,
+                         const std::string &in_archive,
+                         const bit7z::BitInOutFormat &format,
+                         const std::string &password) {
+                 return new bit7z::BitArchiveEditor(library, in_archive, format, password);
+             }),
+             py::arg("library"),
              py::arg("in_archive"),
              py::arg("format"),
              py::arg("password") = "",

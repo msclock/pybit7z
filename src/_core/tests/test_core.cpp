@@ -14,7 +14,8 @@ using _core_pybit7z_test = test::utils::rc_dir_test;
 TEST_F(_core_pybit7z_test, compress) {
     using namespace bit7z;
 
-    BitFileCompressor compressor{_core::Bit7zipSingleton::getInstance(), BitFormat::Zip};
+    const auto& lib = bit7z::Bit7zLibrary(_core::platform_lib7zip_name());
+    BitFileCompressor compressor{lib, BitFormat::Zip};
 
     std::vector<std::string> files = {this->tests_dir.string() + "/test_core.cpp"};
 
@@ -40,14 +41,15 @@ TEST_F(_core_pybit7z_test, compress) {
 
     // Compressing a single file into a buffer
     std::vector<bit7z::byte_t> buffer;
-    BitFileCompressor compressor2{_core::Bit7zipSingleton::getInstance(), BitFormat::BZip2};
+    BitFileCompressor compressor2{lib, BitFormat::BZip2};
     compressor2.compressFile(files[0], buffer);
 }
 
 TEST_F(_core_pybit7z_test, archive_writer) {
     using namespace bit7z;
 
-    BitArchiveWriter archive{_core::Bit7zipSingleton::getInstance(), BitFormat::SevenZip};
+    const auto& lib = bit7z::Bit7zLibrary(_core::platform_lib7zip_name());
+    BitArchiveWriter archive{lib, BitFormat::SevenZip};
 
     // Adding the items to be compressed (no compression is performed here)
     archive.addFile(this->tests_dir.string() + "/test_core.cpp");
@@ -61,8 +63,9 @@ TEST_F(_core_pybit7z_test, archive_writer) {
 TEST_F(_core_pybit7z_test, bzip) {
     using namespace bit7z;
 
-    BitFileCompressor compressor{_core::Bit7zipSingleton::getInstance(), BitFormat::BZip2};
-    BitFileExtractor extractor{_core::Bit7zipSingleton::getInstance(), BitFormat::BZip2};
+    const auto& lib = bit7z::Bit7zLibrary(_core::platform_lib7zip_name());
+    BitFileCompressor compressor{lib, BitFormat::BZip2};
+    BitFileExtractor extractor{lib, BitFormat::BZip2};
 
     auto file = this->tests_dir / "test_core.cpp";
     std::vector<std::string> files = {file.string()};
