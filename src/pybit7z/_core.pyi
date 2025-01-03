@@ -18,6 +18,7 @@ __all__ = [
     "Attrib",
     "BZip2",
     "BigEndian",
+    "Bit7zLibrary",
     "Bit64",
     "BitAbstractArchiveCreator",
     "BitAbstractArchiveHandler",
@@ -226,11 +227,19 @@ __all__ = [
     "Warning",
     "WarningFlags",
     "ZerosTailIsAllowed",
-    "lib7zip_path",
     "platform_lib7zip_name",
-    "set_large_page_mode",
     "version",
 ]
+
+class Bit7zLibrary:
+    """
+    The Bit7zLibrary class allows accessing the basic functionalities provided by the 7z DLLs.
+    """
+    def __init__(self, lib_path: str = "") -> None: ...
+    def set_large_page_mode(self) -> None:
+        """
+        Enable large page mode for 7zip library. This can improve performance on some systems.
+        """
 
 class BitAbstractArchiveCreator(BitAbstractArchiveHandler):
     """
@@ -506,7 +515,11 @@ class BitAbstractArchiveOpener(BitAbstractArchiveHandler):
 
 class BitArchiveEditor(BitArchiveWriter):
     def __init__(
-        self, in_archive: str, format: BitInOutFormat, password: str = ""
+        self,
+        library: Bit7zLibrary,
+        in_archive: str,
+        format: BitInOutFormat,
+        password: str = "",
     ) -> None:
         """
         Constructs a BitArchiveEditor object, reading the given archive file path.
@@ -690,44 +703,60 @@ class BitArchiveItemOffset(BitArchiveItem):
 class BitArchiveReader(BitAbstractArchiveOpener, BitInputArchive):
     @staticmethod
     @typing.overload
-    def is_header_encrypted(in_archive: str, format: BitInFormat = ...) -> bool:
+    def is_header_encrypted(
+        library: Bit7zLibrary, in_archive: str, format: BitInFormat = ...
+    ) -> bool:
         """
         Checks if the given archive is header-encrypted or not.
 
         Args:
+            library: the library used for decompression.
             in_archive: the path to the archive to be checked.
             format: the format of the input archive. Default is FormatAuto.
         """
     @staticmethod
     @typing.overload
-    def is_header_encrypted(in_archive: bytes, format: BitInFormat = ...) -> bool:
+    def is_header_encrypted(
+        library: Bit7zLibrary, in_archive: bytes, format: BitInFormat = ...
+    ) -> bool:
         """
         Checks if the given memory buffer archive is header-encrypted or not.
 
         Args:
+            library: the library used for decompression.
             in_archive: the input buffer containing the archive to be checked.
             format: the format of the input archive. Default is FormatAuto.
         """
     @typing.overload
     def __init__(
-        self, in_archive: str, format: BitInFormat = ..., password: str = ""
+        self,
+        library: Bit7zLibrary,
+        in_archive: str,
+        format: BitInFormat = ...,
+        password: str = "",
     ) -> None:
         """
         Constructs a BitArchiveReader object, opening the input file archive.
 
         Args:
+            library: the library used for decompression.
             in_archive: the path to the archive to be read.
             format: the format of the input archive. Default is FormatAuto.
             password: the password needed for opening the input archive.
         """
     @typing.overload
     def __init__(
-        self, in_archive: bytes, format: BitInFormat = ..., password: str = ""
+        self,
+        library: Bit7zLibrary,
+        in_archive: bytes,
+        format: BitInFormat = ...,
+        password: str = "",
     ) -> None:
         """
         Constructs a BitArchiveReader object, opening the input memory buffer archive.
 
         Args:
+            library: the library used for decompression.
             in_archive: the input buffer containing the archive to be read.
             format: the format of the input archive. Default is FormatAuto.
             password: the password needed for opening the input archive.
@@ -779,20 +808,28 @@ class BitArchiveReader(BitAbstractArchiveOpener, BitInputArchive):
 
 class BitArchiveWriter(BitAbstractArchiveCreator, BitOutputArchive):
     @typing.overload
-    def __init__(self, format: BitInOutFormat) -> None:
+    def __init__(self, library: Bit7zLibrary, format: BitInOutFormat) -> None:
         """
         Constructs an empty BitArchiveWriter object that can write archives of the specified format.
         """
     @typing.overload
     def __init__(
-        self, in_archive: str, format: BitInOutFormat, password: str = ""
+        self,
+        library: Bit7zLibrary,
+        in_archive: str,
+        format: BitInOutFormat,
+        password: str = "",
     ) -> None:
         """
         Constructs a BitArchiveWriter object, reading the given archive file path.
         """
     @typing.overload
     def __init__(
-        self, in_archive: bytes, format: BitInOutFormat, password: str = ""
+        self,
+        library: Bit7zLibrary,
+        in_archive: bytes,
+        format: BitInOutFormat,
+        password: str = "",
     ) -> None:
         """
         Constructs a BitArchiveWriter object, reading the given memory buffer archive.
@@ -913,7 +950,7 @@ class BitException(Exception):
     pass
 
 class BitFileCompressor(BitStringCompressor):
-    def __init__(self, format: BitInOutFormat) -> None:
+    def __init__(self, library: Bit7zLibrary, format: BitInOutFormat) -> None:
         """
         Constructs a BitFileCompressor object, creating a new archive.
         """
@@ -1184,7 +1221,7 @@ class BitInputArchive:
         """
 
 class BitMemCompressor(BitAbstractArchiveCreator):
-    def __init__(self, format: BitInOutFormat) -> None:
+    def __init__(self, library: Bit7zLibrary, format: BitInOutFormat) -> None:
         """
         Constructs a BitMemCompressor object, creating a new archive.
         """
@@ -1209,7 +1246,7 @@ class BitMemCompressor(BitAbstractArchiveCreator):
         """
 
 class BitMemExtractor(BitAbstractArchiveOpener):
-    def __init__(self, format: BitInFormat) -> None:
+    def __init__(self, library: Bit7zLibrary, format: BitInFormat) -> None:
         """
         Constructs a BitMemExtractor object, opening the input archive.
         """
@@ -1875,7 +1912,7 @@ class BitProperty:
     def value(self) -> int: ...
 
 class BitStringCompressor(BitAbstractArchiveCreator):
-    def __init__(self, format: BitInOutFormat) -> None:
+    def __init__(self, library: Bit7zLibrary, format: BitInOutFormat) -> None:
         """
         Constructs a BitStringCompressor object, creating a new archive.
         """
@@ -1900,7 +1937,7 @@ class BitStringCompressor(BitAbstractArchiveCreator):
         """
 
 class BitStringExtractor(BitAbstractArchiveOpener):
-    def __init__(self, format: BitInFormat) -> None:
+    def __init__(self, library: Bit7zLibrary, format: BitInFormat) -> None:
         """
         Constructs a BitStringExtractor object, opening the input archive.
         """
@@ -2174,19 +2211,9 @@ class UpdateMode:
     @property
     def value(self) -> int: ...
 
-def lib7zip_path(path: str = "") -> str:
-    """
-    The path to the 7zip library.
-    """
-
 def platform_lib7zip_name() -> str:
     """
     lib7zip library name for current platform.
-    """
-
-def set_large_page_mode() -> None:
-    """
-    Enable large page mode for 7zip library. This can improve performance on some systems.
     """
 
 def version() -> str:

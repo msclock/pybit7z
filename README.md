@@ -43,18 +43,19 @@ pip install pybit7z
 import pybit7z
 
 try:
-    extractor = pybit7z.BitFileExtractor(pybit7z.FormatSevenZip)
-    extractor.extract("path/to/archive.7z", "out/dir/")
+    with pybit7z.lib7zip_context() as lib:
+        extractor = pybit7z.BitFileExtractor(lib, pybit7z.FormatSevenZip)
+        extractor.extract("path/to/archive.7z", "out/dir/")
 
-    # Extracting a specific file inside an archive
-    extractor.extract_matching("path/to/archive.7z", "file.pdf", "out/dir/")
+        # Extracting a specific file inside an archive
+        extractor.extract_matching("path/to/archive.7z", "file.pdf", "out/dir/")
 
-    # Extracting the first file of an archive to a buffer
-    buffer: bytes = extractor.extract("path/to/archive.7z")
+        # Extracting the first file of an archive to a buffer
+        buffer: bytes = extractor.extract("path/to/archive.7z")
 
-    # Extracting an encrypted archive
-    extractor.set_password("password")
-    extractor.extract("path/to/another/archive.7z", "out/dir/")
+        # Extracting an encrypted archive
+        extractor.set_password("password")
+        extractor.extract("path/to/another/archive.7z", "out/dir/")
 except pybit7z.BitException as e:
     ... # handle the exception
 ```
@@ -65,14 +66,15 @@ Work on a single archive:
 import pybit7z
 
 try:
-    # Opening the archive
-     archive = pybit7z.BitArchiveReader("path/to/archive.gz", pybit7z.FormatGZip)
+    with pybit7z.lib7zip_context() as lib:
+        # Opening the archive
+        archive = pybit7z.BitArchiveReader(lib, "path/to/archive.gz", pybit7z.FormatGZip)
 
-    # Testing the archive
-    archive.test()
+        # Testing the archive
+        archive.test()
 
-    # Extracting the archive
-    archive.extract_to("out/dir/")
+        # Extracting the archive
+        archive.extract_to("out/dir/")
 except pybit7z.BitException as e:
     ... # handle the exception
 ```
@@ -83,34 +85,35 @@ except pybit7z.BitException as e:
 import pybit7z
 
 try:
-    compressor = pybit7z.BitFileCompressor(pybit7z.FormatSevenZip)
+    with pybit7z.lib7zip_context() as lib:
+        compressor = pybit7z.BitFileCompressor(lib, pybit7z.FormatSevenZip)
 
-    files = ["path/to/file1.jpg", "path/to/file2.pdf"]
+        files = ["path/to/file1.jpg", "path/to/file2.pdf"]
 
-    # Creating a simple zip archive
-    compressor.compress(files, "output_archive.zip")
+        # Creating a simple zip archive
+        compressor.compress(files, "output_archive.zip")
 
-    # Creating a zip archive with a custom directory structure
-    files_map: dict[str, str] = {
-        "path/to/file1.jpg": "alias/path/file1.jpg",
-        "path/to/file2.pdf": "alias/path/file2.pdf"
-    }
-    compressor.compress(files_map, "output_archive2.zip")
+        # Creating a zip archive with a custom directory structure
+        files_map: dict[str, str] = {
+            "path/to/file1.jpg": "alias/path/file1.jpg",
+            "path/to/file2.pdf": "alias/path/file2.pdf"
+        }
+        compressor.compress(files_map, "output_archive2.zip")
 
-    # Compressing a directory
-    compressor.compress_directory("dir/path/", "dir_archive.zip")
+        # Compressing a directory
+        compressor.compress_directory("dir/path/", "dir_archive.zip")
 
-    # Creating an encrypted zip archive of two files
-    compressor.set_password("password")
-    compressor.compress_files(files, "protected_archive.zip")
+        # Creating an encrypted zip archive of two files
+        compressor.set_password("password")
+        compressor.compress_files(files, "protected_archive.zip")
 
-    # Updating an existing zip archive
-    compressor.set_update_mode(pybit7z.UpdateMode.Append)
-    compressor.compress_files(files, "existing_archive.zip")
+        # Updating an existing zip archive
+        compressor.set_update_mode(pybit7z.UpdateMode.Append)
+        compressor.compress_files(files, "existing_archive.zip")
 
-    # Compressing a single file into a buffer
-    compressor2 = pybit7z.BitFileCompressor(pybit7z.FormatBZip2)
-    buffer: bytes = compressor2.compress_file(files[0])
+        # Compressing a single file into a buffer
+        compressor2 = pybit7z.BitFileCompressor(lib, pybit7z.FormatBZip2)
+        buffer: bytes = compressor2.compress_file(files[0])
 except pybit7z.BitException as e:
     ... # handle the exception
 ```
@@ -121,14 +124,15 @@ Work on a single archive:
 import pybit7z
 
 try:
-    archive = pybit7z.BitArchiveWriter(pybit7z.FormatSevenZip)
+    with pybit7z.lib7zip_context() as lib:
+        archive = pybit7z.BitArchiveWriter(lib, pybit7z.FormatSevenZip)
 
-    # Adding the items to be compressed (no compression is performed here)
-    archive.add_file("path/to/file.txt")
-    archive.add_directory("path/to/dir/")
+        # Adding the items to be compressed (no compression is performed here)
+        archive.add_file("path/to/file.txt")
+        archive.add_directory("path/to/dir/")
 
-    # Compressing the added items to the output archive
-    archive.compress_to("output.7z")
+        # Compressing the added items to the output archive
+        archive.compress_to("output.7z")
 except pybit7z.BitException as e:
     ... # handle the exception
 ```
@@ -139,27 +143,28 @@ except pybit7z.BitException as e:
 import pybit7z
 
 try:
-    arc = pybit7z.BitArchiveReader("archive.7z", pybit7z.FormatSevenZip)
+    with pybit7z.lib7zip_context() as lib:
+        arc = pybit7z.BitArchiveReader(lib, "archive.7z", pybit7z.FormatSevenZip)
 
-    # Printing archive metadata
-    print("Archive properties:",
-        "\n  Items count: "   , arc.items_count()
-        "\n  Folders count: " , arc.folders_count()
-        "\n  Files count: "   , arc.files_count()
-        "\n  Size: "          , arc.size()
-        "\n  Packed size: "   , arc.pack_size())
+        # Printing archive metadata
+        print("Archive properties:",
+            "\n  Items count: "   , arc.items_count()
+            "\n  Folders count: " , arc.folders_count()
+            "\n  Files count: "   , arc.files_count()
+            "\n  Size: "          , arc.size()
+            "\n  Packed size: "   , arc.pack_size())
 
-    # Printing the metadata of the archived items
-    print("Archived items")
-    for item in arc:
-        print("    Item index: "    , item.index(),
-            "\n    Name: "          , item.name(),
-            "\n    Extension: "     , item.extension(),
-            "\n    Path: "          , item.path(),
-            "\n    IsDir: "         , item.is_dir(),
-            "\n    Size: "          , item.size(),
-            "\n    Packed size: "   , item.pack_size(),
-            "\n    CRC: "           , item.crc())
+        # Printing the metadata of the archived items
+        print("Archived items")
+        for item in arc:
+            print("    Item index: "    , item.index(),
+                "\n    Name: "          , item.name(),
+                "\n    Extension: "     , item.extension(),
+                "\n    Path: "          , item.path(),
+                "\n    IsDir: "         , item.is_dir(),
+                "\n    Size: "          , item.size(),
+                "\n    Packed size: "   , item.pack_size(),
+                "\n    CRC: "           , item.crc())
 except pybit7z.BitException as e:
     ... # handle the exception
 ```
