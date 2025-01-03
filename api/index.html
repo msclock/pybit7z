@@ -254,6 +254,19 @@
 <p>Copyright (c) 2024 l.feng. All rights reserved.</p>
 <p>pybit7z: A wrapper based on bit7z.</p>
 <dl class="py class">
+<dt class="sig sig-object py" id="pybit7z.Bit7zLibrary">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pybit7z.</span></span><span class="sig-name descname"><span class="pre">Bit7zLibrary</span></span><a class="headerlink" href="#pybit7z.Bit7zLibrary" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_object</span></code></p>
+<p>The Bit7zLibrary class allows accessing the basic functionalities provided by the 7z DLLs.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.Bit7zLibrary.set_large_page_mode">
+<span class="sig-name descname"><span class="pre">set_large_page_mode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.Bit7zLibrary" title="pybit7z._core.Bit7zLibrary"><span class="pre">pybit7z._core.Bit7zLibrary</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#pybit7z.Bit7zLibrary.set_large_page_mode" title="Link to this definition">¶</a></dt>
+<dd><p>Enable large page mode for 7zip library. This can improve performance on some systems.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="pybit7z.BitAbstractArchiveCreator">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pybit7z.</span></span><span class="sig-name descname"><span class="pre">BitAbstractArchiveCreator</span></span><a class="headerlink" href="#pybit7z.BitAbstractArchiveCreator" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pybit7z.BitAbstractArchiveHandler" title="pybit7z._core.BitAbstractArchiveHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">BitAbstractArchiveHandler</span></code></a></p>
@@ -977,24 +990,26 @@ Generally, archives may contain multiple items with the same paths. If this is t
 <em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_header_encrypted</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pybit7z.BitArchiveReader.is_header_encrypted" title="Link to this definition">¶</a></dt>
 <dd><p>Overloaded function.</p>
 <ol class="arabic simple">
-<li><p>is_header_encrypted(in_archive: str, format: pybit7z._core.BitInFormat = FormatAuto) -&gt; bool</p></li>
+<li><p>is_header_encrypted(library: pybit7z._core.Bit7zLibrary, in_archive: str, format: pybit7z._core.BitInFormat = FormatAuto) -&gt; bool</p></li>
 </ol>
 <p>Checks if the given archive is header-encrypted or not.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>library</strong> – the library used for decompression.</p></li>
 <li><p><strong>in_archive</strong> – the path to the archive to be checked.</p></li>
 <li><p><strong>format</strong> – the format of the input archive. Default is FormatAuto.</p></li>
 </ul>
 </dd>
 </dl>
 <ol class="arabic simple" start="2">
-<li><p>is_header_encrypted(in_archive: bytes, format: pybit7z._core.BitInFormat = FormatAuto) -&gt; bool</p></li>
+<li><p>is_header_encrypted(library: pybit7z._core.Bit7zLibrary, in_archive: bytes, format: pybit7z._core.BitInFormat = FormatAuto) -&gt; bool</p></li>
 </ol>
 <p>Checks if the given memory buffer archive is header-encrypted or not.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>library</strong> – the library used for decompression.</p></li>
 <li><p><strong>in_archive</strong> – the input buffer containing the archive to be checked.</p></li>
 <li><p><strong>format</strong> – the format of the input archive. Default is FormatAuto.</p></li>
 </ul>
@@ -3022,6 +3037,43 @@ Generally, archives may contain multiple items with the same paths. If this is t
 
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="pybit7z.default_lib7zip">
+<span class="sig-prename descclassname"><span class="pre">pybit7z.</span></span><span class="sig-name descname"><span class="pre">default_lib7zip</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pybit7z.html#default_lib7zip"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pybit7z.default_lib7zip" title="Link to this definition">¶</a></dt>
+<dd><p>Get the default lib7zip library path under the package directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The default lib7zip library path.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pybit7z.lib7zip_context">
+<span class="sig-prename descclassname"><span class="pre">pybit7z.</span></span><span class="sig-name descname"><span class="pre">lib7zip_context</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">larg_page_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pybit7z.html#lib7zip_context"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pybit7z.lib7zip_context" title="Link to this definition">¶</a></dt>
+<dd><p>A context manager to create a Bit7zLibrary instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – The path to the lib7zip library. If not provided, the library will be searched in the package directory.</p></li>
+<li><p><strong>larg_page_mode</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span>) – Whether to enable large page mode.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Yields<span class="colon">:</span></dt>
+<dd class="field-even"><p>A Bit7zLibrary instance.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#FileNotFoundError" title="(in Python v3.13)"><strong>FileNotFoundError</strong></a> – If the lib7zip library is not found.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Generator" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generator</span></code></a>[<a class="reference internal" href="#pybit7z.Bit7zLibrary" title="pybit7z._core.Bit7zLibrary"><code class="xref py py-class docutils literal notranslate"><span class="pre">Bit7zLibrary</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
         </article>
@@ -3075,6 +3127,10 @@ Generally, archives may contain multiple items with the same paths. If this is t
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">pybit7z package</a><ul>
+<li><a class="reference internal" href="#pybit7z.Bit7zLibrary"><code class="docutils literal notranslate"><span class="pre">Bit7zLibrary</span></code></a><ul>
+<li><a class="reference internal" href="#pybit7z.Bit7zLibrary.set_large_page_mode"><code class="docutils literal notranslate"><span class="pre">Bit7zLibrary.set_large_page_mode()</span></code></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#pybit7z.BitAbstractArchiveCreator"><code class="docutils literal notranslate"><span class="pre">BitAbstractArchiveCreator</span></code></a><ul>
 <li><a class="reference internal" href="#pybit7z.BitAbstractArchiveCreator.compression_format"><code class="docutils literal notranslate"><span class="pre">BitAbstractArchiveCreator.compression_format()</span></code></a></li>
 <li><a class="reference internal" href="#pybit7z.BitAbstractArchiveCreator.compression_method"><code class="docutils literal notranslate"><span class="pre">BitAbstractArchiveCreator.compression_method()</span></code></a></li>
@@ -3452,6 +3508,8 @@ Generally, archives may contain multiple items with the same paths. If this is t
 <li><a class="reference internal" href="#pybit7z.UpdateMode.value"><code class="docutils literal notranslate"><span class="pre">UpdateMode.value</span></code></a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#pybit7z.default_lib7zip"><code class="docutils literal notranslate"><span class="pre">default_lib7zip()</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.lib7zip_context"><code class="docutils literal notranslate"><span class="pre">lib7zip_context()</span></code></a></li>
 </ul>
 </li>
 </ul>
