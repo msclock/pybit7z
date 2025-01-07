@@ -1,5 +1,5 @@
 # Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
-_commit: v0.8.25
+_commit: v0.8.31
 _src_path: https://github.com/serious-scaffold/ss-pybind11
 author_email: msclock@126.com
 author_name: l.feng
@@ -18,6 +18,7 @@ module_name: pybit7z
 organization_name: msclock
 project_description: A wrapper based on bit7z.
 project_name: pybit7z
+repo_host: github.com
 repo_name: pybit7z
 repo_namespace: msclock
 repo_platform: github

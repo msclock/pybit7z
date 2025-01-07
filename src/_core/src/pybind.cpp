@@ -21,6 +21,7 @@ PYBIND11_MODULE(_core, m) {
     m.def("version", []() { return _core::ProjectVersion(); }, R"pbdoc(
         The _core plugin version.
     )pbdoc");
+<<<<<<< before updating
 
     m.def("platform_lib7zip_name",
           _core::platform_lib7zip_name,
@@ -1820,4 +1821,6 @@ Note:
             &bit7z::BitArchiveEditor::applyChanges,
             py::doc(
                 R"pydoc(Applies the requested changes (i.e., rename/update/delete operations) to the input archive.)pydoc"));
+=======
+>>>>>>> after updating
 }

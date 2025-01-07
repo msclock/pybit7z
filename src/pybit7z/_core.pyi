@@ -8,6 +8,7 @@ Pybind11 _core plugin
 
 from __future__ import annotations
 
+<<<<<<< before updating
 import datetime
 import typing
 
@@ -2215,11 +2216,15 @@ def platform_lib7zip_name() -> str:
     """
     lib7zip library name for current platform.
     """
+=======
+__all__ = ["version"]
+>>>>>>> after updating
 
 def version() -> str:
     """
     The _core plugin version.
     """
+<<<<<<< before updating
 
 ATime: BitProperty  # value = <BitProperty.ATime: 11>
 AltStreamsSize: BitProperty  # value = <BitProperty.AltStreamsSize: 76>
@@ -2405,3 +2410,5 @@ Warning: BitProperty  # value = <BitProperty.Warning: 73>
 WarningFlags: BitProperty  # value = <BitProperty.WarningFlags: 72>
 ZerosTailIsAllowed: BitProperty  # value = <BitProperty.ZerosTailIsAllowed: 86>
 BitFileExtractor = BitStringExtractor
+=======
+>>>>>>> after updating

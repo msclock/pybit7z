@@ -83,6 +83,11 @@ jobs:
 
       - name: Upload coverage report
         uses: codecov/codecov-action@1e68e06f1dbfde0e4cefc87efeba9e4643565303 # v5.1.2
+<<<<<<< before updating
+=======
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+>>>>>>> after updating
 
 
   check-docs:

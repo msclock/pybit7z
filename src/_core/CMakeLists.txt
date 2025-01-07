@@ -48,6 +48,7 @@ sanitize_target(${target_name})
 
 target_link_libraries(${target_name} PRIVATE ${target_name_internal})
 
+<<<<<<< before updating
 add_custom_command(
   TARGET ${target_name}
   POST_BUILD
@@ -65,11 +66,16 @@ install(
   COMPONENT
   Runtime)
 
+=======
+>>>>>>> after updating
 install(TARGETS ${target_name} DESTINATION ${CMAKE_PROJECT_NAME})
 
 install_dependency(TARGETS ${target_name} DEPENDS_DESTINATION
                    ${CMAKE_PROJECT_NAME})
+<<<<<<< before updating
 
 if(BUILD_TESTING)
   add_test_subdirectory(tests)
 endif()
+=======
+>>>>>>> after updating
