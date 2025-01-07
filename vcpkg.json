@@ -3,11 +3,7 @@
   "name": "pybit7z",
   "description": "A wrapper based on bit7z.",
   "builtin-baseline": "65be7019941e1401e02daaba0738cab2c8a4a355",
-<<<<<<< before updating
   "homepage": "https://github.com/msclock/pybit7z",
-=======
-  "homepage": "https:///msclock/pybit7z",
->>>>>>> after updating
   "dependencies": [
     "pybind11",
     {
@@ -35,11 +31,7 @@
     },
     {
       "name": "cmake-modules",
-<<<<<<< before updating
-      "version": "1.6.13"
-=======
       "version": "1.6.14"
->>>>>>> after updating
     },
     {
       "name": "robotology-cmake-ycm",
