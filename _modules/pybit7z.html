@@ -465,14 +465,15 @@
 <a class="viewcode-back" href="../api/index.html#pybit7z.lib7zip_context">[docs]</a>
 <span class="nd">@contextmanager</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">lib7zip_context</span><span class="p">(</span>
-    <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">larg_page_mode</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+    <span class="n">large_page_mode</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="n">Bit7zLibrary</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A context manager to create a Bit7zLibrary instance.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        path: The path to the lib7zip library. If not provided, the library will be searched in the package directory.</span>
-<span class="sd">        larg_page_mode: Whether to enable large page mode.</span>
+<span class="sd">        large_page_mode: Whether to enable large page mode.</span>
 
 <span class="sd">    Yields:</span>
 <span class="sd">        A Bit7zLibrary instance.</span>
@@ -484,7 +485,7 @@
 
     <span class="k">if</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">lib_path</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
         <span class="n">lib7zip</span> <span class="o">=</span> <span class="n">Bit7zLibrary</span><span class="p">(</span><span class="n">lib_path</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">larg_page_mode</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">large_page_mode</span><span class="p">:</span>
             <span class="n">lib7zip</span><span class="o">.</span><span class="n">set_large_page_mode</span><span class="p">()</span>
         <span class="k">yield</span> <span class="n">lib7zip</span>
     <span class="k">else</span><span class="p">:</span>
