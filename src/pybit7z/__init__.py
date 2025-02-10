@@ -215,14 +215,15 @@ def default_lib7zip() -> str:
 
 @contextmanager
 def lib7zip_context(
-    path: str = "", larg_page_mode: bool = True
+    path: str = "",
+    large_page_mode: bool = True,
 ) -> Generator[Bit7zLibrary, Any, None]:
     """
     A context manager to create a Bit7zLibrary instance.
 
     Args:
         path: The path to the lib7zip library. If not provided, the library will be searched in the package directory.
-        larg_page_mode: Whether to enable large page mode.
+        large_page_mode: Whether to enable large page mode.
 
     Yields:
         A Bit7zLibrary instance.
@@ -234,7 +235,7 @@ def lib7zip_context(
 
     if pathlib.Path(lib_path).exists():
         lib7zip = Bit7zLibrary(lib_path)
-        if larg_page_mode:
+        if large_page_mode:
             lib7zip.set_large_page_mode()
         yield lib7zip
     else:
