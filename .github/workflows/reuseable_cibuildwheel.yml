@@ -19,7 +19,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-24.04] # renovate: github-runner
+        os: [ubuntu-22.04]
         arch: [aarch64, ppc64le, s390x, x86_64, i686]
         build: [manylinux, musllinux]
         qemu_arch: [aarch64 ppc64le s390x armv7l]
