@@ -108,9 +108,9 @@ def test_archive_extraction(temp_dir):
     # Verify extraction
     extracted_file: Path = extract_dir / "test.txt"
     assert extracted_file.exists(), "File was not extracted"
-    assert (
-        extracted_file.read_text() == "Hello from bit7z!"
-    ), "Extracted content doesn't match"
+    assert extracted_file.read_text() == "Hello from bit7z!", (
+        "Extracted content doesn't match"
+    )
 
 
 def test_error_handling(temp_dir):
@@ -158,9 +158,9 @@ def test_large_file_handling(temp_dir, large_file):
             compressor.set_compression_level(level)
 
             compressor.compress([str(large_file)], str(level_archive))
-            assert (
-                level_archive.exists()
-            ), f"Large file archive not created for level {level}"
+            assert level_archive.exists(), (
+                f"Large file archive not created for level {level}"
+            )
 
         # Extract and verify
         for level in [
@@ -176,9 +176,9 @@ def test_large_file_handling(temp_dir, large_file):
 
             extracted_file: Path = extract_dir / large_file.name
             assert extracted_file.exists(), "Large file was not extracted"
-            assert (
-                extracted_file.stat().st_size == large_file.stat().st_size
-            ), "Extracted file size mismatch"
+            assert extracted_file.stat().st_size == large_file.stat().st_size, (
+                "Extracted file size mismatch"
+            )
 
 
 def test_multi_file_archive(temp_dir):
@@ -288,9 +288,9 @@ def test_mem_to_bytes():
         mem_extractor = pybit7z.BitMemExtractor(lib, pybit7z.FormatSevenZip)
         extracted_data = mem_extractor.extract(compressed_data)
 
-    assert (
-        extracted_data["[Content]"] == test_data
-    ), "Stream compression/extraction failed"
+    assert extracted_data["[Content]"] == test_data, (
+        "Stream compression/extraction failed"
+    )
     assert len(compressed_data) < len(test_data), "Compression did not reduce data size"
 
 
@@ -313,9 +313,9 @@ def test_different_formats(temp_dir):
             compressor.compress([str(test_file)], str(archive_path))
 
             assert archive_path.exists(), f"Archive {filename} was not created"
-            assert (
-                archive_path.suffix == format_type.extension()
-            ), f"Wrong extension for {filename}"
+            assert archive_path.suffix == format_type.extension(), (
+                f"Wrong extension for {filename}"
+            )
 
             # Test extraction
             extract_dir = temp_dir / f"extracted_{filename}"
@@ -325,6 +325,6 @@ def test_different_formats(temp_dir):
 
             extracted_file: Path = extract_dir / "test.txt"
             assert extracted_file.exists(), f"File was not extracted from {filename}"
-            assert (
-                extracted_file.read_text() == "Testing different formats"
-            ), f"Content mismatch in {filename}"
+            assert extracted_file.read_text() == "Testing different formats", (
+                f"Content mismatch in {filename}"
+            )
