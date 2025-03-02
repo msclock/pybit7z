@@ -47,7 +47,11 @@ repos:
 
   # Strong lint from ruff
   - repo: https://github.com/astral-sh/ruff-pre-commit
+<<<<<<< before updating
     rev: v0.9.5
+=======
+    rev: v0.9.4
+>>>>>>> after updating
     hooks:
       - id: ruff
         args: [--fix, --show-fixes]
