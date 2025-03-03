@@ -45,7 +45,7 @@ jobs:
           arch: ${{ matrix.arch }}
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@53851d14592bedcffcf25ea515637cff71ef929a # v3.3.0
+        uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
         if: runner.os == 'Linux' && inputs.extra && contains(matrix.qemu_arch, matrix.arch)
 
       - name: Build wheels
