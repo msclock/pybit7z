@@ -27,7 +27,11 @@ jobs:
         with:
           fetch-depth: 0
 
+<<<<<<< before updating
       - uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5
+=======
+      - uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55 # v5
+>>>>>>> after updating
         with:
           python-version: 3.x
 
@@ -60,7 +64,11 @@ jobs:
           fetch-depth: 0
 
       - name: Cache
+<<<<<<< before updating
         uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4
+=======
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
+>>>>>>> after updating
         with:
           path: |
             ~/vcpkg
@@ -69,7 +77,11 @@ jobs:
           key: codecov-${{ hashFiles('vcpkg.json') }}
           restore-keys: codecov-${{ hashFiles('vcpkg.json') }}
 
+<<<<<<< before updating
       - uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5
+=======
+      - uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55 # v5
+>>>>>>> after updating
         with:
           python-version: 3.x
 
@@ -97,7 +109,11 @@ jobs:
           fetch-depth: 0
 
       - name: Cache
+<<<<<<< before updating
         uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4
+=======
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
+>>>>>>> after updating
         with:
           path: |
             ~/vcpkg
@@ -106,7 +122,11 @@ jobs:
           key: docs-${{ hashFiles('vcpkg.json') }}
           restore-keys: docs-${{ hashFiles('vcpkg.json') }}
 
+<<<<<<< before updating
       - uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5
+=======
+      - uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55 # v5
+>>>>>>> after updating
         with:
           python-version: 3.x
 

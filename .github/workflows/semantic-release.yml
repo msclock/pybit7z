@@ -24,7 +24,11 @@ jobs:
       - name: Generate a bot token with BOT_APP_ID
         id: bot_token
         if: vars.BOT_APP_ID && env.BOT_PRIVATE_KEY != null
+<<<<<<< before updating
         uses: actions/create-github-app-token@21cfef2b496dd8ef5b904c159339626a10ad380e # v1
+=======
+        uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547 # v1
+>>>>>>> after updating
         env:
           BOT_PRIVATE_KEY: ${{ secrets.BOT_PRIVATE_KEY }}
         with:
@@ -46,7 +50,11 @@ jobs:
           token: ${{ steps.bot_token.outputs.token || secrets.PAT || secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
+<<<<<<< before updating
         uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4
+=======
+        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4
+>>>>>>> after updating
         with:
           node-version: lts/*
 

@@ -51,7 +51,8 @@
       "datasourceTemplate": "pypi",
       "fileMatch": [
         "^\\.github/workflows/.+\\.yml$",
-        "^\\.renovaterc\\.json$"
+        "^\\.renovaterc\\.json$",
+        "^pyproject\\.toml$"
       ],
       "matchStrings": [
         "pipx? install.* (?<depName>.*?)==(?<currentValue>.*?)[\\s\";]"
