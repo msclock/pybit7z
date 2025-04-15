@@ -30,13 +30,13 @@ jobs:
       id-token: write
 
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           ref: ${{ github.head_ref }}
 
       - name: Cache
-        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4
+        uses: actions/cache@v4
         with:
           path: |
             ~/vcpkg
@@ -45,7 +45,7 @@ jobs:
           key: cd-pages-${{ hashFiles('vcpkg.json') }}
           restore-keys: cd-pages-${{ hashFiles('vcpkg.json') }}
 
-      - uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5
+      - uses: actions/setup-python@v5
         with:
           python-version: 3.x
 
@@ -53,7 +53,7 @@ jobs:
         run: pipx run nox -s docs
 
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e # v4
+        uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs/_build/html

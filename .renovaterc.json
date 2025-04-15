@@ -2,7 +2,6 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended",
-    "helpers:pinGitHubActionDigests",
     ":enablePreCommit"
   ],
   "automergeType": "pr",
@@ -51,10 +50,11 @@
       "datasourceTemplate": "pypi",
       "fileMatch": [
         "^\\.github/workflows/.+\\.yml$",
-        "^\\.renovaterc\\.json$"
+        "^\\.renovaterc\\.json$",
+        "^pyproject\\.toml$"
       ],
       "matchStrings": [
-        "pipx? install.* (?<depName>.*?)==(?<currentValue>.*?)[\\s\";]"
+        "pipx? install.* (?<depName>.*?)==(?<currentValue>.*?)[\\s\";']"
       ]
     },
     {

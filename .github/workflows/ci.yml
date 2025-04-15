@@ -23,15 +23,15 @@ jobs:
   pre-commit:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5
+      - uses: actions/setup-python@v5
         with:
           python-version: 3.x
 
-      - uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
+      - uses: pre-commit/action@v3.0.1
         with:
           extra_args: --hook-stage manual --all-files
 
@@ -55,12 +55,12 @@ jobs:
     needs: [pre-commit]
 
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Cache
-        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4
+        uses: actions/cache@v4
         with:
           path: |
             ~/vcpkg
@@ -69,7 +69,7 @@ jobs:
           key: codecov-${{ hashFiles('vcpkg.json') }}
           restore-keys: codecov-${{ hashFiles('vcpkg.json') }}
 
-      - uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5
+      - uses: actions/setup-python@v5
         with:
           python-version: 3.x
 
@@ -82,7 +82,7 @@ jobs:
           --durations=20
 
       - name: Upload coverage report
-        uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574 # v5.4.0
+        uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
@@ -92,12 +92,12 @@ jobs:
     needs: [pre-commit]
 
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Cache
-        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4
+        uses: actions/cache@v4
         with:
           path: |
             ~/vcpkg
@@ -106,7 +106,7 @@ jobs:
           key: docs-${{ hashFiles('vcpkg.json') }}
           restore-keys: docs-${{ hashFiles('vcpkg.json') }}
 
-      - uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5
+      - uses: actions/setup-python@v5
         with:
           python-version: 3.x
 
