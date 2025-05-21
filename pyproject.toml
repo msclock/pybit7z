@@ -32,6 +32,9 @@ dependencies = [
   "importlib_metadata>=1.4",
 ]
 
+[project.scripts]
+pybit7z = "pybit7z.cli:main"
+
 [project.optional-dependencies]
 test = ["pytest >=6", "pytest-cov >=3"]
 dev = ["pytest >=6", "pytest-cov >=3"]
