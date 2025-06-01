@@ -83,7 +83,7 @@ test-skip = ["*-win_arm64", "*-macosx_arm64"]
 before-build = [
   'yum install zip perl-IPC-Cmd -y || apk add zip || true',
   'apt update && apt install zip pkg-config -y || true',
-  'pip install cmake==3.31.6',
+  'pip install cmake==4.0.2',
   'pip install ninja==1.11.1.4',
   'cmake --version',
   'ninja --version',
