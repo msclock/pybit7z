@@ -60,7 +60,7 @@ jobs:
           fetch-depth: 0
 
       - name: Cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/vcpkg
@@ -97,7 +97,7 @@ jobs:
           fetch-depth: 0
 
       - name: Cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/vcpkg

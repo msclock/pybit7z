@@ -52,7 +52,7 @@ jobs:
         if: >
           inputs.auto && !contains(matrix.qemu_arch, matrix.arch) ||
           inputs.extra && contains(matrix.qemu_arch, matrix.arch)
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.cache/vcpkg
