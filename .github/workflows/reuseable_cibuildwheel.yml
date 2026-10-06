@@ -68,6 +68,7 @@ jobs:
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_BUILD: '*${{ matrix.build }}*'
+          CIBW_INHERIT: 'before-all-linux: prepend'
           CIBW_BEFORE_ALL_LINUX: >
             mkdir -p ~/.cache || true &&
             mkdir -p /host/home/runner/.cache/vcpkg || true &&
