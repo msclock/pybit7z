@@ -64,15 +64,15 @@ jobs:
         if: >
           inputs.auto && !contains(matrix.qemu_arch, matrix.arch) ||
           inputs.extra && contains(matrix.qemu_arch, matrix.arch)
-        uses: pypa/cibuildwheel@v4.2
+        uses: pypa/cibuildwheel@v4.3
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_BUILD: '*${{ matrix.build }}*'
-          CIBW_INHERIT: 'before-all-linux: prepend'
           CIBW_BEFORE_ALL_LINUX: >
             mkdir -p ~/.cache || true &&
             mkdir -p /host/home/runner/.cache/vcpkg || true &&
             ln -s /host/home/runner/.cache/vcpkg ~/.cache/vcpkg || true
+          CIBW_INHERIT: 'before-all-linux: prepend'
 
       - name: Upload wheels
         if: >
