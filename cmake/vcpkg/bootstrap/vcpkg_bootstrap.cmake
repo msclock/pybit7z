@@ -75,6 +75,15 @@ function(_vcpkg_tool_bootstrap vcpkg_root)
     set(bootstrap_cmd "${vcpkg_root}/bootstrap-vcpkg.sh")
   endif()
 
+  set(bootstrap_impl "${vcpkg_root}/scripts/bootstrap.sh")
+  message(STATUS "Disable build vcpkg-test from source...")
+  file(READ "${bootstrap_impl}" file_contents)
+  string(REPLACE [[cmakeConfigOptions="-D]]
+                 [[cmakeConfigOptions="-DBUILD_TESTING=OFF -D]] file_contents
+                 "${file_contents}")
+  file(WRITE "${bootstrap_impl}" "${file_contents}")
+
+  message(STATUS "Build vcpkg from source...")
   execute_process(
     COMMAND ${bootstrap_cmd} -disableMetrics
     WORKING_DIRECTORY ${vcpkg_root}
@@ -83,7 +92,6 @@ function(_vcpkg_tool_bootstrap vcpkg_root)
   if(NOT result EQUAL "0")
     if(CMAKE_HOST_UNIX)
       message(STATUS "Retry to build vcpkg from source...")
-      set(bootstrap_impl "${vcpkg_root}/scripts/bootstrap.sh")
       file(READ "${bootstrap_impl}" file_contents)
       string(REPLACE [[elif [ "$ARCH" = "x86_64" ]; then]]
                      [[elif [ "$ARCH" = "" ]; then]] file_contents

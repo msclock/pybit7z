@@ -84,13 +84,13 @@ before-build = [
   'yum install zip perl-IPC-Cmd -y || apk add zip || true',
   'apt update && apt install zip pkg-config -y || true',
   'pip install cmake==3.31.6',
-  'pip install ninja==1.11.1.4',
+  'pip install ninja==1.13.2',
   'cmake --version',
   'ninja --version',
 ]
 
 [[tool.cibuildwheel.overrides]]
-select = "*linux_{aarch64,armv7l,ppc64le,s390x}"
+select = "*linux_{i686,x86_64,aarch64,armv7l,ppc64le,s390x}"
 environment = { VCPKG_FORCE_SYSTEM_BINARIES = "1" }
 
 [[tool.cibuildwheel.overrides]]
