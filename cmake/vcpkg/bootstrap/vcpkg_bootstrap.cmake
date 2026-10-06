@@ -87,11 +87,11 @@ function(_vcpkg_tool_bootstrap vcpkg_root)
     string(
       REPLACE
         [[cmakeConfigOptions="-D]]
-        [[sed -i 's/InternalFeatureSet separate_features{{FeatureNameCore.to_string(), feature->name}};/InternalFeatureSet separate_features{{FeatureNameCore.to_string()}};separate_features.push_back(feature->name);/g' $srcDir/src/vcpkg/commands.test-features.cpp\\n    cmakeConfigOptions="-D]]
+        [[sed -i 's/InternalFeatureSet separate_features{{FeatureNameCore.to_string(), feature->name}};/InternalFeatureSet separate_features{{FeatureNameCore.to_string()}};separate_features.push_back(feature->name);/g' $srcDir/src/vcpkg/commands.test-features.cpp
+    cmakeConfigOptions="-D]]
         file_contents
         "${file_contents}")
   endif()
-  message(STATUS "bootstrap.sh content \n${file_contents}")
   file(WRITE "${bootstrap_impl}" "${file_contents}")
 
   message(STATUS "Build vcpkg from source...")
