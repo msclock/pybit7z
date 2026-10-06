@@ -19,10 +19,10 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-24.04]
+        os: [ubuntu-latest]
         arch: [aarch64, ppc64le, s390x, x86_64, i686]
         build: [manylinux, musllinux]
-        qemu_arch: [aarch64 ppc64le s390x armv7l]
+        qemu_arch: [aarch64 ppc64le s390x armv7l riscv64]
         include:
           - {os: windows-latest, arch: AMD64, build: win}
           - {os: windows-latest, arch: x86, build: win}
@@ -64,7 +64,7 @@ jobs:
         if: >
           inputs.auto && !contains(matrix.qemu_arch, matrix.arch) ||
           inputs.extra && contains(matrix.qemu_arch, matrix.arch)
-        uses: pypa/cibuildwheel@v2.23.4
+        uses: pypa/cibuildwheel@v4.2
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_BUILD: '*${{ matrix.build }}*'
