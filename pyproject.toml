@@ -117,10 +117,6 @@ config-settings."cmake.define.CMAKE_JOB_POOLS" = "compile=4;link=1"
 select = "*-macos*"
 environment = { MACOSX_DEPLOYMENT_TARGET = "10.15" }
 
-[[tool.cibuildwheel.overrides]]
-select = ["*-musllinux_{ppc64le,s390x,riscv64}"]
-build-frontend = "pip"
-
 [tool.pytest.ini_options]
 minversion = "6.0"
 addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config"]
