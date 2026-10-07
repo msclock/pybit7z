@@ -8,7 +8,7 @@ on:
         required: true
         type: boolean
       extra:
-        description: Build wheels for aarch64 armv7l ppc64le & s390x
+        description: Build wheels for aarch64 armv7l riscv64 ppc64le & s390x
         required: true
         type: boolean
 
@@ -20,7 +20,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        arch: [aarch64, ppc64le, s390x, x86_64, i686]
+        arch: [aarch64, ppc64le, s390x, armv7l, riscv64, x86_64, i686]
         build: [manylinux, musllinux]
         qemu_arch: [aarch64 ppc64le s390x armv7l riscv64]
         include:
