@@ -102,7 +102,7 @@ before-all = [
 ]
 inherit.before-build = "append"
 before-build = [
-  'pip install cmake==3.31.6',
+  'pip install cmake==4.4.4',
   'pip install ninja==1.13.2',
   'cmake --version',
   'ninja --version',
