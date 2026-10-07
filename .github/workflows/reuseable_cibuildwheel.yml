@@ -31,7 +31,7 @@ jobs:
           - {os: macos-15, arch: arm64, build: macos}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         if: >
           inputs.auto && !contains(matrix.qemu_arch, matrix.arch) ||
           inputs.extra && contains(matrix.qemu_arch, matrix.arch)
