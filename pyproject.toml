@@ -74,27 +74,50 @@ write_to = "src/pybit7z/_version.py"
 
 [tool.cibuildwheel]
 build-verbosity = 1
-skip = "pp*"
 test-command = "pytest {project}/tests"
 test-extras = ["test"]
 test-skip = ["*-win_arm64", "*-macosx_arm64"]
+manylinux-x86_64-image = "manylinux2014"
+manylinux-i686-image = "manylinux2014"
+manylinux-aarch64-image = "manylinux2014"
+manylinux-ppc64le-image = "manylinux2014"
+manylinux-s390x-image = "manylinux2014"
+manylinux-armv7l-image = "manylinux_2_31"
+manylinux-riscv64-image = "ghcr.io/mayeut/manylinux_2_31:2026.06.16-1"
+musllinux-x86_64-image = "musllinux_1_2"
+musllinux-i686-image = "musllinux_1_2"
+musllinux-aarch64-image = "musllinux_1_2"
+musllinux-ppc64le-image = "musllinux_1_2"
+musllinux-s390x-image = "musllinux_1_2"
+musllinux-armv7l-image = "musllinux_1_2"
+musllinux-riscv64-image = "musllinux_1_2"
 
-[tool.cibuildwheel.linux]
-before-build = [
+[[tool.cibuildwheel.overrides]]
+select = "*-*linux*"
+inherit.before-all = "append"
+before-all = [
+  "manylinux-install-clang",
   'yum install zip perl-IPC-Cmd -y || apk add zip || true',
   'apt update && apt install zip pkg-config -y || true',
+]
+inherit.before-build = "append"
+before-build = [
   'pip install cmake==3.31.6',
-  'pip install ninja==1.11.1.4',
+  'pip install ninja==1.13.2',
   'cmake --version',
   'ninja --version',
 ]
-
-[[tool.cibuildwheel.overrides]]
-select = "*linux_{aarch64,armv7l,ppc64le,s390x}"
-environment = { VCPKG_FORCE_SYSTEM_BINARIES = "1" }
+inherit.environment = "append"
+environment = { VCPKG_FORCE_SYSTEM_BINARIES = "1",CC = "/opt/clang/bin/clang", CXX = "/opt/clang/bin/clang++", LDFLAGS = "-fuse-ld=lld -Wl,--build-id"}
+inherit.config-settings = "prepend"
+config-settings."cmake.define.CMAKE_LINKER_TYPE" = "LLD"
+config-settings."cmake.define.CMAKE_JOB_POOL_COMPILE" = "compile"
+config-settings."cmake.define.CMAKE_JOB_POOL_LINK" = "link"
+config-settings."cmake.define.CMAKE_JOB_POOLS" = "compile=4;link=1"
 
 [[tool.cibuildwheel.overrides]]
 select = "*-macos*"
+inherit.environment = "append"
 environment = { MACOSX_DEPLOYMENT_TARGET = "10.15" }
 
 [tool.pytest.ini_options]

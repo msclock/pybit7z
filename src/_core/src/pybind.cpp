@@ -11,7 +11,7 @@
 namespace py = pybind11;
 using namespace py::literals;
 
-PYBIND11_MODULE(_core, m) {
+PYBIND11_MODULE(_core, m, py::mod_gil_not_used()) {
     m.doc() = R"pbdoc(
       Pybind11 _core plugin
       -----------------------

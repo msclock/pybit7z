@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
   "name": "pybit7z",
   "description": "A wrapper based on bit7z.",
-  "builtin-baseline": "65be7019941e1401e02daaba0738cab2c8a4a355",
+  "builtin-baseline": "19780d9cdf84d0944cf9a318666703b89ab6629c",
   "homepage": "https://github.com/msclock/pybit7z",
   "dependencies": [
     "pybind11",
@@ -53,7 +53,7 @@
     "registries": [
       {
         "kind": "git",
-        "baseline": "5909aec4d2a472ab4c734832c7391926bce7ce18",
+        "baseline": "762a01c0f8624fdaf1e2e682dd6b91f90900945e",
         "repository": "https://github.com/msclock/cmake-registry",
         "packages": [
           "cmake-modules",

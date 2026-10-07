@@ -29,7 +29,8 @@ def pylint(session: nox.Session) -> None:
     """
     # This needs to be installed into the package environment, and is slower
     # than a pre-commit check
-    session.install(".", "pylint")
+    session.install(".", "pylint==4.0.*")
+    session.run("pylint", "--version")
     session.run("pylint", "pybit7z", *session.posargs)
 
 
