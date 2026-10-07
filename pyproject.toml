@@ -122,9 +122,6 @@ select = "*-macos*"
 inherit.environment = "append"
 environment = { MACOSX_DEPLOYMENT_TARGET = "10.15" }
 
-[tool.cibuildwheel.macos]
-archs = ["x86_64", "arm64"]
-
 [tool.pytest.ini_options]
 minversion = "6.0"
 addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config"]
