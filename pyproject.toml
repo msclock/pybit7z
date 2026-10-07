@@ -95,11 +95,13 @@ musllinux-riscv64-image = "musllinux_1_2"
 [[tool.cibuildwheel.overrides]]
 select = "*-*linux*"
 inherit.before-all = "append"
-before-all = "manylinux-install-clang"
-inherit.before-build = "append"
-before-build = [
+before-all = [
+  "manylinux-install-clang",
   'yum install zip perl-IPC-Cmd -y || apk add zip || true',
   'apt update && apt install zip pkg-config -y || true',
+]
+inherit.before-build = "append"
+before-build = [
   'pip install cmake==3.31.6',
   'pip install ninja==1.13.2',
   'cmake --version',
@@ -115,6 +117,7 @@ config-settings."cmake.define.CMAKE_JOB_POOLS" = "compile=4;link=1"
 
 [[tool.cibuildwheel.overrides]]
 select = "*-macos*"
+inherit.environment = "append"
 environment = { MACOSX_DEPLOYMENT_TARGET = "10.15" }
 
 [tool.pytest.ini_options]
