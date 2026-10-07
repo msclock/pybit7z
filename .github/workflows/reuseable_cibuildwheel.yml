@@ -8,7 +8,7 @@ on:
         required: true
         type: boolean
       extra:
-        description: Build wheels for aarch64 armv7l ppc64le & s390x
+        description: Build wheels for aarch64 armv7l riscv64 ppc64le & s390x
         required: true
         type: boolean
 
@@ -19,16 +19,16 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-22.04]
-        arch: [aarch64, ppc64le, s390x, x86_64, i686]
+        os: [ubuntu-latest]
+        arch: [aarch64, ppc64le, s390x, armv7l, riscv64, x86_64, i686]
         build: [manylinux, musllinux]
-        qemu_arch: [aarch64 ppc64le s390x armv7l]
+        qemu_arch: [aarch64 ppc64le s390x armv7l riscv64]
         include:
-          - {os: windows-2019, arch: AMD64, build: win}
-          - {os: windows-2019, arch: x86, build: win}
+          - {os: windows-latest, arch: AMD64, build: win}
+          - {os: windows-latest, arch: x86, build: win}
           - {os: windows-2022, arch: ARM64, build: win}
-          - {os: macos-13, arch: x86_64, build: macos}
-          - {os: macos-14, arch: arm64, build: macos}
+          - {os: macos-15-intel, arch: x86_64, build: macos}
+          - {os: macos-15, arch: arm64, build: macos}
 
     steps:
       - uses: actions/checkout@v4
@@ -64,7 +64,7 @@ jobs:
         if: >
           inputs.auto && !contains(matrix.qemu_arch, matrix.arch) ||
           inputs.extra && contains(matrix.qemu_arch, matrix.arch)
-        uses: pypa/cibuildwheel@v2.23.3
+        uses: pypa/cibuildwheel@v4.3
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_BUILD: '*${{ matrix.build }}*'
@@ -72,6 +72,7 @@ jobs:
             mkdir -p ~/.cache || true &&
             mkdir -p /host/home/runner/.cache/vcpkg || true &&
             ln -s /host/home/runner/.cache/vcpkg ~/.cache/vcpkg || true
+          CIBW_INHERIT: 'before-all-linux: append'
 
       - name: Upload wheels
         if: >

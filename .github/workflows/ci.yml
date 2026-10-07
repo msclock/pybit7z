@@ -36,9 +36,7 @@ jobs:
           extra_args: --hook-stage manual --all-files
 
       - name: Run PyLint
-        run: |
-          echo "::add-matcher::$GITHUB_WORKSPACE/.github/matchers/pylint.json"
-          pipx run nox -s pylint
+        run: pipx run nox -s pylint -- --output-format=github
 
 
   wheels:
