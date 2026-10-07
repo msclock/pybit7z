@@ -14,7 +14,7 @@ on:
 
 jobs:
   build_wheels:
-    name: ${{ matrix.os }}, ${{ matrix.arch }}, ${{ matrix.build }} (${{ matrix.group }}) wheels
+    name: ${{ matrix.os }}, ${{ matrix.arch }}, ${{ matrix.build }}, ${{ matrix.group }} wheels
     runs-on: ${{ matrix.os }}
 
     strategy:
