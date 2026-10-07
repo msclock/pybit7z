@@ -62,13 +62,13 @@ sdist.include = ["src/pybit7z/_version.py"]
 wheel.expand-macos-universal-tags = true
 
 [tool.scikit-build.cmake.define]
-BUILD_TESTING="OFF"
-CMAKE_BUILD_TYPE="Release"
-VCPKG_INSTALL_REPORT_FAILURE="ON"
-VCPKG_INSTALL_OPTIONS="--allow-unsupported"
-CMAKE_TOOLCHAIN_FILE="cmake/vcpkg/vcpkg.toolchain.cmake"
-VCPKG_OVERLAY_TRIPLETS="cmake/vcpkg/triplets"
-VCPKG_OVERLAY_PORTS="cmake/vcpkg/ports"
+BUILD_TESTING = "OFF"
+CMAKE_BUILD_TYPE = "Release"
+VCPKG_INSTALL_REPORT_FAILURE = "ON"
+VCPKG_INSTALL_OPTIONS = "--allow-unsupported"
+CMAKE_TOOLCHAIN_FILE = "cmake/vcpkg/vcpkg.toolchain.cmake"
+VCPKG_OVERLAY_TRIPLETS = "cmake/vcpkg/triplets"
+VCPKG_OVERLAY_PORTS = "cmake/vcpkg/ports"
 
 [tool.setuptools_scm]
 write_to = "src/pybit7z/_version.py"
@@ -110,7 +110,7 @@ before-build = [
   'ninja --version',
 ]
 inherit.environment = "append"
-environment = { VCPKG_FORCE_SYSTEM_BINARIES = "1",CC = "/opt/clang/bin/clang", CXX = "/opt/clang/bin/clang++", LDFLAGS = "-fuse-ld=lld -Wl,--build-id"}
+environment = { VCPKG_FORCE_SYSTEM_BINARIES = "1", CC = "/opt/clang/bin/clang", CXX = "/opt/clang/bin/clang++", LDFLAGS = "-fuse-ld=lld -Wl,--build-id" }
 inherit.config-settings = "prepend"
 config-settings."cmake.define.CMAKE_LINKER_TYPE" = "LLD"
 config-settings."cmake.define.CMAKE_JOB_POOL_COMPILE" = "compile"
