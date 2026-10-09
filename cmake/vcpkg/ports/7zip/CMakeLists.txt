@@ -2,12 +2,6 @@ cmake_minimum_required(VERSION 3.19)
 
 project(7zip LANGUAGES C CXX)
 
-if(VCPKG_TARGET_IS_WINDOWS)
-    enable_language(ASM_MASM)
-elseif(VCPKG_TARGET_IS_LINUX)
-    enable_language(ASM)
-endif()
-
 # Starting points:
 # DOC/readme.txt
 #
@@ -31,7 +25,7 @@ if(MSVC)
         enable_language(ASM_MASM)
     endif()
 else()
-    if(VCPKG_TARGET_ARCHITECTURE MATCHES "arm64")
+    if(VCPKG_TARGET_IS_LINUX AND VCPKG_TARGET_ARCHITECTURE MATCHES "arm64")
         enable_language(ASM)
     endif()
 endif()
