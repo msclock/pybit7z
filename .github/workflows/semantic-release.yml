@@ -24,7 +24,7 @@ jobs:
       - name: Generate a bot token with BOT_APP_ID
         id: bot_token
         if: vars.BOT_APP_ID && env.BOT_PRIVATE_KEY != null
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@v3
         env:
           BOT_PRIVATE_KEY: ${{ secrets.BOT_PRIVATE_KEY }}
         with:
@@ -40,7 +40,7 @@ jobs:
           echo "# :warning: GITHUB_TOKEN is used" >> $GITHUB_STEP_SUMMARY
           echo "The GITHUB_TOKEN is used instead of a bot token or PAT that will not emit the released publish event for triggering a released workflow." >> $GITHUB_STEP_SUMMARY
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           token: ${{ steps.bot_token.outputs.token || secrets.PAT || secrets.GITHUB_TOKEN }}
