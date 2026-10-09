@@ -57,7 +57,7 @@ add_custom_command(
 
 install(
   IMPORTED_RUNTIME_ARTIFACTS
-  $<TARGET_FILE:7zip::7zip>
+  7zip::7zip
   RUNTIME_DEPENDENCY_SET
   plugins_runtime
   DESTINATION
