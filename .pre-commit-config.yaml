@@ -15,7 +15,8 @@
 fail_fast: false
 exclude: |
   (?x)(
-    ^(.vscode/.*)
+    ^(.vscode/.*) |
+    .diff
   )
 files: '' # set '' as default
 

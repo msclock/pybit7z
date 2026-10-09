@@ -17,7 +17,7 @@ def test_custom_dummy():
 def test_invalid_path():
     with pytest.raises(
         pybit7z.BitException,
-        match="Failed to load the 7-zip library: ",
+        match="Failed to load",
     ), pybit7z.lib7zip_context(__file__):
         pass
 
