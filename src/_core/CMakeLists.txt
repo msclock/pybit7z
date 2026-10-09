@@ -2,7 +2,7 @@ set(PYBIND11_FINDPYTHON ON)
 
 find_package(7zip CONFIG REQUIRED)
 find_package(pybind11 CONFIG REQUIRED)
-find_package(unofficial-bit7z CONFIG REQUIRED)
+find_package(bit7z CONFIG REQUIRED)
 
 # The internal target will not be installed and only act as requirements for
 # main and tests internally

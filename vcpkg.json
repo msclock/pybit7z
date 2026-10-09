@@ -19,15 +19,15 @@
   "overrides": [
     {
       "name": "pybind11",
-      "version": "2.13.5"
+      "version": "2.13.6"
     },
     {
       "name": "bit7z",
-      "version": "4.0.10"
+      "version": "4.1.0"
     },
     {
       "name": "7zip",
-      "version-string": "24.09#1"
+      "version-string": "26.3"
     },
     {
       "name": "cmake-modules",
