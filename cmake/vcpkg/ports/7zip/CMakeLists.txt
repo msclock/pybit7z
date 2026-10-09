@@ -2,6 +2,12 @@ cmake_minimum_required(VERSION 3.19)
 
 project(7zip LANGUAGES C CXX)
 
+if(VCPKG_TARGET_IS_WINDOWS)
+    enable_language(ASM_MASM)
+elseif(VCPKG_TARGET_IS_LINUX)
+    enable_language(ASM)
+endif()
+
 # Starting points:
 # DOC/readme.txt
 #
