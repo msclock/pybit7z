@@ -236,7 +236,7 @@ def lib7zip_context(
     if pathlib.Path(lib_path).exists():
         lib7zip = Bit7zLibrary(lib_path)
         if large_page_mode:
-            lib7zip.set_large_page_mode()
+            lib7zip.use_large_pages()
         yield lib7zip
     else:
         raise FileNotFoundError("lib7zip not found at " + lib_path)
