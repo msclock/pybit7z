@@ -108,7 +108,7 @@ before-build = [
   'ninja --version',
 ]
 inherit.environment = "append"
-environment = { VCPKG_FORCE_SYSTEM_BINARIES = "1", CC = "/opt/clang/bin/clang", CXX = "/opt/clang/bin/clang++", LDFLAGS = "-fuse-ld=lld -Wl,--build-id", CFLAGS = "-fPIC", CXXFLAGS = "-fPIC" }
+environment = { VCPKG_FORCE_SYSTEM_BINARIES = "1", CC = "/opt/clang/bin/clang", CXX = "/opt/clang/bin/clang++", LDFLAGS = "-fuse-ld=lld -Wl,--build-id" }
 inherit.config-settings = "prepend"
 config-settings."cmake.define.CMAKE_LINKER_TYPE" = "LLD"
 config-settings."cmake.define.CMAKE_JOB_POOL_COMPILE" = "compile"
