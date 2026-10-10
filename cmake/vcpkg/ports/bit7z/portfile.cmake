@@ -7,6 +7,8 @@ vcpkg_from_github(
     SHA512 d240997e3b1f6eb8d0b19c89bf3b12044cbb10ba495b4ba535efc1cd04390157031a303025819b6fd9a6a51bdca7b59ad50df45055cbde9130ffd4c8279a0863
     HEAD_REF master
     PATCHES fix_dependencies.patch
+    OPTIONS
+      -DCMAKE_POSITION_INDEPENDENT_CODE=ON
 )
 
 vcpkg_replace_string("${SOURCE_PATH}/include/bit7z/bitabstractarchivecreator.hpp"
