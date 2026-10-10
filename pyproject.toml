@@ -23,6 +23,8 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: 3.15",
   "Topic :: Scientific/Engineering",
   "Typing :: Typed",
 ]
@@ -78,14 +80,22 @@ archs = ["auto64", "auto32"]
 build-verbosity = 1
 test-command = "pytest {project}/tests"
 test-extras = ["test"]
-test-skip = ["*-win_arm64", "*_universal2:arm64"]
+test-skip = [
+    "*-win_arm64",
+    "*_universal2:arm64",
+    "*_aarch64",
+    "*_armv7l",
+    "*_ppc64le",
+    "*_riscv64",
+    "*_s390x",
+]
 manylinux-x86_64-image = "manylinux2014"
 manylinux-i686-image = "manylinux2014"
 manylinux-aarch64-image = "manylinux2014"
 manylinux-ppc64le-image = "manylinux2014"
 manylinux-s390x-image = "manylinux2014"
 manylinux-armv7l-image = "manylinux_2_31"
-manylinux-riscv64-image = "ghcr.io/mayeut/manylinux_2_31:2026.06.16-1"
+manylinux-riscv64-image = "manylinux_2_39"
 musllinux-x86_64-image = "musllinux_1_2"
 musllinux-i686-image = "musllinux_1_2"
 musllinux-aarch64-image = "musllinux_1_2"
@@ -98,7 +108,6 @@ musllinux-riscv64-image = "musllinux_1_2"
 select = "*-*linux*"
 inherit.before-all = "append"
 before-all = [
-  "manylinux-install-clang",
   'yum install zip perl-IPC-Cmd -y || apk add zip || true',
   'apt update && apt install zip pkg-config -y || true',
 ]
@@ -110,12 +119,22 @@ before-build = [
   'ninja --version',
 ]
 inherit.environment = "append"
-environment = { VCPKG_FORCE_SYSTEM_BINARIES = "1", CC = "/opt/clang/bin/clang", CXX = "/opt/clang/bin/clang++", LDFLAGS = "-fuse-ld=lld -Wl,--build-id" }
+environment = { VCPKG_FORCE_SYSTEM_BINARIES = "1" }
 inherit.config-settings = "prepend"
-config-settings."cmake.define.CMAKE_LINKER_TYPE" = "LLD"
 config-settings."cmake.define.CMAKE_JOB_POOL_COMPILE" = "compile"
 config-settings."cmake.define.CMAKE_JOB_POOL_LINK" = "link"
 config-settings."cmake.define.CMAKE_JOB_POOLS" = "compile=4;link=1"
+
+[[tool.cibuildwheel.overrides]]
+select = "*linux_{x86_64,i686,aarch64,armv7l,ppc64le,riscv64}"
+inherit.before-all = "append"
+before-all = [
+  "manylinux-install-clang",
+]
+inherit.environment = "append"
+environment = { CC = "/opt/clang/bin/clang", CXX = "/opt/clang/bin/clang++", LDFLAGS = "-fuse-ld=lld -Wl,--build-id" }
+inherit.config-settings = "prepend"
+config-settings."cmake.define.CMAKE_LINKER_TYPE" = "LLD"
 
 [[tool.cibuildwheel.overrides]]
 select = "*-macos*"

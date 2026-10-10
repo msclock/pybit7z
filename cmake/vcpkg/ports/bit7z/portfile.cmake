@@ -25,6 +25,7 @@ vcpkg_check_features(
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
+        -DCMAKE_POSITION_INDEPENDENT_CODE=ON
         -DBIT7Z_USE_SYSTEM_DEPENDENCIES=ON
         -DBIT7Z_AUTO_FORMAT=ON
         -DBIT7Z_AUTO_PREFIX_LONG_PATHS=ON
