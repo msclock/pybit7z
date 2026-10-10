@@ -23,6 +23,8 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: 3.15",
   "Topic :: Scientific/Engineering",
   "Typing :: Typed",
 ]
@@ -78,7 +80,15 @@ archs = ["auto64", "auto32"]
 build-verbosity = 1
 test-command = "pytest {project}/tests"
 test-extras = ["test"]
-test-skip = ["*-win_arm64", "*_universal2:arm64"]
+test-skip = [
+    "*-win_arm64",
+    "*_universal2:arm64",
+    "*_aarch64",
+    "*_armv7l",
+    "*_ppc64le",
+    "*_riscv64",
+    "*_s390x",
+]
 manylinux-x86_64-image = "manylinux2014"
 manylinux-i686-image = "manylinux2014"
 manylinux-aarch64-image = "manylinux2014"
