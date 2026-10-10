@@ -96,7 +96,6 @@ musllinux-armv7l-image = "musllinux_1_2"
 select = "*-*linux*"
 inherit.before-all = "append"
 before-all = [
-  "manylinux-install-clang",
   'yum install zip perl-IPC-Cmd -y || apk add zip || true',
   'apt update && apt install zip pkg-config -y || true',
 ]
@@ -108,12 +107,22 @@ before-build = [
   'ninja --version',
 ]
 inherit.environment = "append"
-environment = { VCPKG_FORCE_SYSTEM_BINARIES = "1", CC = "/opt/clang/bin/clang", CXX = "/opt/clang/bin/clang++", LDFLAGS = "-fuse-ld=lld -Wl,--build-id" }
+environment = { VCPKG_FORCE_SYSTEM_BINARIES = "1" }
 inherit.config-settings = "prepend"
-config-settings."cmake.define.CMAKE_LINKER_TYPE" = "LLD"
 config-settings."cmake.define.CMAKE_JOB_POOL_COMPILE" = "compile"
 config-settings."cmake.define.CMAKE_JOB_POOL_LINK" = "link"
 config-settings."cmake.define.CMAKE_JOB_POOLS" = "compile=4;link=1"
+
+[[tool.cibuildwheel.overrides]]
+select = "*linux_{x86_64,i686,aarch64,armv7l,ppc64le,riscv64}"
+inherit.before-all = "append"
+before-all = [
+  "manylinux-install-clang",
+]
+inherit.environment = "append"
+environment = { CC = "/opt/clang/bin/clang", CXX = "/opt/clang/bin/clang++", LDFLAGS = "-fuse-ld=lld -Wl,--build-id" }
+inherit.config-settings = "prepend"
+config-settings."cmake.define.CMAKE_LINKER_TYPE" = "LLD"
 
 [[tool.cibuildwheel.overrides]]
 select = "*-macos*"
