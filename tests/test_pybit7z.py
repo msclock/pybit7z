@@ -298,3 +298,105 @@ def test_different_formats(temp_dir):
             assert extracted_file.read_text() == "Testing different formats", (
                 f"Content mismatch in {filename}"
             )
+
+
+def test_archive_reader_bytes_input(temp_dir):
+    """Test BitArchiveReader correctly dispatches the bytes (memory buffer) overload."""
+    test_file: Path = temp_dir / "test.txt"
+    test_content = "BitArchiveReader memory buffer test content"
+    test_file.write_text(test_content)
+
+    archive_path: Path = temp_dir / "test.7z"
+    with pybit7z.lib7zip_context() as lib:
+        compressor = pybit7z.BitFileCompressor(lib, pybit7z.FormatSevenZip)
+        compressor.compress([str(test_file)], str(archive_path))
+
+        archive_bytes = archive_path.read_bytes()
+
+        reader = pybit7z.BitArchiveReader(lib, archive_bytes, pybit7z.FormatSevenZip)
+
+        items = reader.items()
+        assert len(items) == 1, "Expected exactly one item in archive"
+        assert reader.files_count() == 1
+        assert items[0].name() == "test.txt"
+
+        extracted = reader.extract_to()
+        assert isinstance(extracted, dict), "extract_to() should return a dict"
+        assert len(extracted) == 1
+        assert next(iter(extracted.values())) == test_content.encode(), (
+            "Extracted content from memory buffer does not match original"
+        )
+
+
+def test_archive_reader_str_input(temp_dir):
+    """Test BitArchiveReader correctly dispatches the str (file path) overload."""
+    test_file: Path = temp_dir / "test.txt"
+    test_file.write_text("BitArchiveReader file path test content")
+
+    archive_path: Path = temp_dir / "test.7z"
+    with pybit7z.lib7zip_context() as lib:
+        compressor = pybit7z.BitFileCompressor(lib, pybit7z.FormatSevenZip)
+        compressor.compress([str(test_file)], str(archive_path))
+
+        reader = pybit7z.BitArchiveReader(
+            lib, str(archive_path), pybit7z.FormatSevenZip
+        )
+
+        items = reader.items()
+        assert len(items) == 1, "Expected exactly one item in archive"
+        assert items[0].name() == "test.txt"
+
+        extract_dir: Path = temp_dir / "extracted"
+        reader.extract_to(str(extract_dir))
+
+    extracted_file: Path = extract_dir / "test.txt"
+    assert extracted_file.exists(), "File was not extracted"
+    assert extracted_file.read_text() == "BitArchiveReader file path test content"
+
+
+def test_is_header_encrypted_bytes_and_str(temp_dir):
+    """Test is_header_encrypted dispatches correctly for both bytes and str inputs."""
+    test_file: Path = temp_dir / "secret.txt"
+    test_file.write_text("Encrypted content")
+
+    archive_path: Path = temp_dir / "encrypted.7z"
+    with pybit7z.lib7zip_context() as lib:
+        compressor = pybit7z.BitFileCompressor(lib, pybit7z.FormatSevenZip)
+        compressor.set_password("secret")
+        compressor.compress([str(test_file)], str(archive_path))
+
+        archive_bytes = archive_path.read_bytes()
+
+        str_result = pybit7z.BitArchiveReader.is_header_encrypted(
+            lib, str(archive_path), pybit7z.FormatSevenZip
+        )
+        bytes_result = pybit7z.BitArchiveReader.is_header_encrypted(
+            lib, archive_bytes, pybit7z.FormatSevenZip
+        )
+
+    assert isinstance(str_result, bool)
+    assert isinstance(bytes_result, bool)
+    assert str_result == bytes_result, (
+        "is_header_encrypted should return the same result for str and bytes inputs"
+    )
+
+
+def test_archive_writer_bytes_input(temp_dir):
+    """Test BitArchiveWriter correctly dispatches the bytes (memory buffer) overload."""
+    test_file: Path = temp_dir / "test.txt"
+    test_file.write_text("BitArchiveWriter memory buffer test content")
+
+    archive_path: Path = temp_dir / "test.7z"
+    with pybit7z.lib7zip_context() as lib:
+        compressor = pybit7z.BitFileCompressor(lib, pybit7z.FormatSevenZip)
+        compressor.compress([str(test_file)], str(archive_path))
+
+        archive_bytes = archive_path.read_bytes()
+
+        writer = pybit7z.BitArchiveWriter(lib, archive_bytes, pybit7z.FormatSevenZip)
+
+        assert writer.items_count() == 1, "Expected exactly one item in archive"
+
+        output_bytes = writer.compress_to()
+        assert isinstance(output_bytes, bytes)
+        assert len(output_bytes) > 0
