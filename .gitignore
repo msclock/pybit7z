@@ -344,6 +344,11 @@ Thumbs.db
 *~
 *.swp
 
+# Clangd
+.cache/
+compile_commands.json
+.clangd
+
 # Build output
 *.out
 /out
