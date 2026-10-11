@@ -5,11 +5,73 @@
 #include <pybind11/stl_bind.h>
 #include <pybind11/typing.h>
 
+#include <istream>
+#include <memory>
+#include <streambuf>
+#include <utility>
+
 #include "_core.hpp"
 #include "pybit7z.hpp"
 
 namespace py = pybind11;
 using namespace py::literals;
+
+namespace {
+
+class RandomAccessStreamBuf final : public std::streambuf {
+public:
+    RandomAccessStreamBuf(const char *data, std::size_t size) {
+        auto *p = const_cast<char *>(data);
+        setg(p, p, p + size);
+    }
+
+protected:
+    pos_type seekoff(off_type off, std::ios_base::seekdir dir, std::ios_base::openmode which) override {
+        if (!(which & std::ios_base::in)) {
+            return pos_type(off_type(-1));
+        }
+        char *new_pos = nullptr;
+        switch (dir) {
+            case std::ios_base::beg:
+                new_pos = eback() + off;
+                break;
+            case std::ios_base::cur:
+                new_pos = gptr() + off;
+                break;
+            case std::ios_base::end:
+                new_pos = egptr() + off;
+                break;
+            default:
+                return pos_type(off_type(-1));
+        }
+        if (new_pos < eback() || new_pos > egptr()) {
+            return pos_type(off_type(-1));
+        }
+        setg(eback(), new_pos, egptr());
+        return pos_type(new_pos - eback());
+    }
+
+    pos_type seekpos(pos_type pos, std::ios_base::openmode which) override {
+        return seekoff(off_type(pos), std::ios_base::beg, which);
+    }
+};
+
+template <typename ArchiveT>
+struct ArchiveCleanup {
+    RandomAccessStreamBuf *stream_buff;
+    std::istream *stream;
+
+    void operator()(ArchiveT *archive) const {
+        delete archive;
+        delete stream_buff;
+        delete stream;
+    }
+};
+
+template <typename ArchiveT>
+using ArchiveHolder = std::unique_ptr<ArchiveT, ArchiveCleanup<ArchiveT>>;
+
+} // namespace
 
 PYBIND11_MODULE(_core, m, py::mod_gil_not_used()) {
     m.doc() = R"pbdoc(
@@ -391,7 +453,7 @@ Returns:
         R"pbdoc(The BitArchiveItemOffset class represents an archived item but doesn't store its properties.)pbdoc")
         .def(
             "__eq__",
-            [](const bit7z::BitArchiveItemOffset &self, py::object other) {
+            [](const bit7z::BitArchiveItemOffset &self, const py::object &other) {
                 if (py::isinstance<bit7z::BitArchiveItemOffset>(other))
                     return self == *py::cast<bit7z::BitArchiveItemOffset *>(other);
                 return false;
@@ -413,7 +475,7 @@ Returns:
              })
         .def(
             "__ne__",
-            [](const bit7z::BitArchiveItemOffset &self, py::object other) {
+            [](const bit7z::BitArchiveItemOffset &self, const py::object &other) {
                 if (py::isinstance<bit7z::BitArchiveItemOffset>(other))
                     return self != *py::cast<bit7z::BitArchiveItemOffset *>(other);
                 return false;
@@ -970,7 +1032,7 @@ Args:
         .def(
             "extract_to",
             [](bit7z::BitInputArchive &self, const std::string &out_dir, bit7z::FilterCallback filter_callback) {
-                self.extractTo(out_dir, filter_callback);
+                self.extractTo(out_dir, std::move(filter_callback));
             },
             py::arg("out_dir"),
             py::arg("filter_callback"),
@@ -982,7 +1044,7 @@ Args:
         .def(
             "extract_to",
             [](bit7z::BitInputArchive &self, const std::string &out_dir, bit7z::RenameCallback rename_callback) {
-                self.extractTo(out_dir, rename_callback);
+                self.extractTo(out_dir, std::move(rename_callback));
             },
             py::arg("out_dir"),
             py::arg("rename_callback"),
@@ -1247,12 +1309,41 @@ Note:
              py::doc(R"pydoc(the number of items in the archive.)pydoc"));
 
     // bit7z::BitArchiveReader class bindings
-    py::class_<bit7z::BitArchiveReader, bit7z::BitAbstractArchiveOpener, bit7z::BitInputArchive>(m, "BitArchiveReader")
+    py::class_<bit7z::BitArchiveReader,
+               bit7z::BitAbstractArchiveOpener,
+               bit7z::BitInputArchive,
+               ArchiveHolder<bit7z::BitArchiveReader>>(m, "BitArchiveReader")
+        .def(py::init([](const bit7z::Bit7zLibrary &library,
+                         const py::bytes &in_archive,
+                         const bit7z::BitInFormat &format,
+                         const std::string &password = "") {
+                 auto view = in_archive.cast<std::string_view>();
+                 auto *stream_buff = new RandomAccessStreamBuf(view.data(), view.size());
+                 auto *stream = new std::istream(stream_buff);
+                 return ArchiveHolder<bit7z::BitArchiveReader>(
+                     new bit7z::BitArchiveReader(library, *stream, format, password),
+                     ArchiveCleanup<bit7z::BitArchiveReader>{.stream_buff = stream_buff, .stream = stream});
+             }),
+             py::arg("library"),
+             py::arg("in_archive"),
+             py::arg_v("format", py::cast(bit7z::BitFormat::Auto, py::return_value_policy::reference), "FormatAuto"),
+             py::arg("password") = "",
+             py::keep_alive<1, 2>(),
+             py::doc(R"pydoc(Constructs a BitArchiveReader object, opening the input memory buffer archive.
+
+The bytes object is referenced directly (no copy); it must outlive the reader.
+
+Args:
+    library: the library used for decompression.
+    in_archive: the input buffer containing the archive to be read.
+    format: the format of the input archive. Default is FormatAuto.
+    password: the password needed for opening the input archive.)pydoc"))
         .def(py::init([](const bit7z::Bit7zLibrary &library,
                          const std::string &in_archive,
                          const bit7z::BitInFormat &format,
                          const std::string &password = "") {
-                 return new bit7z::BitArchiveReader(library, in_archive, format, password);
+                 return ArchiveHolder<bit7z::BitArchiveReader>(
+                     new bit7z::BitArchiveReader(library, in_archive, format, password));
              }),
              py::arg("library"),
              py::arg("in_archive"),
@@ -1264,26 +1355,6 @@ Note:
 Args:
     library: the library used for decompression.
     in_archive: the path to the archive to be read.
-    format: the format of the input archive. Default is FormatAuto.
-    password: the password needed for opening the input archive.)pydoc"))
-        .def(py::init([](const bit7z::Bit7zLibrary &library,
-                         py::bytes in_archive,
-                         const bit7z::BitInFormat &format,
-                         const std::string &password = "") {
-                 auto in_archive_str = in_archive.cast<std::string_view>();
-                 std::vector<bit7z::byte_t> input_buffer(in_archive_str.begin(), in_archive_str.end());
-                 return new bit7z::BitArchiveReader(library, input_buffer, format, password);
-             }),
-             py::arg("library"),
-             py::arg("in_archive"),
-             py::arg_v("format", py::cast(bit7z::BitFormat::Auto, py::return_value_policy::reference), "FormatAuto"),
-             py::arg("password") = "",
-             py::keep_alive<1, 2>(),
-             py::doc(R"pydoc(Constructs a BitArchiveReader object, opening the input memory buffer archive.
-
-Args:
-    library: the library used for decompression.
-    in_archive: the input buffer containing the archive to be read.
     format: the format of the input archive. Default is FormatAuto.
     password: the password needed for opening the input archive.)pydoc"))
         .def("items",
@@ -1323,6 +1394,25 @@ Args:
              py::doc(R"pydoc(true if and only if the archive was created using solid compression.)pydoc"))
         .def_static(
             "is_header_encrypted",
+            [](const bit7z::Bit7zLibrary &library,
+               const py::bytes &in_archive,
+               const bit7z::BitInFormat &format) -> bool {
+                auto view = in_archive.cast<std::string_view>();
+                auto stream_buff = RandomAccessStreamBuf(view.data(), view.size());
+                auto stream = std::istream(&stream_buff);
+                return bit7z::BitArchiveReader::isHeaderEncrypted(library, stream, format);
+            },
+            py::arg("library"),
+            py::arg("in_archive"),
+            py::arg_v("format", py::cast(bit7z::BitFormat::Auto, py::return_value_policy::reference), "FormatAuto"),
+            py::doc(R"pydoc(Checks if the given memory buffer archive is header-encrypted or not.
+
+Args:
+    library: the library used for decompression.
+    in_archive: the input buffer containing the archive to be checked.
+    format: the format of the input archive. Default is FormatAuto.)pydoc"))
+        .def_static(
+            "is_header_encrypted",
             [](const bit7z::Bit7zLibrary &library, const std::string &in_archive, const bit7z::BitInFormat &format)
                 -> bool { return bit7z::BitArchiveReader::isHeaderEncrypted(library, in_archive, format); },
             py::arg("library"),
@@ -1333,59 +1423,54 @@ Args:
 Args:
     library: the library used for decompression.
     in_archive: the path to the archive to be checked.
-    format: the format of the input archive. Default is FormatAuto.)pydoc"))
-        .def_static(
-            "is_header_encrypted",
-            [](const bit7z::Bit7zLibrary &library, py::bytes in_archive, const bit7z::BitInFormat &format) -> bool {
-                auto in_archive_str = py::cast<std::string_view>(in_archive);
-                std::vector<bit7z::byte_t> input_buffer(in_archive_str.begin(), in_archive_str.end());
-                return bit7z::BitArchiveReader::isHeaderEncrypted(library, input_buffer, format);
-            },
-            py::arg("library"),
-            py::arg("in_archive"),
-            py::arg_v("format", py::cast(bit7z::BitFormat::Auto, py::return_value_policy::reference), "FormatAuto"),
-            py::doc(R"pydoc(Checks if the given memory buffer archive is header-encrypted or not.
-
-Args:
-    library: the library used for decompression.
-    in_archive: the input buffer containing the archive to be checked.
     format: the format of the input archive. Default is FormatAuto.)pydoc"));
 
     // bit7z::BitArchiveWriter class bindings
-    py::class_<bit7z::BitArchiveWriter, bit7z::BitAbstractArchiveCreator, bit7z::BitOutputArchive>(m,
-                                                                                                   "BitArchiveWriter")
+    py::class_<bit7z::BitArchiveWriter,
+               bit7z::BitAbstractArchiveCreator,
+               bit7z::BitOutputArchive,
+               ArchiveHolder<bit7z::BitArchiveWriter>>(m, "BitArchiveWriter")
         .def(
             py::init([](const bit7z::Bit7zLibrary &library, const bit7z::BitInOutFormat &format) {
-                return new bit7z::BitArchiveWriter(library, format);
+                return ArchiveHolder<bit7z::BitArchiveWriter>(new bit7z::BitArchiveWriter(library, format));
             }),
             py::arg("library"),
             py::arg("format"),
+            py::keep_alive<1, 2>(),
             py::doc(
                 R"pydoc(Constructs an empty BitArchiveWriter object that can write archives of the specified format.)pydoc"))
+        .def(py::init([](const bit7z::Bit7zLibrary &library,
+                         const py::bytes &in_archive,
+                         const bit7z::BitInOutFormat &format,
+                         const std::string &password = "") {
+                 auto view = in_archive.cast<std::string_view>();
+                 auto *stream_buff = new RandomAccessStreamBuf(view.data(), view.size());
+                 auto *stream = new std::istream(stream_buff);
+                 return ArchiveHolder<bit7z::BitArchiveWriter>(
+                     new bit7z::BitArchiveWriter(library, *stream, format, password),
+                     ArchiveCleanup<bit7z::BitArchiveWriter>{.stream_buff = stream_buff, .stream = stream});
+             }),
+             py::arg("library"),
+             py::arg("in_archive"),
+             py::arg("format"),
+             py::arg("password") = "",
+             py::keep_alive<1, 2>(),
+             py::doc(R"pydoc(Constructs a BitArchiveWriter object, reading the given memory buffer archive.
+
+The bytes object is referenced directly (no copy); it must outlive the writer.)pydoc"))
         .def(py::init([](const bit7z::Bit7zLibrary &library,
                          const std::string &in_archive,
                          const bit7z::BitInOutFormat &format,
                          const std::string &password = "") {
-                 return new bit7z::BitArchiveWriter(library, in_archive, format, password);
+                 return ArchiveHolder<bit7z::BitArchiveWriter>(
+                     new bit7z::BitArchiveWriter(library, in_archive, format, password));
              }),
              py::arg("library"),
              py::arg("in_archive"),
              py::arg("format"),
              py::arg("password") = "",
-             py::doc(R"pydoc(Constructs a BitArchiveWriter object, reading the given archive file path.)pydoc"))
-        .def(py::init([](const bit7z::Bit7zLibrary &library,
-                         py::bytes in_archive,
-                         const bit7z::BitInOutFormat &format,
-                         const std::string &password = "") {
-                 auto in_archive_str = py::cast<std::string_view>(in_archive);
-                 std::vector<bit7z::byte_t> input_buffer(in_archive_str.begin(), in_archive_str.end());
-                 return new bit7z::BitArchiveWriter(library, input_buffer, format, password);
-             }),
-             py::arg("library"),
-             py::arg("in_archive"),
-             py::arg("format"),
-             py::arg("password") = "",
-             py::doc(R"pydoc(Constructs a BitArchiveWriter object, reading the given memory buffer archive.)pydoc"));
+             py::keep_alive<1, 2>(),
+             py::doc(R"pydoc(Constructs a BitArchiveWriter object, reading the given archive file path.)pydoc"));
 
     // BitExtractor class bindings
     using BitStringExtractInput = const std::string &;
@@ -1658,7 +1743,7 @@ Args:
             [](BitMemExtractor &self,
                const py::bytes &input,
                const std::string &regex,
-               std::string out_dir,
+               const std::string &out_dir,
                bit7z::FilterPolicy policy) {
                 auto input_str = input.cast<std::string_view>();
                 std::vector<bit7z::byte_t> input_buffer(input_str.begin(), input_str.end());

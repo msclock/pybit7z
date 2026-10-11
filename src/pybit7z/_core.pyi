@@ -1782,6 +1782,19 @@ class BitArchiveReader(BitAbstractArchiveOpener, BitInputArchive):
     @staticmethod
     @typing.overload
     def is_header_encrypted(
+        library: Bit7zLibrary, in_archive: bytes, format: BitInFormat = ...
+    ) -> bool:
+        """
+        Checks if the given memory buffer archive is header-encrypted or not.
+
+        Args:
+            library: the library used for decompression.
+            in_archive: the input buffer containing the archive to be checked.
+            format: the format of the input archive. Default is FormatAuto.
+        """
+    @staticmethod
+    @typing.overload
+    def is_header_encrypted(
         library: Bit7zLibrary, in_archive: str, format: BitInFormat = ...
     ) -> bool:
         """
@@ -1792,18 +1805,24 @@ class BitArchiveReader(BitAbstractArchiveOpener, BitInputArchive):
             in_archive: the path to the archive to be checked.
             format: the format of the input archive. Default is FormatAuto.
         """
-    @staticmethod
     @typing.overload
-    def is_header_encrypted(
-        library: Bit7zLibrary, in_archive: bytes, format: BitInFormat = ...
-    ) -> bool:
+    def __init__(
+        self,
+        library: Bit7zLibrary,
+        in_archive: bytes,
+        format: BitInFormat = ...,
+        password: str = "",
+    ) -> None:
         """
-        Checks if the given memory buffer archive is header-encrypted or not.
+        Constructs a BitArchiveReader object, opening the input memory buffer archive.
+
+        The bytes object is referenced directly (no copy); it must outlive the reader.
 
         Args:
             library: the library used for decompression.
-            in_archive: the input buffer containing the archive to be checked.
+            in_archive: the input buffer containing the archive to be read.
             format: the format of the input archive. Default is FormatAuto.
+            password: the password needed for opening the input archive.
         """
     @typing.overload
     def __init__(
@@ -1819,23 +1838,6 @@ class BitArchiveReader(BitAbstractArchiveOpener, BitInputArchive):
         Args:
             library: the library used for decompression.
             in_archive: the path to the archive to be read.
-            format: the format of the input archive. Default is FormatAuto.
-            password: the password needed for opening the input archive.
-        """
-    @typing.overload
-    def __init__(
-        self,
-        library: Bit7zLibrary,
-        in_archive: bytes,
-        format: BitInFormat = ...,
-        password: str = "",
-    ) -> None:
-        """
-        Constructs a BitArchiveReader object, opening the input memory buffer archive.
-
-        Args:
-            library: the library used for decompression.
-            in_archive: the input buffer containing the archive to be read.
             format: the format of the input archive. Default is FormatAuto.
             password: the password needed for opening the input archive.
         """
@@ -1894,23 +1896,25 @@ class BitArchiveWriter(BitAbstractArchiveCreator, BitOutputArchive):
     def __init__(
         self,
         library: Bit7zLibrary,
-        in_archive: str,
-        format: BitInOutFormat,
-        password: str = "",
-    ) -> None:
-        """
-        Constructs a BitArchiveWriter object, reading the given archive file path.
-        """
-    @typing.overload
-    def __init__(
-        self,
-        library: Bit7zLibrary,
         in_archive: bytes,
         format: BitInOutFormat,
         password: str = "",
     ) -> None:
         """
         Constructs a BitArchiveWriter object, reading the given memory buffer archive.
+
+        The bytes object is referenced directly (no copy); it must outlive the writer.
+        """
+    @typing.overload
+    def __init__(
+        self,
+        library: Bit7zLibrary,
+        in_archive: str,
+        format: BitInOutFormat,
+        password: str = "",
+    ) -> None:
+        """
+        Constructs a BitArchiveWriter object, reading the given archive file path.
         """
 
 class BitStringExtractor(BitAbstractArchiveOpener):
