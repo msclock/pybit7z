@@ -1073,19 +1073,6 @@ Generally, archives may contain multiple items with the same paths. If this is t
 <span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">is_header_encrypted</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pybit7z.BitArchiveReader.is_header_encrypted" title="Link to this definition">¶</a></dt>
 <dd><p>Overloaded function.</p>
 <ol class="arabic simple">
-<li><p>is_header_encrypted(library: pybit7z._core.Bit7zLibrary, in_archive: str, format: pybit7z._core.BitInFormat = FormatAuto) -&gt; bool</p></li>
-</ol>
-<p>Checks if the given archive is header-encrypted or not.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>library</strong> – the library used for decompression.</p></li>
-<li><p><strong>in_archive</strong> – the path to the archive to be checked.</p></li>
-<li><p><strong>format</strong> – the format of the input archive. Default is FormatAuto.</p></li>
-</ul>
-</dd>
-</dl>
-<ol class="arabic simple" start="2">
 <li><p>is_header_encrypted(library: pybit7z._core.Bit7zLibrary, in_archive: bytes, format: pybit7z._core.BitInFormat = FormatAuto) -&gt; bool</p></li>
 </ol>
 <p>Checks if the given memory buffer archive is header-encrypted or not.</p>
@@ -1094,6 +1081,19 @@ Generally, archives may contain multiple items with the same paths. If this is t
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>library</strong> – the library used for decompression.</p></li>
 <li><p><strong>in_archive</strong> – the input buffer containing the archive to be checked.</p></li>
+<li><p><strong>format</strong> – the format of the input archive. Default is FormatAuto.</p></li>
+</ul>
+</dd>
+</dl>
+<ol class="arabic simple" start="2">
+<li><p>is_header_encrypted(library: pybit7z._core.Bit7zLibrary, in_archive: str, format: pybit7z._core.BitInFormat = FormatAuto) -&gt; bool</p></li>
+</ol>
+<p>Checks if the given archive is header-encrypted or not.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>library</strong> – the library used for decompression.</p></li>
+<li><p><strong>in_archive</strong> – the path to the archive to be checked.</p></li>
 <li><p><strong>format</strong> – the format of the input archive. Default is FormatAuto.</p></li>
 </ul>
 </dd>
