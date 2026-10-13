@@ -58,9 +58,7 @@ protected:
 
 class RawStream final : public std::istream {
 public:
-    explicit RawStream(const char *data, std::size_t size)
-        : std::istream(&stream_buff),
-          stream_buff(data, size) {}
+    explicit RawStream(const char *data, std::size_t size) : std::istream(&stream_buff), stream_buff(data, size) {}
 
     RawStreamBuf *rdbuf() const { return const_cast<RawStreamBuf *>(&stream_buff); }
 
@@ -1157,8 +1155,54 @@ Args:
 Returns:
     the item at the given index within the archive.)pydoc"));
 
+    // bit7z::SymlinkPolicy enum bindings
+    py::enum_<bit7z::SymlinkPolicy>(
+        m,
+        "SymlinkPolicy",
+        R"pbdoc(The SymlinkPolicy enum specifies how symbolic links should be handled when adding files to an archive.)pbdoc")
+        .value("Follow", bit7z::SymlinkPolicy::Follow, R"pbdoc(Follow symbolic links, storing the content of the pointed-to file.)pbdoc")
+        .value("DoNotFollow", bit7z::SymlinkPolicy::DoNotFollow, R"pbdoc(Do not follow symbolic links, storing the link itself.)pbdoc");
+
+    // bit7z::BitInputItem class bindings
+    py::class_<bit7z::BitInputItem, ArchiveHolder<bit7z::BitInputItem>>( m, "BitInputItem")
+        .def(py::init([](const py::bytes &input, const std::string &path) {
+                 auto view = input.cast<std::string_view>();
+                 auto *stream = new RawStream(view.data(), view.size());
+                 return ArchiveHolder<bit7z::BitInputItem>(new bit7z::BitInputItem(*stream, path), ArchiveCleanup<bit7z::BitInputItem>{.stream = stream});
+             }),
+             py::arg("input"),
+             py::arg("name"),
+             py::keep_alive<1, 2>(),
+             py::doc(R"pbdoc(Constructs a BitInputItem from a memory buffer.
+
+The bytes object is referenced directly (no copy); it must outlive the item.)pbdoc"))
+        .def(py::init([](const std::string &path, bit7z::SymlinkPolicy policy) {
+                 return ArchiveHolder<bit7z::BitInputItem>(new bit7z::BitInputItem(path, policy));
+             }),
+             py::arg("path"),
+             py::arg("symlink_policy") = bit7z::SymlinkPolicy::Follow,
+             py::doc(R"pbdoc(Constructs a BitInputItem from a filesystem path.)pbdoc"))
+        .def(py::init([](const std::string &path, const std::string &in_archive_path, bit7z::SymlinkPolicy policy) {
+                 return ArchiveHolder<bit7z::BitInputItem>(new bit7z::BitInputItem(path, in_archive_path, policy));
+             }),
+             py::arg("path"),
+             py::arg("in_archive_path"),
+             py::arg("symlink_policy") = bit7z::SymlinkPolicy::Follow,
+             py::doc(R"pbdoc(Constructs a BitInputItem from a filesystem path, with a custom path to be used inside the archive.)pbdoc"))
+        .def("is_dir", &bit7z::BitInputItem::isDir, py::doc(R"pbdoc(true if the item represents a directory.)pbdoc"))
+        .def("is_sym_link", &bit7z::BitInputItem::isSymLink, py::doc(R"pbdoc(true if the item represents a symbolic link.)pbdoc"))
+        .def("size", &bit7z::BitInputItem::size, py::doc(R"pbdoc(the uncompressed size of the item, in bytes.)pbdoc"))
+        .def("path", &bit7z::BitInputItem::path, py::doc(R"pbdoc(the native filesystem path of the item.)pbdoc"))
+        .def("attributes", &bit7z::BitInputItem::attributes, py::doc(R"pbdoc(the filesystem attributes of the item.)pbdoc"))
+        .def("in_archive_path", &bit7z::BitInputItem::inArchivePath, py::doc(R"pbdoc(the path of the item as it will be stored inside the archive.)pbdoc"))
+        .def("item_property", &bit7z::BitInputItem::itemProperty, py::arg("property"), py::doc(R"pbdoc(Returns the value of the given property for this item.)pbdoc"))
+        .def("has_new_data", &bit7z::BitInputItem::hasNewData, py::doc(R"pbdoc(true if the item contributes new data to the archive.)pbdoc"))
+        .def("set_creation_time", &bit7z::BitInputItem::setCreationTime, py::arg("creation_time"), py::doc(R"pbdoc(Sets the creation time of the item.)pbdoc"))
+        .def("set_last_write_time", &bit7z::BitInputItem::setLastWriteTime, py::arg("last_write_time"), py::doc(R"pbdoc(Sets the last write time of the item.)pbdoc"))
+        .def("set_last_access_time", &bit7z::BitInputItem::setLastAccessTime, py::arg("last_access_time"), py::doc(R"pbdoc(Sets the last access time of the item.)pbdoc"));
+
     // bit7z::BitOutputArchive
-    py::class_<bit7z::BitOutputArchive>(m, "BitOutputArchive")
+    py::class_<bit7z::BitOutputArchive>(m, "BitOutputArchive", py::dynamic_attr())
         .def("add_items",
              static_cast<void (bit7z::BitOutputArchive::*)(const std::vector<std::string> &)>(
                  &bit7z::BitOutputArchive::addItems),
@@ -1179,36 +1223,54 @@ Args:
 Args:
     files: the map of file paths and their contents to be added to the archive.
 )pydoc"))
-        //         .def("add_file",
-        //              static_cast<void (bit7z::BitOutputArchive::*)(const std::string &, const std::string &)>(
-        //                  &bit7z::BitOutputArchive::addFile),
-        //              py::arg("in_file"),
-        //              py::arg("name") = "",
-        //              py::doc(
-        //                  R"pydoc(Adds the given file path, with an optional user-defined path to be used in the
-        //                  output archive.
-
-        // Args:
-        //     in_file: the path to the filesystem file to be added to the output archive.
-        //     name: (optional) user-defined path to be used inside the output archive.
-        // Note:
-        //     If a directory path is given, a BitException is thrown.
-        // )pydoc"))
         .def(
             "add_file",
-            [](bit7z::BitOutputArchive &self, const py::bytes &input, const std::string &path) {
-                auto input_str = input.cast<std::string_view>();
-                std::vector<bit7z::byte_t> input_bytes(input_str.begin(), input_str.end());
-                self.addFile(input_bytes, path);
+            [](py::object& self, const py::bytes &input, const std::string &path) {
+                auto &archive = self.cast<bit7z::BitOutputArchive &>();
+                auto view = input.cast<std::string_view>();
+                auto *stream = new RawStream(view.data(), view.size());
+                py::object holders_obj = py::getattr(self, "_pybit7z_stream_holders", py::none());
+                py::list holders;
+                if (!holders_obj.is_none()) {
+                    holders = holders_obj.cast<py::list>();
+                }
+                holders.append(py::capsule(stream, [](void *p) { delete static_cast<RawStream *>(p); }));
+                self.attr("_pybit7z_stream_holders") = holders;
+                return archive.addFile(*stream, path);
             },
             py::arg("input"),
             py::arg("name"),
+            py::keep_alive<1, 2>(),
+            py::keep_alive<1, 0>(),
             py::doc(
                 R"pydoc(Adds the given memory buffer, with an optional user-defined path to be used in the output archive.
 
 Args:
     input: the memory buffer to be added to the output archive.
-    name: user-defined path to be used inside the output archive.)pydoc"))
+    name: user-defined path to be used inside the output archive.
+
+Returns:
+    A reference to the input item just added, valid until the next call that adds items to the archive.)pydoc"))
+        .def("add_file",
+             static_cast<bit7z::BitInputItem &(bit7z::BitOutputArchive::*)(const std::string &, const std::string &)>(
+                 &bit7z::BitOutputArchive::addFile),
+             py::arg("in_file"),
+             py::arg("name") = "",
+             py::keep_alive<1, 0>(),
+             py::doc(
+                 R"pydoc(Adds the given file path, with an optional user-defined path to be used in the
+                        output archive.
+
+        Args:
+            in_file: the path to the filesystem file to be added to the output archive.
+            name: (optional) user-defined path to be used inside the output archive.
+
+        Note:
+            If a directory path is given, a BitException is thrown.
+
+        Returns:
+            A reference to the input item just added, valid until the next call that adds items to the archive.
+        )pydoc"))
         .def("add_files",
              static_cast<void (bit7z::BitOutputArchive::*)(const std::vector<std::string> &)>(
                  &bit7z::BitOutputArchive::addFiles),
@@ -1216,7 +1278,8 @@ Args:
              py::doc(R"pydoc(Adds all the files in the given vector of filesystem paths.
 
 Args:
-    in_files: the paths to be added to the archive.
+    in_files: the vector of paths to files.
+
 Note:
     Paths to directories are ignored.
 )pydoc"))
@@ -1630,8 +1693,7 @@ Args:
     m.attr("BitFileExtractor") = bitStringExtractor;
 
     // bit7z::BitMemExtractor class bindings
-    using BitMemExtractorInput = const std::vector<bit7z::byte_t> &;
-    using BitMemExtractor = bit7z::BitExtractor<BitMemExtractorInput>;
+    using BitMemExtractor = bit7z::BitStreamExtractor;
     py::class_<BitMemExtractor, bit7z::BitAbstractArchiveOpener>(m, "BitMemExtractor")
         .def(py::init([](const bit7z::Bit7zLibrary &library, const bit7z::BitInFormat &format) {
                  return new BitMemExtractor(library, format);
@@ -1642,9 +1704,9 @@ Args:
         .def(
             "extract",
             [](BitMemExtractor &self, const py::bytes &input, const std::string &out_dir) {
-                auto input_str = input.cast<std::string_view>();
-                std::vector<bit7z::byte_t> input_buffer(input_str.begin(), input_str.end());
-                self.extract(input_buffer, out_dir);
+                auto view = input.cast<std::string_view>();
+                RawStream stream(view.data(), view.size());
+                self.extract(stream, out_dir);
             },
             py::arg("in_archive"),
             py::arg("out_dir"),
@@ -1658,9 +1720,9 @@ Args:
             "extract",
             [](BitMemExtractor &self, const py::bytes &input, uint32_t index) -> py::bytes {
                 std::vector<bit7z::byte_t> out_buffer;
-                auto input_str = py::cast<std::string_view>(input);
-                std::vector<bit7z::byte_t> input_buffer(input_str.begin(), input_str.end());
-                self.extract(input_buffer, out_buffer, index);
+                auto view = input.cast<std::string_view>();
+                RawStream stream(view.data(), view.size());
+                self.extract(stream, out_buffer, index);
                 return py::bytes(reinterpret_cast<const char *>(out_buffer.data()), out_buffer.size());
             },
             py::arg("in_archive"),
@@ -1670,9 +1732,9 @@ Args:
             "extract",
             [](BitMemExtractor &self, const py::bytes &input) -> py::typing::Dict<py::str, py::bytes> {
                 std::map<std::string, std::vector<bit7z::byte_t>> out_buffer;
-                auto input_str = input.cast<std::string_view>();
-                std::vector<bit7z::byte_t> input_buffer(input_str.begin(), input_str.end());
-                self.extract(input_buffer, out_buffer);
+                auto view = input.cast<std::string_view>();
+                RawStream stream(view.data(), view.size());
+                self.extract(stream, out_buffer);
                 py::typing::Dict<py::str, py::bytes> result;
                 for (const auto &item : out_buffer) {
                     result[item.first.c_str()] =
@@ -1689,9 +1751,9 @@ Args:
                const std::string &pattern,
                const std::string &out_dir,
                bit7z::FilterPolicy policy) {
-                auto input_str = input.cast<std::string_view>();
-                std::vector<bit7z::byte_t> input_buffer(input_str.begin(), input_str.end());
-                self.extractMatching(input_buffer, pattern, out_dir, policy);
+                auto view = input.cast<std::string_view>();
+                RawStream stream(view.data(), view.size());
+                self.extractMatching(stream, pattern, out_dir, policy);
             },
             py::arg("in_archive"),
             py::arg("pattern"),
@@ -1711,9 +1773,9 @@ Args:
             [](BitMemExtractor &self, const py::bytes &input, const std::string &pattern, bit7z::FilterPolicy policy)
                 -> py::bytes {
                 std::vector<bit7z::byte_t> out_buffer;
-                auto input_str = input.cast<std::string_view>();
-                std::vector<bit7z::byte_t> input_buffer(input_str.begin(), input_str.end());
-                self.extractMatching(input_buffer, pattern, out_buffer, policy);
+                auto view = input.cast<std::string_view>();
+                RawStream stream(view.data(), view.size());
+                self.extractMatching(stream, pattern, out_buffer, policy);
                 return py::bytes(reinterpret_cast<const char *>(out_buffer.data()), out_buffer.size());
             },
             py::arg("in_archive"),
@@ -1732,9 +1794,9 @@ Args:
                const py::bytes &input,
                const std::vector<uint32_t> &indices,
                const std::string &out_dir) {
-                auto input_str = input.cast<std::string_view>();
-                std::vector<bit7z::byte_t> input_buffer(input_str.begin(), input_str.end());
-                self.extractItems(input_buffer, indices, out_dir);
+                auto view = input.cast<std::string_view>();
+                RawStream stream(view.data(), view.size());
+                self.extractItems(stream, indices, out_dir);
             },
             py::arg("in_archive"),
             py::arg("indices"),
@@ -1753,9 +1815,9 @@ Args:
                const std::string &regex,
                const std::string &out_dir,
                bit7z::FilterPolicy policy) {
-                auto input_str = input.cast<std::string_view>();
-                std::vector<bit7z::byte_t> input_buffer(input_str.begin(), input_str.end());
-                self.extractMatchingRegex(input_buffer, regex, out_dir, policy);
+                auto view = input.cast<std::string_view>();
+                RawStream stream(view.data(), view.size());
+                self.extractMatchingRegex(stream, regex, out_dir, policy);
             },
             py::arg("in_archive"),
             py::arg("regex"),
@@ -1775,9 +1837,9 @@ Args:
             [](BitMemExtractor &self, const py::bytes &input, const std::string &regex, bit7z::FilterPolicy policy)
                 -> py::bytes {
                 std::vector<bit7z::byte_t> out_buffer;
-                auto input_str = input.cast<std::string_view>();
-                std::vector<bit7z::byte_t> input_buffer(input_str.begin(), input_str.end());
-                self.extractMatchingRegex(input_buffer, regex, out_buffer, policy);
+                auto view = input.cast<std::string_view>();
+                RawStream stream(view.data(), view.size());
+                self.extractMatchingRegex(stream, regex, out_buffer, policy);
                 return py::bytes(reinterpret_cast<const char *>(out_buffer.data()), out_buffer.size());
             },
             py::arg("in_archive"),
@@ -1788,9 +1850,9 @@ Args:
         .def(
             "test",
             [](BitMemExtractor &self, const py::bytes &input) {
-                auto input_str = input.cast<std::string_view>();
-                std::vector<bit7z::byte_t> input_buffer(input_str.begin(), input_str.end());
-                self.test(input_buffer);
+                auto view = input.cast<std::string_view>();
+                RawStream stream(view.data(), view.size());
+                self.test(stream);
             },
             py::arg("in_archive"),
             py::doc(R"pydoc(Tests the given archive without extracting its content.
@@ -1925,8 +1987,7 @@ Note:
     Unlike compress_files, this method includes also the metadata of the sub-folders.)pydoc"));
 
     // bit7z::BitMemCompressor class bindings
-    using BitMemCompressorInput = const std::vector<bit7z::byte_t> &;
-    using BitMemCompressor = bit7z::BitCompressor<BitMemCompressorInput>;
+    using BitMemCompressor = bit7z::BitStreamCompressor;
     py::class_<BitMemCompressor, bit7z::BitAbstractArchiveCreator>(m, "BitMemCompressor")
         .def(py::init([](const bit7z::Bit7zLibrary &library, const bit7z::BitInOutFormat &format) {
                  return new BitMemCompressor(library, format);
@@ -1940,9 +2001,9 @@ Note:
                const py::bytes &input,
                const std::string &out_file,
                const std::string &input_name) {
-                auto input_str = input.cast<std::string_view>();
-                std::vector<bit7z::byte_t> input_buffer(input_str.begin(), input_str.end());
-                self.compressFile(input_buffer, out_file, input_name);
+                auto view = input.cast<std::string_view>();
+                RawStream stream(view.data(), view.size());
+                self.compressFile(stream, out_file, input_name);
             },
             py::arg("input"),
             py::arg("out_file"),
@@ -1957,9 +2018,9 @@ Args:
             "compress_file",
             [](BitMemCompressor &self, const py::bytes &input, const std::string &input_name) -> py::bytes {
                 std::vector<bit7z::byte_t> out_buffer;
-                auto input_str = input.cast<std::string_view>();
-                std::vector<bit7z::byte_t> input_buffer(input_str.begin(), input_str.end());
-                self.compressFile(input_buffer, out_buffer, input_name);
+                auto view = input.cast<std::string_view>();
+                RawStream stream(view.data(), view.size());
+                self.compressFile(stream, out_buffer, input_name);
                 return py::bytes(reinterpret_cast<const char *>(out_buffer.data()), out_buffer.size());
             },
             py::arg("input"),
@@ -1971,7 +2032,7 @@ Args:
     input_name: (optional) the name to give to the compressed file inside the output archive.)pydoc"));
 
     // bit7z::BitArchiveEditor class bindings
-    py::class_<bit7z::BitArchiveEditor, bit7z::BitArchiveWriter>(m, "BitArchiveEditor")
+    py::class_<bit7z::BitArchiveEditor, bit7z::BitArchiveWriter>(m, "BitArchiveEditor", py::dynamic_attr())
         .def(py::init([](const bit7z::Bit7zLibrary &library,
                          const std::string &in_archive,
                          const bit7z::BitInOutFormat &format,
@@ -1982,6 +2043,7 @@ Args:
              py::arg("in_archive"),
              py::arg("format"),
              py::arg("password") = "",
+             py::keep_alive<1, 2>(),
              py::doc(R"pydoc(Constructs a BitArchiveEditor object, reading the given archive file path.)pydoc"))
         .def("set_update_mode",
              &bit7z::BitArchiveEditor::setUpdateMode,
@@ -2015,6 +2077,30 @@ Args:
     new_path: the new path of the item.)pydoc"))
         .def(
             "update_item",
+            [](py::object& self, uint32_t index, const py::bytes &input) {
+                auto &editor = self.cast<bit7z::BitArchiveEditor &>();
+                auto view = input.cast<std::string_view>();
+                auto *stream = new RawStream(view.data(), view.size());
+                py::object holders_obj = py::getattr(self, "_pybit7z_stream_holders", py::none());
+                py::list holders;
+                if (!holders_obj.is_none()) {
+                    holders = holders_obj.cast<py::list>();
+                }
+                holders.append(py::capsule(stream, [](void *p) { delete static_cast<RawStream *>(p); }));
+                self.attr("_pybit7z_stream_holders") = holders;
+                editor.updateItem(index, *stream);
+            },
+            py::arg("index"),
+            py::arg("input_buffer"),
+            py::keep_alive<1, 3>(),
+            py::doc(
+                R"pydoc(Requests to update the content of the item at the specified index with the data from the given buffer.
+
+Args:
+    index: the index of the item to be updated.
+    input_buffer: the buffer containing the new data for the item.)pydoc"))
+        .def(
+            "update_item",
             static_cast<void (bit7z::BitArchiveEditor::*)(uint32_t, const std::string &)>(
                 &bit7z::BitArchiveEditor::updateItem),
             py::arg("index"),
@@ -2027,18 +2113,27 @@ Args:
     in_file: the path of the file to be used for the update.)pydoc"))
         .def(
             "update_item",
-            [](bit7z::BitArchiveEditor &self, uint32_t index, const py::bytes &input) {
-                auto input_str = input.cast<std::string_view>();
-                std::vector<bit7z::byte_t> input_buffer(input_str.begin(), input_str.end());
-                self.updateItem(index, input_buffer);
+            [](py::object& self, const std::string &item_path, const py::bytes &input) {
+                auto &editor = self.cast<bit7z::BitArchiveEditor &>();
+                auto view = input.cast<std::string_view>();
+                auto *stream = new RawStream(view.data(), view.size());
+                py::object holders_obj = py::getattr(self, "_pybit7z_stream_holders", py::none());
+                py::list holders;
+                if (!holders_obj.is_none()) {
+                    holders = holders_obj.cast<py::list>();
+                }
+                holders.append(py::capsule(stream, [](void *p) { delete static_cast<RawStream *>(p); }));
+                self.attr("_pybit7z_stream_holders") = holders;
+                editor.updateItem(item_path, *stream);
             },
-            py::arg("index"),
+            py::arg("item_path"),
             py::arg("input_buffer"),
+            py::keep_alive<1, 3>(),
             py::doc(
-                R"pydoc(Requests to update the content of the item at the specified index with the data from the given buffer.
+                R"pydoc(Requests to update the content of the item at the specified path with the data from the given buffer.
 
 Args:
-    index: the index of the item to be updated.
+    item_path: the path of the item to be updated.
     input_buffer: the buffer containing the new data for the item.)pydoc"))
         .def(
             "update_item",
@@ -2052,21 +2147,6 @@ Args:
 Args:
     item_path: the path of the item to be updated.
     in_file: the path of the file to be used for the update.)pydoc"))
-        .def(
-            "update_item",
-            [](bit7z::BitArchiveEditor &self, const std::string &item_path, const py::bytes &input) {
-                auto input_str = input.cast<std::string_view>();
-                std::vector<bit7z::byte_t> input_buffer(input_str.begin(), input_str.end());
-                self.updateItem(item_path, input_buffer);
-            },
-            py::arg("item_path"),
-            py::arg("input_buffer"),
-            py::doc(
-                R"pydoc(Requests to update the content of the item at the specified path with the data from the given buffer.
-
-Args:
-    item_path: the path of the item to be updated.
-    input_buffer: the buffer containing the new data for the item.)pydoc"))
         .def("delete_item",
              static_cast<void (bit7z::BitArchiveEditor::*)(uint32_t, bit7z::DeletePolicy)>(
                  &bit7z::BitArchiveEditor::deleteItem),

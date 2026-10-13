@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime
+import gc
 from pathlib import Path
 
 import pytest
@@ -400,3 +401,364 @@ def test_archive_writer_bytes_input(temp_dir):
         output_bytes = writer.compress_to()
         assert isinstance(output_bytes, bytes)
         assert len(output_bytes) > 0
+
+
+
+@pytest.fixture
+def multi_file_archive_bytes(temp_dir):
+    """Create a multi-file 7z archive in memory for extractor tests."""
+    files = {
+        "a.txt": b"content of file a",
+        "b.txt": b"content of file b",
+        "c.log": b"content of file c log",
+    }
+    for name, data in files.items():
+        (temp_dir / name).write_bytes(data)
+
+    archive_path = temp_dir / "multi.7z"
+    with pybit7z.lib7zip_context() as lib:
+        compressor = pybit7z.BitFileCompressor(lib, pybit7z.FormatSevenZip)
+        compressor.compress([str(temp_dir / f) for f in files], str(archive_path))
+
+    return archive_path.read_bytes(), files
+
+
+# ---------------------------------------------------------------------------
+# BitMemExtractor – all zero-copy bytes overloads
+# ---------------------------------------------------------------------------
+
+
+def test_mem_extractor_extract_to_dict(multi_file_archive_bytes):
+    archive_bytes, files = multi_file_archive_bytes
+    with pybit7z.lib7zip_context() as lib:
+        extractor = pybit7z.BitMemExtractor(lib, pybit7z.FormatSevenZip)
+        result = extractor.extract(archive_bytes)
+
+    assert isinstance(result, dict)
+    for name, data in files.items():
+        assert name in result
+        assert result[name] == data
+
+
+def test_mem_extractor_extract_to_dir(multi_file_archive_bytes, temp_dir):
+    archive_bytes, files = multi_file_archive_bytes
+    out_dir = temp_dir / "out"
+    out_dir.mkdir()
+
+    with pybit7z.lib7zip_context() as lib:
+        extractor = pybit7z.BitMemExtractor(lib, pybit7z.FormatSevenZip)
+        extractor.extract(archive_bytes, str(out_dir))
+
+    for name, data in files.items():
+        assert (out_dir / name).read_bytes() == data
+
+
+def test_mem_extractor_extract_single_by_index(multi_file_archive_bytes):
+    archive_bytes, files = multi_file_archive_bytes
+    with pybit7z.lib7zip_context() as lib:
+        extractor = pybit7z.BitMemExtractor(lib, pybit7z.FormatSevenZip)
+        first_data = extractor.extract(archive_bytes, 0)
+
+    assert first_data in files.values()
+
+
+def test_mem_extractor_extract_matching_to_dir(multi_file_archive_bytes, temp_dir):
+    archive_bytes, files = multi_file_archive_bytes
+    out_dir = temp_dir / "out"
+    out_dir.mkdir()
+
+    with pybit7z.lib7zip_context() as lib:
+        extractor = pybit7z.BitMemExtractor(lib, pybit7z.FormatSevenZip)
+        extractor.extract_matching(archive_bytes, "*.txt", str(out_dir))
+
+    assert (out_dir / "a.txt").read_bytes() == files["a.txt"]
+    assert (out_dir / "b.txt").read_bytes() == files["b.txt"]
+    assert not (out_dir / "c.log").exists()
+
+
+def test_mem_extractor_extract_matching_to_bytes(multi_file_archive_bytes):
+    archive_bytes, files = multi_file_archive_bytes
+    with pybit7z.lib7zip_context() as lib:
+        extractor = pybit7z.BitMemExtractor(lib, pybit7z.FormatSevenZip)
+        result = extractor.extract_matching(
+            archive_bytes, "*.txt", pybit7z.FilterPolicy.Include
+        )
+
+    assert result == files["b.txt"]
+
+
+def test_mem_extractor_extract_items(multi_file_archive_bytes, temp_dir):
+    archive_bytes, files = multi_file_archive_bytes
+    out_dir = temp_dir / "out"
+    out_dir.mkdir()
+
+    with pybit7z.lib7zip_context() as lib:
+        extractor = pybit7z.BitMemExtractor(lib, pybit7z.FormatSevenZip)
+        extractor.extract_items(archive_bytes, [0, 2], str(out_dir))
+
+    extracted = {p.name: p.read_bytes() for p in out_dir.iterdir() if p.is_file()}
+    assert len(extracted) == 2
+    for data in extracted.values():
+        assert data in files.values()
+
+
+def test_mem_extractor_extract_matching_regex_to_dir(multi_file_archive_bytes, temp_dir):
+    archive_bytes, files = multi_file_archive_bytes
+    out_dir = temp_dir / "out"
+    out_dir.mkdir()
+
+    with pybit7z.lib7zip_context() as lib:
+        extractor = pybit7z.BitMemExtractor(lib, pybit7z.FormatSevenZip)
+        extractor.extract_matching_regex(archive_bytes, r".*\.log$", str(out_dir))
+
+    assert (out_dir / "c.log").read_bytes() == files["c.log"]
+    assert not (out_dir / "a.txt").exists()
+
+
+def test_mem_extractor_extract_matching_regex_to_bytes(multi_file_archive_bytes):
+    archive_bytes, files = multi_file_archive_bytes
+    with pybit7z.lib7zip_context() as lib:
+        extractor = pybit7z.BitMemExtractor(lib, pybit7z.FormatSevenZip)
+        result = extractor.extract_matching_regex(
+            archive_bytes, r".*\.log$", pybit7z.FilterPolicy.Include
+        )
+
+    assert result == files["c.log"]
+
+
+def test_mem_extractor_test(multi_file_archive_bytes):
+    archive_bytes, _ = multi_file_archive_bytes
+    with pybit7z.lib7zip_context() as lib:
+        extractor = pybit7z.BitMemExtractor(lib, pybit7z.FormatSevenZip)
+        extractor.test(archive_bytes)
+
+
+def test_mem_extractor_test_invalid():
+    with pybit7z.lib7zip_context() as lib:
+        extractor = pybit7z.BitMemExtractor(lib, pybit7z.FormatSevenZip)
+        with pytest.raises(pybit7z.BitException):
+            extractor.test(b"not a valid archive")
+
+
+def test_mem_extractor_large_data():
+    """Verify zero-copy path works for large data without extra copies."""
+    test_data = bytes(range(256)) * 4000  # ~1 MB
+    with pybit7z.lib7zip_context() as lib:
+        compressor = pybit7z.BitMemCompressor(lib, pybit7z.FormatSevenZip)
+        compressed = compressor.compress_file(test_data)
+
+        extractor = pybit7z.BitMemExtractor(lib, pybit7z.FormatSevenZip)
+        result = extractor.extract(compressed)
+
+    assert result["[Content]"] == test_data
+
+
+# ---------------------------------------------------------------------------
+# BitMemCompressor – zero-copy bytes overloads
+# ---------------------------------------------------------------------------
+
+
+def test_mem_compressor_to_file(temp_dir):
+    test_data = b"BitMemCompressor to file test data" * 100
+    out_file = temp_dir / "out.7z"
+
+    with pybit7z.lib7zip_context() as lib:
+        compressor = pybit7z.BitMemCompressor(lib, pybit7z.FormatSevenZip)
+        compressor.compress_file(test_data, str(out_file))
+
+    assert out_file.exists() and out_file.stat().st_size > 0
+
+    with pybit7z.lib7zip_context() as lib:
+        extractor = pybit7z.BitFileExtractor(lib, pybit7z.FormatSevenZip)
+        result = extractor.extract(str(out_file))
+
+    assert next(iter(result.values())) == test_data
+
+
+def test_mem_compressor_to_bytes():
+    test_data = b"BitMemCompressor to bytes test data" * 100
+    with pybit7z.lib7zip_context() as lib:
+        compressor = pybit7z.BitMemCompressor(lib, pybit7z.FormatSevenZip)
+        compressed = compressor.compress_file(test_data)
+
+    assert isinstance(compressed, bytes)
+    assert len(compressed) > 0
+    assert len(compressed) < len(test_data)
+
+
+# ---------------------------------------------------------------------------
+# BitOutputArchive.add_file(bytes, name) – dangling-reference fix
+# ---------------------------------------------------------------------------
+
+
+def test_output_archive_add_file_to_bytes(temp_dir):
+    data1 = b"data for file one" * 50
+    data2 = b"data for file two" * 50
+
+    with pybit7z.lib7zip_context() as lib:
+        writer = pybit7z.BitArchiveWriter(lib, pybit7z.FormatSevenZip)
+        writer.add_file(data1, "one.bin")
+        writer.add_file(data2, "two.bin")
+        archive_bytes = writer.compress_to()
+
+    with pybit7z.lib7zip_context() as lib:
+        extractor = pybit7z.BitMemExtractor(lib, pybit7z.FormatSevenZip)
+        result = extractor.extract(archive_bytes)
+
+    assert result["one.bin"] == data1
+    assert result["two.bin"] == data2
+
+
+def test_output_archive_add_file_to_file(temp_dir):
+    data = b"output archive add file to disk" * 50
+    out_file = temp_dir / "out.7z"
+
+    with pybit7z.lib7zip_context() as lib:
+        writer = pybit7z.BitArchiveWriter(lib, pybit7z.FormatSevenZip)
+        writer.add_file(data, "payload.bin")
+        writer.compress_to(str(out_file))
+
+    assert out_file.exists()
+
+    with pybit7z.lib7zip_context() as lib:
+        extractor = pybit7z.BitFileExtractor(lib, pybit7z.FormatSevenZip)
+        result = extractor.extract(str(out_file))
+
+    assert next(iter(result.values())) == data
+
+
+def test_output_archive_add_file_lifetime_survives_gc(temp_dir):
+    """CRITICAL: bytes passed to add_file must remain valid until compress_to.
+
+    The old implementation copied bytes into a local vector that was destroyed
+    when add_file returned, leaving a dangling reference inside the archive.
+    This test drops the Python bytes reference and forces GC before compress_to
+    to prove the new keep_alive + capsule mechanism keeps the data alive.
+    """
+    data = b"lifetime test payload" * 100
+
+    with pybit7z.lib7zip_context() as lib:
+        writer = pybit7z.BitArchiveWriter(lib, pybit7z.FormatSevenZip)
+        payload = bytes(data)  # own reference
+        writer.add_file(payload, "payload.bin")
+        del payload
+        gc.collect()
+        # At this point the only thing keeping the bytes alive is keep_alive.
+        archive_bytes = writer.compress_to()
+
+    with pybit7z.lib7zip_context() as lib:
+        extractor = pybit7z.BitMemExtractor(lib, pybit7z.FormatSevenZip)
+        result = extractor.extract(archive_bytes)
+
+    assert result["payload.bin"] == data
+
+
+def test_output_archive_add_multiple_files_lifetime(temp_dir):
+    """Multiple add_file calls with bytes that go out of scope before compress_to."""
+    with pybit7z.lib7zip_context() as lib:
+        writer = pybit7z.BitArchiveWriter(lib, pybit7z.FormatSevenZip)
+        for i in range(5):
+            payload = bytes(f"file-{i}-content-{i}".encode()) * 30
+            writer.add_file(payload, f"file_{i}.txt")
+            del payload
+        gc.collect()
+        archive_bytes = writer.compress_to()
+
+    with pybit7z.lib7zip_context() as lib:
+        extractor = pybit7z.BitMemExtractor(lib, pybit7z.FormatSevenZip)
+        result = extractor.extract(archive_bytes)
+
+    for i in range(5):
+        assert result[f"file_{i}.txt"] == bytes(f"file-{i}-content-{i}".encode()) * 30
+
+
+# ---------------------------------------------------------------------------
+# BitArchiveEditor.update_item(bytes) – dangling-reference fix
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def editable_archive(temp_dir):
+    """Create a 7z archive on disk that can be opened with BitArchiveEditor."""
+    test_file = temp_dir / "original.txt"
+    test_file.write_bytes(b"original content")
+
+    archive_path = temp_dir / "edit.7z"
+    with pybit7z.lib7zip_context() as lib:
+        compressor = pybit7z.BitFileCompressor(lib, pybit7z.FormatSevenZip)
+        compressor.compress([str(test_file)], str(archive_path))
+
+    return archive_path
+
+
+def test_editor_update_item_by_index(editable_archive):
+    new_data = b"updated content via index"
+
+    with pybit7z.lib7zip_context() as lib:
+        editor = pybit7z.BitArchiveEditor(lib, str(editable_archive), pybit7z.FormatSevenZip)
+        editor.update_item(0, new_data)
+        editor.apply_changes()
+
+    with pybit7z.lib7zip_context() as lib:
+        extractor = pybit7z.BitFileExtractor(lib, pybit7z.FormatSevenZip)
+        result = extractor.extract(str(editable_archive))
+
+    assert next(iter(result.values())) == new_data
+
+
+def test_editor_update_item_by_path(editable_archive):
+    new_data = b"updated content via path"
+
+    with pybit7z.lib7zip_context() as lib:
+        editor = pybit7z.BitArchiveEditor(lib, str(editable_archive), pybit7z.FormatSevenZip)
+        editor.update_item("original.txt", new_data)
+        editor.apply_changes()
+
+    with pybit7z.lib7zip_context() as lib:
+        extractor = pybit7z.BitFileExtractor(lib, pybit7z.FormatSevenZip)
+        result = extractor.extract(str(editable_archive))
+
+    assert next(iter(result.values())) == new_data
+
+
+def test_editor_update_item_lifetime_survives_gc(editable_archive):
+    """CRITICAL: bytes passed to update_item must remain valid until apply_changes.
+
+    Same dangling-reference scenario as add_file: the old local vector was
+    destroyed at the end of update_item, so apply_changes would read freed
+    memory. Here we drop the bytes reference and force GC before apply_changes.
+    """
+    new_data = b"lifetime update payload" * 50
+
+    with pybit7z.lib7zip_context() as lib:
+        editor = pybit7z.BitArchiveEditor(lib, str(editable_archive), pybit7z.FormatSevenZip)
+        payload = bytes(new_data)
+        editor.update_item(0, payload)
+        del payload
+        gc.collect()
+        editor.apply_changes()
+
+    with pybit7z.lib7zip_context() as lib:
+        extractor = pybit7z.BitFileExtractor(lib, pybit7z.FormatSevenZip)
+        result = extractor.extract(str(editable_archive))
+
+    assert next(iter(result.values())) == new_data
+
+
+def test_editor_update_item_by_path_lifetime(editable_archive):
+    new_data = b"lifetime update via path" * 50
+
+    with pybit7z.lib7zip_context() as lib:
+        editor = pybit7z.BitArchiveEditor(lib, str(editable_archive), pybit7z.FormatSevenZip)
+        payload = bytes(new_data)
+        editor.update_item("original.txt", payload)
+        del payload
+        gc.collect()
+        editor.apply_changes()
+
+    with pybit7z.lib7zip_context() as lib:
+        extractor = pybit7z.BitFileExtractor(lib, pybit7z.FormatSevenZip)
+        result = extractor.extract(str(editable_archive))
+
+    assert next(iter(result.values())) == new_data
+

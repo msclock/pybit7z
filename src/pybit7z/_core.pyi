@@ -38,6 +38,7 @@ __all__: list[str] = [
     "BitInFormat",
     "BitInOutFormat",
     "BitInputArchive",
+    "BitInputItem",
     "BitMemCompressor",
     "BitMemExtractor",
     "BitOutputArchive",
@@ -215,6 +216,7 @@ __all__: list[str] = [
     "Strip",
     "SubType",
     "SymLink",
+    "SymlinkPolicy",
     "TailSize",
     "TimeType",
     "TotalPhySize",
@@ -1402,6 +1404,35 @@ class FilterPolicy:
     @property
     def value(self) -> int: ...
 
+class SymlinkPolicy:
+    """
+    The SymlinkPolicy enum specifies how symbolic links should be handled when adding files to an archive.
+
+    Members:
+
+      Follow : Follow symbolic links, storing the content of the pointed-to file.
+
+      DoNotFollow : Do not follow symbolic links, storing the link itself.
+    """
+
+    DoNotFollow: typing.ClassVar[SymlinkPolicy]
+    Follow: typing.ClassVar[SymlinkPolicy]
+    __members__: typing.ClassVar[dict[str, SymlinkPolicy]]
+    def __eq__(self, other: typing.Any) -> bool: ...
+    def __getstate__(self) -> int: ...
+    def __hash__(self) -> int: ...
+    def __index__(self) -> int: ...
+    def __init__(self, value: int) -> None: ...
+    def __int__(self) -> int: ...
+    def __ne__(self, other: typing.Any) -> bool: ...
+    def __repr__(self) -> str: ...
+    def __setstate__(self, state: int) -> None: ...
+    def __str__(self) -> str: ...
+    @property
+    def name(self) -> str: ...
+    @property
+    def value(self) -> int: ...
+
 class FolderPathPolicy:
     """
     Members:
@@ -1655,6 +1686,50 @@ class BitInputArchive:
             property: the property value.
         """
 
+class BitInputItem:
+    """
+    The BitInputItem class represents a generic input item for compression operations.
+    """
+    @typing.overload
+    def __init__(self, input: bytes, name: str) -> None:
+        """
+        Constructs a BitInputItem from a memory buffer.
+
+        The bytes object is referenced directly (no copy); it must outlive the item.
+        """
+    @typing.overload
+    def __init__(self, path: str, symlink_policy: SymlinkPolicy = SymlinkPolicy.Follow) -> None:
+        """
+        Constructs a BitInputItem from a filesystem path.
+        """
+    @typing.overload
+    def __init__(self, path: str, in_archive_path: str, symlink_policy: SymlinkPolicy = SymlinkPolicy.Follow) -> None:
+        """
+        Constructs a BitInputItem from a filesystem path, with a custom path to be used inside the archive.
+        """
+    def is_dir(self) -> bool:
+        """true if the item represents a directory."""
+    def is_sym_link(self) -> bool:
+        """true if the item represents a symbolic link."""
+    def size(self) -> int:
+        """the uncompressed size of the item, in bytes."""
+    def path(self) -> str:
+        """the native filesystem path of the item."""
+    def attributes(self) -> int:
+        """the filesystem attributes of the item."""
+    def in_archive_path(self) -> str:
+        """the path of the item as it will be stored inside the archive."""
+    def item_property(self, property: BitProperty) -> BitPropVariant:
+        """Returns the value of the given property for this item."""
+    def has_new_data(self) -> bool:
+        """true if the item contributes new data to the archive."""
+    def set_creation_time(self, creation_time: datetime.datetime) -> None:
+        """Sets the creation time of the item."""
+    def set_last_write_time(self, last_write_time: datetime.datetime) -> None:
+        """Sets the last write time of the item."""
+    def set_last_access_time(self, last_access_time: datetime.datetime) -> None:
+        """Sets the last access time of the item."""
+
 class BitOutputArchive:
     def add_directory(self, in_dir: str) -> None:
         """
@@ -1694,13 +1769,29 @@ class BitOutputArchive:
             recursive: recursively search the files in the given directory and all of its subdirectories.
             policy: the filtering policy to be applied to the matched items. Default is FilterPolicy.Include.
         """
-    def add_file(self, input: bytes, name: str) -> None:
+    @typing.overload
+    def add_file(self, input: bytes, name: str) -> BitInputItem:
         """
         Adds the given memory buffer, with an optional user-defined path to be used in the output archive.
 
         Args:
             input: the memory buffer to be added to the output archive.
             name: user-defined path to be used inside the output archive.
+
+        Returns:
+            A reference to the input item just added, valid until the next call that adds items to the archive.
+        """
+    @typing.overload
+    def add_file(self, in_file: str, name: str = "") -> BitInputItem:
+        """
+        Adds the given file path, with an optional user-defined path to be used in the output archive.
+
+        Args:
+            in_file: the path to the filesystem file to be added to the output archive.
+            name: (optional) user-defined path to be used inside the output archive.
+
+        Returns:
+            A reference to the input item just added, valid until the next call that adds items to the archive.
         """
     @typing.overload
     def add_files(self, in_files: list[str]) -> None:
