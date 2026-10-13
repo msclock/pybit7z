@@ -18,9 +18,9 @@ using namespace py::literals;
 
 namespace {
 
-class RandomAccessStreamBuf final : public std::streambuf {
+class RawStreamBuf final : public std::streambuf {
 public:
-    RandomAccessStreamBuf(const char *data, std::size_t size) {
+    RawStreamBuf(const char *data, std::size_t size) {
         auto *p = const_cast<char *>(data);
         setg(p, p, p + size);
     }
@@ -56,14 +56,24 @@ protected:
     }
 };
 
+class RawStream final : public std::istream {
+public:
+    explicit RawStream(const char *data, std::size_t size)
+        : std::istream(&stream_buff),
+          stream_buff(data, size) {}
+
+    RawStreamBuf *rdbuf() const { return const_cast<RawStreamBuf *>(&stream_buff); }
+
+private:
+    RawStreamBuf stream_buff;
+};
+
 template <typename ArchiveT>
 struct ArchiveCleanup {
-    RandomAccessStreamBuf *stream_buff;
-    std::istream *stream;
+    RawStream *stream;
 
     void operator()(ArchiveT *archive) const {
         delete archive;
-        delete stream_buff;
         delete stream;
     }
 };
@@ -573,7 +583,7 @@ Returns:
         .def("set_password",
              &bit7z::BitAbstractArchiveHandler::setPassword,
              py::arg("password"),
-             py ::doc(R"pbdoc(Sets up a password to be used by the archive handler.
+             py::doc(R"pbdoc(Sets up a password to be used by the archive handler.
 
 The password will be used to encrypt/decrypt archives by using the default cryptographic method of the archive format.
 
@@ -1318,11 +1328,10 @@ Note:
                          const bit7z::BitInFormat &format,
                          const std::string &password = "") {
                  auto view = in_archive.cast<std::string_view>();
-                 auto *stream_buff = new RandomAccessStreamBuf(view.data(), view.size());
-                 auto *stream = new std::istream(stream_buff);
+                 auto *stream = new RawStream(view.data(), view.size());
                  return ArchiveHolder<bit7z::BitArchiveReader>(
                      new bit7z::BitArchiveReader(library, *stream, format, password),
-                     ArchiveCleanup<bit7z::BitArchiveReader>{.stream_buff = stream_buff, .stream = stream});
+                     ArchiveCleanup<bit7z::BitArchiveReader>{.stream = stream});
              }),
              py::arg("library"),
              py::arg("in_archive"),
@@ -1398,7 +1407,7 @@ Args:
                const py::bytes &in_archive,
                const bit7z::BitInFormat &format) -> bool {
                 auto view = in_archive.cast<std::string_view>();
-                auto stream_buff = RandomAccessStreamBuf(view.data(), view.size());
+                auto stream_buff = RawStreamBuf(view.data(), view.size());
                 auto stream = std::istream(&stream_buff);
                 return bit7z::BitArchiveReader::isHeaderEncrypted(library, stream, format);
             },
@@ -1444,11 +1453,10 @@ Args:
                          const bit7z::BitInOutFormat &format,
                          const std::string &password = "") {
                  auto view = in_archive.cast<std::string_view>();
-                 auto *stream_buff = new RandomAccessStreamBuf(view.data(), view.size());
-                 auto *stream = new std::istream(stream_buff);
+                 auto *stream = new RawStream(view.data(), view.size());
                  return ArchiveHolder<bit7z::BitArchiveWriter>(
                      new bit7z::BitArchiveWriter(library, *stream, format, password),
-                     ArchiveCleanup<bit7z::BitArchiveWriter>{.stream_buff = stream_buff, .stream = stream});
+                     ArchiveCleanup<bit7z::BitArchiveWriter>{.stream = stream});
              }),
              py::arg("library"),
              py::arg("in_archive"),
