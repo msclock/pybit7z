@@ -1164,15 +1164,20 @@ Returns:
         m,
         "SymlinkPolicy",
         R"pbdoc(The SymlinkPolicy enum specifies how symbolic links should be handled when adding files to an archive.)pbdoc")
-        .value("Follow", bit7z::SymlinkPolicy::Follow, R"pbdoc(Follow symbolic links, storing the content of the pointed-to file.)pbdoc")
-        .value("DoNotFollow", bit7z::SymlinkPolicy::DoNotFollow, R"pbdoc(Do not follow symbolic links, storing the link itself.)pbdoc");
+        .value("Follow",
+               bit7z::SymlinkPolicy::Follow,
+               R"pbdoc(Follow symbolic links, storing the content of the pointed-to file.)pbdoc")
+        .value("DoNotFollow",
+               bit7z::SymlinkPolicy::DoNotFollow,
+               R"pbdoc(Do not follow symbolic links, storing the link itself.)pbdoc");
 
     // bit7z::BitInputItem class bindings
-    py::class_<bit7z::BitInputItem, ArchiveHolder<bit7z::BitInputItem>>( m, "BitInputItem")
+    py::class_<bit7z::BitInputItem, ArchiveHolder<bit7z::BitInputItem>>(m, "BitInputItem")
         .def(py::init([](const py::bytes &input, const std::string &path) {
                  auto view = input.cast<std::string_view>();
                  auto *stream = new RawStream(view.data(), view.size());
-                 return ArchiveHolder<bit7z::BitInputItem>(new bit7z::BitInputItem(*stream, path), ArchiveCleanup<bit7z::BitInputItem>{.stream = stream});
+                 return ArchiveHolder<bit7z::BitInputItem>(new bit7z::BitInputItem(*stream, path),
+                                                           ArchiveCleanup<bit7z::BitInputItem>{.stream = stream});
              }),
              py::arg("input"),
              py::arg("name"),
@@ -1186,24 +1191,46 @@ The bytes object is referenced directly (no copy); it must outlive the item.)pbd
              py::arg("path"),
              py::arg("symlink_policy") = bit7z::SymlinkPolicy::Follow,
              py::doc(R"pbdoc(Constructs a BitInputItem from a filesystem path.)pbdoc"))
-        .def(py::init([](const std::string &path, const std::string &in_archive_path, bit7z::SymlinkPolicy policy) {
-                 return ArchiveHolder<bit7z::BitInputItem>(new bit7z::BitInputItem(path, in_archive_path, policy));
-             }),
-             py::arg("path"),
-             py::arg("in_archive_path"),
-             py::arg("symlink_policy") = bit7z::SymlinkPolicy::Follow,
-             py::doc(R"pbdoc(Constructs a BitInputItem from a filesystem path, with a custom path to be used inside the archive.)pbdoc"))
+        .def(
+            py::init([](const std::string &path, const std::string &in_archive_path, bit7z::SymlinkPolicy policy) {
+                return ArchiveHolder<bit7z::BitInputItem>(new bit7z::BitInputItem(path, in_archive_path, policy));
+            }),
+            py::arg("path"),
+            py::arg("in_archive_path"),
+            py::arg("symlink_policy") = bit7z::SymlinkPolicy::Follow,
+            py::doc(
+                R"pbdoc(Constructs a BitInputItem from a filesystem path, with a custom path to be used inside the archive.)pbdoc"))
         .def("is_dir", &bit7z::BitInputItem::isDir, py::doc(R"pbdoc(true if the item represents a directory.)pbdoc"))
-        .def("is_sym_link", &bit7z::BitInputItem::isSymLink, py::doc(R"pbdoc(true if the item represents a symbolic link.)pbdoc"))
+        .def("is_sym_link",
+             &bit7z::BitInputItem::isSymLink,
+             py::doc(R"pbdoc(true if the item represents a symbolic link.)pbdoc"))
         .def("size", &bit7z::BitInputItem::size, py::doc(R"pbdoc(the uncompressed size of the item, in bytes.)pbdoc"))
         .def("path", &bit7z::BitInputItem::path, py::doc(R"pbdoc(the native filesystem path of the item.)pbdoc"))
-        .def("attributes", &bit7z::BitInputItem::attributes, py::doc(R"pbdoc(the filesystem attributes of the item.)pbdoc"))
-        .def("in_archive_path", &bit7z::BitInputItem::inArchivePath, py::doc(R"pbdoc(the path of the item as it will be stored inside the archive.)pbdoc"))
-        .def("item_property", &bit7z::BitInputItem::itemProperty, py::arg("property"), py::doc(R"pbdoc(Returns the value of the given property for this item.)pbdoc"))
-        .def("has_new_data", &bit7z::BitInputItem::hasNewData, py::doc(R"pbdoc(true if the item contributes new data to the archive.)pbdoc"))
-        .def("set_creation_time", &bit7z::BitInputItem::setCreationTime, py::arg("creation_time"), py::doc(R"pbdoc(Sets the creation time of the item.)pbdoc"))
-        .def("set_last_write_time", &bit7z::BitInputItem::setLastWriteTime, py::arg("last_write_time"), py::doc(R"pbdoc(Sets the last write time of the item.)pbdoc"))
-        .def("set_last_access_time", &bit7z::BitInputItem::setLastAccessTime, py::arg("last_access_time"), py::doc(R"pbdoc(Sets the last access time of the item.)pbdoc"));
+        .def("attributes",
+             &bit7z::BitInputItem::attributes,
+             py::doc(R"pbdoc(the filesystem attributes of the item.)pbdoc"))
+        .def("in_archive_path",
+             &bit7z::BitInputItem::inArchivePath,
+             py::doc(R"pbdoc(the path of the item as it will be stored inside the archive.)pbdoc"))
+        .def("item_property",
+             &bit7z::BitInputItem::itemProperty,
+             py::arg("property"),
+             py::doc(R"pbdoc(Returns the value of the given property for this item.)pbdoc"))
+        .def("has_new_data",
+             &bit7z::BitInputItem::hasNewData,
+             py::doc(R"pbdoc(true if the item contributes new data to the archive.)pbdoc"))
+        .def("set_creation_time",
+             &bit7z::BitInputItem::setCreationTime,
+             py::arg("creation_time"),
+             py::doc(R"pbdoc(Sets the creation time of the item.)pbdoc"))
+        .def("set_last_write_time",
+             &bit7z::BitInputItem::setLastWriteTime,
+             py::arg("last_write_time"),
+             py::doc(R"pbdoc(Sets the last write time of the item.)pbdoc"))
+        .def("set_last_access_time",
+             &bit7z::BitInputItem::setLastAccessTime,
+             py::arg("last_access_time"),
+             py::doc(R"pbdoc(Sets the last access time of the item.)pbdoc"));
 
     // bit7z::BitOutputArchive
     py::class_<bit7z::BitOutputArchive>(m, "BitOutputArchive", py::dynamic_attr())
@@ -1229,7 +1256,7 @@ Args:
 )pydoc"))
         .def(
             "add_file",
-            [](py::object& self, const py::bytes &input, const std::string &path) {
+            [](py::object &self, const py::bytes &input, const std::string &path) {
                 auto &archive = self.cast<bit7z::BitOutputArchive &>();
                 auto view = input.cast<std::string_view>();
                 auto *stream = new RawStream(view.data(), view.size());
@@ -2081,7 +2108,7 @@ Args:
     new_path: the new path of the item.)pydoc"))
         .def(
             "update_item",
-            [](py::object& self, uint32_t index, const py::bytes &input) {
+            [](py::object &self, uint32_t index, const py::bytes &input) {
                 auto &editor = self.cast<bit7z::BitArchiveEditor &>();
                 auto view = input.cast<std::string_view>();
                 auto *stream = new RawStream(view.data(), view.size());
@@ -2117,7 +2144,7 @@ Args:
     in_file: the path of the file to be used for the update.)pydoc"))
         .def(
             "update_item",
-            [](py::object& self, const std::string &item_path, const py::bytes &input) {
+            [](py::object &self, const std::string &item_path, const py::bytes &input) {
                 auto &editor = self.cast<bit7z::BitArchiveEditor &>();
                 auto view = input.cast<std::string_view>();
                 auto *stream = new RawStream(view.data(), view.size());
