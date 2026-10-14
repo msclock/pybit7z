@@ -3,22 +3,21 @@ from __future__ import annotations
 import subprocess
 import sys
 from pathlib import Path
+from typing import Optional
 
 
-def _run(args, cwd=None, stdin=None):
+def _run(args: list[str], cwd=None, stdin=None):
     """Run the CLI module directly to avoid the pybit7z.exe launcher crash."""
-    cmd = [sys.executable, "-m", "pybit7z.cli"] + args
-    return subprocess.run(
-        cmd, cwd=cwd, input=stdin, capture_output=True, check=False
-    )
+    cmd = [sys.executable, "-m", "pybit7z.cli", *args]
+    return subprocess.run(cmd, cwd=cwd, input=stdin, capture_output=True, check=False)
 
 
-def _make_archive(temp_dir, files=None, name="archive.7z", extra=None):
+def _make_archive(temp_dir: Path, files: list[Path], name: str = "archive.7z", extra: Optional[list[str]] = None):
     """Helper: compress one or more files into a 7z archive."""
     files = files or []
     paths = [str(f) for f in files]
     out = str(temp_dir / name)
-    cmd = ["compress"] + paths + ["-o", out]
+    cmd = ["compress", *paths, "-o", out]
     if extra:
         cmd += extra
     result = _run(cmd, cwd=str(temp_dir))
@@ -86,9 +85,12 @@ def test_password_protection(temp_dir):
     output = temp_dir / "protected.7z"
 
     # Compress with password
-    assert _run(
-        ["compress", str(test_file), "-o", str(output), "-p", "mypassword"]
-    ).returncode == 0
+    assert (
+        _run(
+            ["compress", str(test_file), "-o", str(output), "-p", "mypassword"]
+        ).returncode
+        == 0
+    )
 
     # Decompress without password should fail
     extract_dir = temp_dir / "extracted"
@@ -127,6 +129,7 @@ def test_list_output(temp_dir):
 # ---------------------------------------------------------------------------
 # Compress tests
 # ---------------------------------------------------------------------------
+
 
 def test_compress_format_autodetect_zip(temp_dir):
     """Compression format should be auto-detected from the output extension."""
@@ -188,8 +191,7 @@ def test_compress_solid_mode(temp_dir):
 
     out = temp_dir / "solid.7z"
     result = _run(
-        ["compress"] + [str(f) for f in files] +
-        ["-o", str(out), "--solid", "-f", "7z"]
+        ["compress"] + [str(f) for f in files] + ["-o", str(out), "--solid", "-f", "7z"]
     )
     assert result.returncode == 0, result.stderr.decode(errors="replace")
     assert out.exists()
@@ -268,7 +270,16 @@ def test_compress_stdin(temp_dir):
     out = temp_dir / "from_stdin.7z"
     payload = b"stdin payload data"
     result = _run(
-        ["compress", "--stdin", "--stdin-name", "payload.bin", "-o", str(out), "-f", "7z"],
+        [
+            "compress",
+            "--stdin",
+            "--stdin-name",
+            "payload.bin",
+            "-o",
+            str(out),
+            "-f",
+            "7z",
+        ],
         stdin=payload,
     )
     assert result.returncode == 0, result.stderr.decode(errors="replace")
@@ -313,10 +324,16 @@ def test_compress_dictionary_word_size(temp_dir):
     out = temp_dir / "dictsize.7z"
     result = _run(
         [
-            "compress", str(test_file), "-o", str(out),
-            "--dictionary-size", "16777216",  # 16 MB
-            "--word-size", "64",
-            "-f", "7z",
+            "compress",
+            str(test_file),
+            "-o",
+            str(out),
+            "--dictionary-size",
+            "16777216",  # 16 MB
+            "--word-size",
+            "64",
+            "-f",
+            "7z",
         ]
     )
     assert result.returncode == 0, result.stderr.decode(errors="replace")
@@ -329,15 +346,20 @@ def test_compress_multiple_formats(temp_dir):
     test_file.write_text("multi format test")
 
     for fmt, ext in (
-        ("7z", ".7z"), ("zip", ".zip"), ("tar", ".tar"),
-        ("gzip", ".gz"), ("bzip2", ".bz2"), ("xz", ".xz"),
+        ("7z", ".7z"),
+        ("zip", ".zip"),
+        ("tar", ".tar"),
+        ("gzip", ".gz"),
+        ("bzip2", ".bz2"),
+        ("xz", ".xz"),
     ):
         out = temp_dir / f"out{ext}"
-        result = _run(
-            ["compress", str(test_file), "-o", str(out), "-f", fmt]
+        result = _run(["compress", str(test_file), "-o", str(out), "-f", fmt])
+        assert result.returncode == 0, (
+            f"{fmt}: {result.stderr.decode(errors='replace')}"
         )
-        assert result.returncode == 0, f"{fmt}: {result.stderr.decode(errors='replace')}"
-        assert out.exists() and out.stat().st_size > 0
+        assert out.exists()
+        assert out.stat().st_size > 0
 
 
 def test_compress_show_files(temp_dir):
@@ -372,9 +394,7 @@ def test_compress_ratio(temp_dir):
     test_file.write_text("compressible " * 1000)
 
     out = temp_dir / "ratio.7z"
-    result = _run(
-        ["compress", str(test_file), "-o", str(out), "--ratio", "-f", "7z"]
-    )
+    result = _run(["compress", str(test_file), "-o", str(out), "--ratio", "-f", "7z"])
     assert result.returncode == 0, result.stderr.decode(errors="replace")
     assert "Ratio" in result.stderr.decode(errors="replace")
 
@@ -382,6 +402,7 @@ def test_compress_ratio(temp_dir):
 # ---------------------------------------------------------------------------
 # Extract tests
 # ---------------------------------------------------------------------------
+
 
 def test_extract_by_indices(temp_dir):
     """Extracting by index should only retrieve the selected items."""
@@ -407,9 +428,7 @@ def test_extract_match_wildcard(temp_dir):
     archive = _make_archive(temp_dir, files)
 
     out = temp_dir / "match_out"
-    result = _run(
-        ["extract", str(archive), "-o", str(out), "--match", "*.txt"]
-    )
+    result = _run(["extract", str(archive), "-o", str(out), "--match", "*.txt"])
     assert result.returncode == 0, result.stderr.decode(errors="replace")
     names = {p.name for p in out.rglob("*") if p.is_file()}
     assert names == {"keep.txt"}
@@ -440,8 +459,16 @@ def test_extract_filter_policy_exclude(temp_dir):
 
     out = temp_dir / "filt_out"
     result = _run(
-        ["extract", str(archive), "-o", str(out),
-         "--match", "*.log", "--filter-policy", "exclude"]
+        [
+            "extract",
+            str(archive),
+            "-o",
+            str(out),
+            "--match",
+            "*.log",
+            "--filter-policy",
+            "exclude",
+        ]
     )
     assert result.returncode == 0, result.stderr.decode(errors="replace")
     names = {p.name for p in out.rglob("*") if p.is_file()}
@@ -476,9 +503,7 @@ def test_extract_password(temp_dir):
     """Extracting a password-protected archive should require the password."""
     test_file = temp_dir / "secret.txt"
     test_file.write_text("secret data")
-    archive = _make_archive(
-        temp_dir, [test_file], name="pwd.7z", extra=["-p", "abc"]
-    )
+    archive = _make_archive(temp_dir, [test_file], name="pwd.7z", extra=["-p", "abc"])
 
     out = temp_dir / "pwd_out"
     # Without password should fail.
@@ -499,9 +524,7 @@ def test_extract_show_files(temp_dir):
     archive = _make_archive(temp_dir, [test_file])
 
     out = temp_dir / "show_out"
-    result = _run(
-        ["extract", str(archive), "-o", str(out), "--show-files"]
-    )
+    result = _run(["extract", str(archive), "-o", str(out), "--show-files"])
     assert result.returncode == 0, result.stderr.decode(errors="replace")
     assert "data.txt" in result.stderr.decode(errors="replace")
 
@@ -513,15 +536,14 @@ def test_extract_progress(temp_dir):
     archive = _make_archive(temp_dir, [test_file])
 
     out = temp_dir / "prog_out"
-    result = _run(
-        ["extract", str(archive), "-o", str(out), "--progress"]
-    )
+    result = _run(["extract", str(archive), "-o", str(out), "--progress"])
     assert result.returncode == 0, result.stderr.decode(errors="replace")
 
 
 # ---------------------------------------------------------------------------
 # List tests
 # ---------------------------------------------------------------------------
+
 
 def test_list_verbose(temp_dir):
     """Verbose listing should include solid/encrypted/volumes info."""
@@ -541,6 +563,7 @@ def test_list_verbose(temp_dir):
 # ---------------------------------------------------------------------------
 # Test archive integrity
 # ---------------------------------------------------------------------------
+
 
 def test_test_archive_valid(temp_dir):
     """The 'test' command should report a valid archive as passing."""
@@ -565,6 +588,7 @@ def test_test_archive_invalid(temp_dir):
 # ---------------------------------------------------------------------------
 # Info tests
 # ---------------------------------------------------------------------------
+
 
 def test_info_archive(temp_dir):
     """The 'info' command should print archive metadata."""
@@ -596,6 +620,7 @@ def test_info_verbose(temp_dir):
 # Update tests
 # ---------------------------------------------------------------------------
 
+
 def test_update_delete_by_path(temp_dir):
     """Deleting an item by path should remove it from the archive."""
     files = [temp_dir / "a.txt", temp_dir / "b.txt"]
@@ -603,9 +628,7 @@ def test_update_delete_by_path(temp_dir):
         f.write_text("data")
     archive = _make_archive(temp_dir, files)
 
-    result = _run(
-        ["update", str(archive), "-f", "7z", "--delete", "a.txt"]
-    )
+    result = _run(["update", str(archive), "-f", "7z", "--delete", "a.txt"])
     assert result.returncode == 0, result.stderr.decode(errors="replace")
 
     listing = _run(["list", str(archive)]).stdout.decode()
@@ -620,9 +643,7 @@ def test_update_delete_by_index(temp_dir):
         f.write_text("data")
     archive = _make_archive(temp_dir, files)
 
-    result = _run(
-        ["update", str(archive), "-f", "7z", "--delete-index", "0"]
-    )
+    result = _run(["update", str(archive), "-f", "7z", "--delete-index", "0"])
     assert result.returncode == 0, result.stderr.decode(errors="replace")
 
     listing = _run(["list", str(archive)]).stdout.decode()
@@ -686,6 +707,7 @@ def test_update_no_operations(temp_dir):
 # Formats command
 # ---------------------------------------------------------------------------
 
+
 def test_formats_command():
     """The 'formats' command should list writable and read-only formats."""
     result = _run(["formats"])
@@ -699,6 +721,7 @@ def test_formats_command():
 # ---------------------------------------------------------------------------
 # Error handling tests
 # ---------------------------------------------------------------------------
+
 
 def test_compress_missing_output():
     """Compression without an output path should error."""
@@ -728,8 +751,16 @@ def test_compress_invalid_format_property(temp_dir):
     out = temp_dir / "badprop.7z"
 
     result = _run(
-        ["compress", str(test_file), "-o", str(out),
-         "--format-property", "notanumber", "-f", "7z"]
+        [
+            "compress",
+            str(test_file),
+            "-o",
+            str(out),
+            "--format-property",
+            "notanumber",
+            "-f",
+            "7z",
+        ]
     )
     assert result.returncode != 0
     assert "Invalid --format-property" in result.stderr.decode()
@@ -741,8 +772,6 @@ def test_update_invalid_rename_spec(temp_dir):
     test_file.write_text("data")
     archive = _make_archive(temp_dir, [test_file])
 
-    result = _run(
-        ["update", str(archive), "-f", "7z", "--rename", "bad-spec"]
-    )
+    result = _run(["update", str(archive), "-f", "7z", "--rename", "bad-spec"])
     assert result.returncode != 0
     assert "Invalid --rename spec" in result.stderr.decode()

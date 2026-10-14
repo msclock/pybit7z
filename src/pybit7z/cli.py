@@ -10,6 +10,7 @@ from typing import Any
 
 from . import (
     Bit7zLibrary,
+    BitAbstractArchiveHandler,
     BitArchiveEditor,
     BitArchiveReader,
     BitArchiveWriter,
@@ -79,7 +80,7 @@ def _human_size(num: float) -> str:
     return f"{num:.1f} EB"
 
 
-def _total_callback(total_ref: list) -> Any:
+def _total_callback(total_ref: list[int]) -> Any:
     def cb(total_size: int) -> None:
         total_ref[0] = total_size
 
@@ -342,7 +343,11 @@ def main() -> None:
         if not args.paths and not args.stdin:
             parser.error("Input paths are required (or use --stdin)")
 
-    if args.action in ("decompress", "extract") and not args.output and not args.to_stdout:
+    if (
+        args.action in ("decompress", "extract")
+        and not args.output
+        and not args.to_stdout
+    ):
         parser.error("Output file/directory path is required")
 
     if args.action in ("list", "test", "info", "update") and not args.paths:
@@ -374,12 +379,12 @@ def _resolve_read_format(args: argparse.Namespace) -> Any:
     return WRITABLE_FORMATS[args.format]
 
 
-def _apply_progress(handler: BitArchiveEditor, args: argparse.Namespace) -> None:
-    total_ref: list = [0]
-    last_pct: list = [0]
-    last_ratio: list = [None]
-    line_active: list = [False]
-    last_text: list = [""]
+def _apply_progress(handler: BitAbstractArchiveHandler, args: argparse.Namespace) -> None:
+    total_ref: list[int] = [0]
+    last_pct: list[int] = [0]
+    last_ratio: list[tuple[int, int] | None] = [None]
+    line_active: list[bool] = [False]
+    last_text: list[str] = [""]
 
     def build_text() -> str:
         parts = []
@@ -444,8 +449,8 @@ def show_formats() -> None:
     # Import all format objects dynamically from the package.
     from . import _core
 
-    writable = []
-    readable = []
+    writable: list[tuple[str, BitInOutFormat]] = []
+    readable: list[tuple[str, BitInFormat]] = []
     for name in dir(_core):
         if not name.startswith("Format"):
             continue
@@ -468,7 +473,7 @@ def show_formats() -> None:
     sys.stdout.write("\nRead-only formats:\n")
     sys.stdout.write(header)
     sys.stdout.write("  " + "-" * 50 + "\n")
-    for name, fmt in sorted(readable, key=lambda x: x[0]):
+    for name, fmt in sorted(readable, key=lambda x: x[0]):  # type: ignore[assignment]
         sys.stdout.write(f"  {name:<12} {'-':<10} id={fmt.value()}\n")
 
 
@@ -540,7 +545,8 @@ def compress(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
     # Raw 7z format properties (e.g. '0=4' -> 4 threads, 'x=9' -> ultra level).
     for prop in args.format_property:
         if "=" not in prop:
-            raise ValueError(f"Invalid --format-property (expected KEY=VALUE): {prop}")
+            msg = f"Invalid --format-property (expected KEY=VALUE): {prop}"
+            raise ValueError(msg)
         key, value = prop.split("=", 1)
         # bit7z's BitPropVariant only supports bool/uint64; parse numeric values.
         if value.lower() in ("true", "false"):
@@ -631,11 +637,14 @@ def extract(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
             items = reader.items()
 
             for item in items:
-                if fnmatch.fnmatch(item.name(), args.match) != (policy == FilterPolicy.Exclude):
+                if fnmatch.fnmatch(item.name(), args.match) != (
+                    policy == FilterPolicy.Exclude
+                ):
                     data = reader.extract_to(item.index())
                     break
             else:
-                raise RuntimeError(f"No item matches pattern: {args.match}")
+                msg = f"No item matches pattern: {args.match}"
+                raise RuntimeError(msg)
         else:
             data = reader.extract_to(0)
         sys.stdout.buffer.write(data)
@@ -658,7 +667,8 @@ def extract(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
             if bool(pattern.search(item.path())) != (policy == FilterPolicy.Exclude)
         ]
         if not indices:
-            raise RuntimeError(f"No item matches regex: {args.match_regex}")
+            msg = f"No item matches regex: {args.match_regex}"
+            raise RuntimeError(msg)
         reader.extract_to(out_dir, indices)
     else:
         reader.extract_to(out_dir)
@@ -771,7 +781,9 @@ def _variant_to_str(variant: BitPropVariant) -> str:
 def update_archive(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
     if args.format == "auto":
         parser = build_parser()
-        parser.error("Update requires an explicit writable format (use -f 7z, zip, ...)")
+        parser.error(
+            "Update requires an explicit writable format (use -f 7z, zip, ...)"
+        )
 
     fmt = WRITABLE_FORMATS[args.format]
     password = args.password or ""
@@ -794,13 +806,17 @@ def update_archive(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
 
     for spec in args.rename:
         if "=" not in spec:
-            raise ValueError(f"Invalid --rename spec (expected OLD=NEW): {spec}")
+            msg = f"Invalid --rename spec (expected OLD=NEW): {spec}"
+            raise ValueError(msg)
         old, new = spec.split("=", 1)
         editor.rename_item(old, new)
         changed = True
     for spec in args.rename_index:
         if ":" not in spec:
-            raise ValueError(f"Invalid --rename-index spec (expected INDEX:NEW): {spec}")
+            msg = f"Invalid --rename-index spec (expected INDEX:NEW): {spec}"
+            raise ValueError(
+                msg
+            )
         idx_str, new = spec.split(":", 1)
         editor.rename_item(int(idx_str), new)
         changed = True
