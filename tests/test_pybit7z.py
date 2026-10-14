@@ -761,4 +761,3 @@ def test_editor_update_item_by_path_lifetime(editable_archive):
         result = extractor.extract(str(editable_archive))
 
     assert next(iter(result.values())) == new_data
-
