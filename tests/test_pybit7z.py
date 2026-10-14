@@ -423,7 +423,7 @@ def multi_file_archive_bytes(temp_dir):
 
 
 # ---------------------------------------------------------------------------
-# BitMemExtractor – all zero-copy bytes overloads
+# BitMemExtractor: all zero-copy bytes overloads
 # ---------------------------------------------------------------------------
 
 
@@ -555,7 +555,7 @@ def test_mem_extractor_large_data():
 
 
 # ---------------------------------------------------------------------------
-# BitMemCompressor – zero-copy bytes overloads
+# BitMemCompressor: zero-copy bytes overloads
 # ---------------------------------------------------------------------------
 
 
@@ -567,7 +567,8 @@ def test_mem_compressor_to_file(temp_dir):
         compressor = pybit7z.BitMemCompressor(lib, pybit7z.FormatSevenZip)
         compressor.compress_file(test_data, str(out_file))
 
-    assert out_file.exists() and out_file.stat().st_size > 0
+    assert out_file.exists()
+    assert out_file.stat().st_size > 0
 
     with pybit7z.lib7zip_context() as lib:
         extractor = pybit7z.BitFileExtractor(lib, pybit7z.FormatSevenZip)
@@ -588,11 +589,11 @@ def test_mem_compressor_to_bytes():
 
 
 # ---------------------------------------------------------------------------
-# BitOutputArchive.add_file(bytes, name) – dangling-reference fix
+# BitOutputArchive.add_file(bytes, name)
 # ---------------------------------------------------------------------------
 
 
-def test_output_archive_add_file_to_bytes(temp_dir):
+def test_output_archive_add_file_to_bytes():
     data1 = b"data for file one" * 50
     data2 = b"data for file two" * 50
 
@@ -628,7 +629,7 @@ def test_output_archive_add_file_to_file(temp_dir):
     assert next(iter(result.values())) == data
 
 
-def test_output_archive_add_file_lifetime_survives_gc(temp_dir):
+def test_output_archive_add_file_lifetime_survives_gc():
     """CRITICAL: bytes passed to add_file must remain valid until compress_to.
 
     The old implementation copied bytes into a local vector that was destroyed
@@ -654,7 +655,7 @@ def test_output_archive_add_file_lifetime_survives_gc(temp_dir):
     assert result["payload.bin"] == data
 
 
-def test_output_archive_add_multiple_files_lifetime(temp_dir):
+def test_output_archive_add_multiple_files_lifetime():
     """Multiple add_file calls with bytes that go out of scope before compress_to."""
     with pybit7z.lib7zip_context() as lib:
         writer = pybit7z.BitArchiveWriter(lib, pybit7z.FormatSevenZip)
@@ -674,7 +675,7 @@ def test_output_archive_add_multiple_files_lifetime(temp_dir):
 
 
 # ---------------------------------------------------------------------------
-# BitArchiveEditor.update_item(bytes) – dangling-reference fix
+# BitArchiveEditor.update_item(bytes)
 # ---------------------------------------------------------------------------
 
 
