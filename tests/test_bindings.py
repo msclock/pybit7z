@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pybit7z
 from pybit7z import (
+    Bit7zLibrary,
     BitArchiveEditor,
     BitArchiveItem,
     BitArchiveReader,
@@ -19,10 +20,14 @@ from pybit7z import (
     SymlinkPolicy,
     UpdateMode,
 )
-from pybit7z import Bit7zLibrary
 
 
-def _make_archive(lib: Bit7zLibrary, files: list[str], archive_path: str, fmt=FormatSevenZip):
+def _make_archive(
+    lib: Bit7zLibrary,
+    files: list[str],
+    archive_path: str,
+    fmt=FormatSevenZip,
+):
     """Helper to create a multi-file archive on disk."""
     comp = BitFileCompressor(lib, fmt)
     comp.compress(files, archive_path)
@@ -200,7 +205,7 @@ class TestBitInputArchive:
 
 
 class TestBitArchiveEditorDeleteRename:
-    def _make(self, lib, tmp_path):
+    def _make(self, lib: Bit7zLibrary, tmp_path: Path):
         f1 = tmp_path / "a.txt"
         f1.write_text("aaa")
         f2 = tmp_path / "b.txt"
