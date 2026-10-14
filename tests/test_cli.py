@@ -12,7 +12,12 @@ def _run(args: list[str], cwd=None, stdin=None):
     return subprocess.run(cmd, cwd=cwd, input=stdin, capture_output=True, check=False)
 
 
-def _make_archive(temp_dir: Path, files: list[Path], name: str = "archive.7z", extra: Optional[list[str]] = None):
+def _make_archive(
+    temp_dir: Path,
+    files: list[Path],
+    name: str = "archive.7z",
+    extra: Optional[list[str]] = None,
+):
     """Helper: compress one or more files into a 7z archive."""
     files = files or []
     paths = [str(f) for f in files]

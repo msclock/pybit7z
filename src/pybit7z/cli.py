@@ -379,7 +379,9 @@ def _resolve_read_format(args: argparse.Namespace) -> Any:
     return WRITABLE_FORMATS[args.format]
 
 
-def _apply_progress(handler: BitAbstractArchiveHandler, args: argparse.Namespace) -> None:
+def _apply_progress(
+    handler: BitAbstractArchiveHandler, args: argparse.Namespace
+) -> None:
     total_ref: list[int] = [0]
     last_pct: list[int] = [0]
     last_ratio: list[tuple[int, int] | None] = [None]
@@ -814,9 +816,7 @@ def update_archive(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
     for spec in args.rename_index:
         if ":" not in spec:
             msg = f"Invalid --rename-index spec (expected INDEX:NEW): {spec}"
-            raise ValueError(
-                msg
-            )
+            raise ValueError(msg)
         idx_str, new = spec.split(":", 1)
         editor.rename_item(int(idx_str), new)
         changed = True
