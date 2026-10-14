@@ -7,6 +7,22 @@ from pathlib import Path
 import pytest
 
 import pybit7z
+from pybit7z import (
+    Bit7zLibrary,
+    BitArchiveEditor,
+    BitArchiveItem,
+    BitArchiveReader,
+    BitArchiveWriter,
+    BitCompressionLevel,
+    BitFileCompressor,
+    BitInputItem,
+    BitProperty,
+    BitPropVariant,
+    BitPropVariantType,
+    FormatSevenZip,
+    SymlinkPolicy,
+    UpdateMode,
+)
 
 
 def test_format():
@@ -771,26 +787,6 @@ def test_editor_update_item_by_path_lifetime(editable_archive):
         result = extractor.extract(str(editable_archive))
 
     assert next(iter(result.values())) == new_data
-
-
-from __future__ import annotations
-
-from pybit7z import (
-    Bit7zLibrary,
-    BitArchiveEditor,
-    BitArchiveItem,
-    BitArchiveReader,
-    BitArchiveWriter,
-    BitCompressionLevel,
-    BitFileCompressor,
-    BitInputItem,
-    BitProperty,
-    BitPropVariant,
-    BitPropVariantType,
-    FormatSevenZip,
-    SymlinkPolicy,
-    UpdateMode,
-)
 
 
 def _make_archive(
