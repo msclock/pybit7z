@@ -81,13 +81,13 @@ build-verbosity = 1
 test-command = "pytest {project}/tests"
 test-extras = ["test"]
 test-skip = [
-    "*-win_arm64",
-    "*_universal2:arm64",
-    "*_aarch64",
-    "*_armv7l",
-    "*_ppc64le",
-    "*_riscv64",
-    "*_s390x",
+  "*-win_arm64",
+  "*_universal2:arm64",
+  "*_aarch64",
+  "*_armv7l",
+  "*_ppc64le",
+  "*_riscv64",
+  "*_s390x",
 ]
 manylinux-x86_64-image = "manylinux2014"
 manylinux-i686-image = "manylinux2014"
@@ -155,7 +155,7 @@ report.exclude_also = ['\.\.\.', 'if typing.TYPE_CHECKING:']
 
 [tool.mypy]
 files = ["src", "tests"]
-python_version = "3.8"
+python_version = "3.10"
 warn_unused_configs = true
 strict = true
 enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
@@ -167,6 +167,10 @@ disallow_incomplete_defs = false
 module = "pybit7z.*"
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disable_error_code = ["no-untyped-call"]
 
 [tool.ruff]
 src = ["src"]
@@ -207,7 +211,7 @@ isort.required-imports = ["from __future__ import annotations"]
 # typing-modules = ["pybit7z._compat.typing"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["T20"]
+"tests/**" = ["T20", "ARG002"]
 
 [tool.pylint]
 py-version = "3.8"
