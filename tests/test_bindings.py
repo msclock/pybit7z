@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime
+from pathlib import Path
 
 import pybit7z
 from pybit7z import (
@@ -18,9 +19,10 @@ from pybit7z import (
     SymlinkPolicy,
     UpdateMode,
 )
+from pybit7z import Bit7zLibrary
 
 
-def _make_archive(lib, files, archive_path, fmt=FormatSevenZip):
+def _make_archive(lib: Bit7zLibrary, files: list[str], archive_path: str, fmt=FormatSevenZip):
     """Helper to create a multi-file archive on disk."""
     comp = BitFileCompressor(lib, fmt)
     comp.compress(files, archive_path)
@@ -51,7 +53,7 @@ class TestBitPropVariant:
         assert v.get_uint64() == 123456789
         assert v.type() == BitPropVariantType.UInt64
 
-    def test_string_via_property(self, tmp_path):
+    def test_string_via_property(self, tmp_path: Path):
         """String variants are obtained from archive item properties."""
         with pybit7z.lib7zip_context() as lib:
             f = tmp_path / "a.txt"
@@ -88,7 +90,7 @@ class TestBitInputItem:
         assert item.in_archive_path() == "hello.txt"
         assert item.has_new_data()
 
-    def test_from_file_path(self, tmp_path):
+    def test_from_file_path(self, tmp_path: Path):
         f = tmp_path / "input.txt"
         f.write_text("file content here")
         item = BitInputItem(str(f))
@@ -96,7 +98,7 @@ class TestBitInputItem:
         assert item.size() == len(b"file content here")
         assert str(f) in item.path()
 
-    def test_from_file_path_with_archive_path(self, tmp_path):
+    def test_from_file_path_with_archive_path(self, tmp_path: Path):
         f = tmp_path / "input.txt"
         f.write_text("data")
         item = BitInputItem(str(f), "renamed.txt")
@@ -138,7 +140,7 @@ class TestBitInputItem:
 
 
 class TestBitInputArchive:
-    def _make(self, lib, tmp_path):
+    def _make(self, lib: Bit7zLibrary, tmp_path: Path):
         f1 = tmp_path / "a.txt"
         f1.write_text("aaa")
         f2 = tmp_path / "b.txt"
@@ -147,7 +149,7 @@ class TestBitInputArchive:
         _make_archive(lib, [str(f1), str(f2)], arc)
         return arc
 
-    def test_counts_and_contains(self, tmp_path):
+    def test_counts_and_contains(self, tmp_path: Path):
         with pybit7z.lib7zip_context() as lib:
             arc = self._make(lib, tmp_path)
             reader = BitArchiveReader(lib, arc, FormatSevenZip)
@@ -157,7 +159,7 @@ class TestBitInputArchive:
             assert reader.contains("a.txt")
             assert not reader.contains("nope.txt")
 
-    def test_item_at(self, tmp_path):
+    def test_item_at(self, tmp_path: Path):
         with pybit7z.lib7zip_context() as lib:
             arc = self._make(lib, tmp_path)
             reader = BitArchiveReader(lib, arc, FormatSevenZip)
@@ -165,27 +167,27 @@ class TestBitInputArchive:
             assert isinstance(item, BitArchiveItem)
             assert item.name() in ("a.txt", "b.txt")
 
-    def test_is_item_folder_encrypted(self, tmp_path):
+    def test_is_item_folder_encrypted(self, tmp_path: Path):
         with pybit7z.lib7zip_context() as lib:
             arc = self._make(lib, tmp_path)
             reader = BitArchiveReader(lib, arc, FormatSevenZip)
             assert not reader.is_item_folder(0)
             assert not reader.is_item_encrypted(0)
 
-    def test_detected_and_extraction_format(self, tmp_path):
+    def test_detected_and_extraction_format(self, tmp_path: Path):
         with pybit7z.lib7zip_context() as lib:
             arc = self._make(lib, tmp_path)
             reader = BitArchiveReader(lib, arc, FormatSevenZip)
             assert reader.detected_format() == FormatSevenZip
             assert reader.extraction_format() == FormatSevenZip
 
-    def test_archive_path(self, tmp_path):
+    def test_archive_path(self, tmp_path: Path):
         with pybit7z.lib7zip_context() as lib:
             arc = self._make(lib, tmp_path)
             reader = BitArchiveReader(lib, arc, FormatSevenZip)
             assert reader.archive_path().endswith("test.7z")
 
-    def test_test_method(self, tmp_path):
+    def test_test_method(self, tmp_path: Path):
         with pybit7z.lib7zip_context() as lib:
             arc = self._make(lib, tmp_path)
             reader = BitArchiveReader(lib, arc, FormatSevenZip)
@@ -209,7 +211,7 @@ class TestBitArchiveEditorDeleteRename:
         _make_archive(lib, [str(f1), str(f2), str(f3)], arc)
         return arc
 
-    def test_delete_by_index(self, tmp_path):
+    def test_delete_by_index(self, tmp_path: Path):
         with pybit7z.lib7zip_context() as lib:
             arc = self._make(lib, tmp_path)
             editor = BitArchiveEditor(lib, arc, FormatSevenZip)
@@ -220,7 +222,7 @@ class TestBitArchiveEditorDeleteRename:
             names = sorted(i.name() for i in reader.items())
             assert names == ["b.txt", "c.log"]
 
-    def test_delete_by_path(self, tmp_path):
+    def test_delete_by_path(self, tmp_path: Path):
         with pybit7z.lib7zip_context() as lib:
             arc = self._make(lib, tmp_path)
             editor = BitArchiveEditor(lib, arc, FormatSevenZip)
@@ -231,7 +233,7 @@ class TestBitArchiveEditorDeleteRename:
             names = sorted(i.name() for i in reader.items())
             assert names == ["a.txt", "c.log"]
 
-    def test_rename_by_index(self, tmp_path):
+    def test_rename_by_index(self, tmp_path: Path):
         with pybit7z.lib7zip_context() as lib:
             arc = self._make(lib, tmp_path)
             editor = BitArchiveEditor(lib, arc, FormatSevenZip)
@@ -242,7 +244,7 @@ class TestBitArchiveEditorDeleteRename:
             names = [i.name() for i in reader.items()]
             assert "renamed.txt" in names
 
-    def test_rename_by_path(self, tmp_path):
+    def test_rename_by_path(self, tmp_path: Path):
         with pybit7z.lib7zip_context() as lib:
             arc = self._make(lib, tmp_path)
             editor = BitArchiveEditor(lib, arc, FormatSevenZip)
@@ -254,7 +256,7 @@ class TestBitArchiveEditorDeleteRename:
             assert "new_b.txt" in names
             assert "b.txt" not in names
 
-    def test_set_update_mode(self, tmp_path):
+    def test_set_update_mode(self, tmp_path: Path):
         with pybit7z.lib7zip_context() as lib:
             arc = self._make(lib, tmp_path)
             editor = BitArchiveEditor(lib, arc, FormatSevenZip)
@@ -268,7 +270,7 @@ class TestBitArchiveEditorDeleteRename:
 
 
 class TestBitOutputArchiveMethods:
-    def test_add_files_list(self, tmp_path):
+    def test_add_files_list(self, tmp_path: Path):
         with pybit7z.lib7zip_context() as lib:
             f1 = tmp_path / "a.txt"
             f1.write_text("aaa")
@@ -283,7 +285,7 @@ class TestBitOutputArchiveMethods:
             reader = BitArchiveReader(lib, str(out), FormatSevenZip)
             assert reader.items_count() == 2
 
-    def test_add_directory(self, tmp_path):
+    def test_add_directory(self, tmp_path: Path):
         with pybit7z.lib7zip_context() as lib:
             sub = tmp_path / "subdir"
             sub.mkdir()
@@ -298,7 +300,7 @@ class TestBitOutputArchiveMethods:
             reader = BitArchiveReader(lib, str(out), FormatSevenZip)
             assert reader.files_count() == 2
 
-    def test_add_directory_contents(self, tmp_path):
+    def test_add_directory_contents(self, tmp_path: Path):
         with pybit7z.lib7zip_context() as lib:
             sub = tmp_path / "subdir"
             sub.mkdir()
@@ -312,7 +314,7 @@ class TestBitOutputArchiveMethods:
             reader = BitArchiveReader(lib, str(out), FormatSevenZip)
             assert reader.files_count() == 1
 
-    def test_add_file_item_returns_input_item(self, tmp_path):
+    def test_add_file_item_returns_input_item(self, tmp_path: Path):
         with pybit7z.lib7zip_context() as lib:
             f = tmp_path / "a.txt"
             f.write_text("aaa")
@@ -365,7 +367,7 @@ def test_symlink_policy_enum():
 
 
 class TestBitArchiveItemMetadata:
-    def test_item_fields(self, tmp_path):
+    def test_item_fields(self, tmp_path: Path):
         with pybit7z.lib7zip_context() as lib:
             f = tmp_path / "a.txt"
             f.write_text("hello")
@@ -380,7 +382,7 @@ class TestBitArchiveItemMetadata:
             assert not item.is_encrypted()
             assert item.index() == 0
 
-    def test_item_property(self, tmp_path):
+    def test_item_property(self, tmp_path: Path):
         with pybit7z.lib7zip_context() as lib:
             f = tmp_path / "a.txt"
             f.write_text("hello")
@@ -400,7 +402,7 @@ class TestBitArchiveItemMetadata:
 
 
 class TestBitFileCompressorExtra:
-    def test_compress_with_renamed_map(self, tmp_path):
+    def test_compress_with_renamed_map(self, tmp_path: Path):
         with pybit7z.lib7zip_context() as lib:
             f = tmp_path / "a.txt"
             f.write_text("aaa")
@@ -412,7 +414,7 @@ class TestBitFileCompressorExtra:
             names = [i.name() for i in reader.items()]
             assert names == ["renamed.txt"]
 
-    def test_compress_directory(self, tmp_path):
+    def test_compress_directory(self, tmp_path: Path):
         with pybit7z.lib7zip_context() as lib:
             sub = tmp_path / "sub"
             sub.mkdir()
@@ -424,7 +426,7 @@ class TestBitFileCompressorExtra:
             reader = BitArchiveReader(lib, arc, FormatSevenZip)
             assert reader.files_count() == 1
 
-    def test_compress_files(self, tmp_path):
+    def test_compress_files(self, tmp_path: Path):
         with pybit7z.lib7zip_context() as lib:
             f1 = tmp_path / "a.txt"
             f1.write_text("a")
