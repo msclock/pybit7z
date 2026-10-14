@@ -119,7 +119,7 @@ class TestBitInputItem:
         assert pv.is_uint64()
         assert pv.get_uint64() == 4
 
-    def test_bytes_lifetime_with_compression(self, tmp_path):
+    def test_bytes_lifetime_with_compression(self):
         """Bytes-backed add_file must stay valid throughout compression."""
         with pybit7z.lib7zip_context() as lib:
             data = b"lifetime data payload"
@@ -443,7 +443,7 @@ class TestBitFileCompressorExtra:
 # ---------------------------------------------------------------------------
 
 
-def test_bit_input_item_roundtrip(tmp_path):
+def test_bit_input_item_roundtrip():
     with pybit7z.lib7zip_context() as lib:
         writer = BitArchiveWriter(lib, FormatSevenZip)
         item1 = writer.add_file(b"first data", "1.txt")
