@@ -79,20 +79,6 @@ def _human_size(num: float) -> str:
     return f"{num:.1f} EB"
 
 
-def _progress_callback(total_ref: list) -> Any:
-    """Build a progress callback that writes a percentage to stderr."""
-
-    def cb(processed_size: int) -> bool:
-        total = total_ref[0] if total_ref else 0
-        if total > 0:
-            pct = min(100, int(100.0 * processed_size / total))
-            sys.stderr.write(f"\r  Progress: {pct:3d}%")
-            sys.stderr.flush()
-        return True
-
-    return cb
-
-
 def _total_callback(total_ref: list) -> Any:
     def cb(total_size: int) -> None:
         total_ref[0] = total_size
@@ -390,20 +376,55 @@ def _resolve_read_format(args: argparse.Namespace) -> Any:
 
 def _apply_progress(handler: BitArchiveEditor, args: argparse.Namespace) -> None:
     total_ref: list = [0]
+    last_pct: list = [0]
+    last_ratio: list = [None]
+    line_active: list = [False]
+
+    def render() -> None:
+        parts = []
+        if args.progress:
+            parts.append(f"Progress: {last_pct[0]:3d}%")
+        if args.ratio and last_ratio[0] is not None:
+            in_size, out_size = last_ratio[0]
+            if in_size > 0:
+                rpct = int(100.0 * out_size / in_size)
+                parts.append(
+                    f"Ratio: {rpct}% ({_human_size(out_size)} / {_human_size(in_size)})"
+                )
+        if parts:
+            sys.stderr.write("\r  " + "  ".join(parts))
+            sys.stderr.flush()
+            line_active[0] = True
+
     if args.progress or args.ratio:
         handler.set_total_callback(_total_callback(total_ref))
-        handler.set_progress_callback(_progress_callback(total_ref))
-    if args.ratio:
-        def ratio_cb(in_size: int, out_size: int) -> None:
-            if in_size > 0:
-                pct = int(100.0 * out_size / in_size)
-                sys.stderr.write(f"  Ratio: {pct}% ({_human_size(out_size)} / {_human_size(in_size)})\r")
-                sys.stderr.flush()
-        handler.set_ratio_callback(ratio_cb)
+
+        def progress_cb(processed_size: int) -> bool:
+            total = total_ref[0] if total_ref else 0
+            if total > 0:
+                last_pct[0] = min(100, int(100.0 * processed_size / total))
+                render()
+            return True
+
+        handler.set_progress_callback(progress_cb)
+
+        if args.ratio:
+
+            def ratio_cb(in_size: int, out_size: int) -> None:
+                last_ratio[0] = (in_size, out_size)
+                render()
+
+            handler.set_ratio_callback(ratio_cb)
+
     if args.show_files:
+
         def file_cb(path: str) -> None:
-            sys.stderr.write(f"  + {path}\n")
+            if line_active[0]:
+                sys.stderr.write("\n")
+                line_active[0] = False
+            sys.stderr.write(f"  + {path}")
             sys.stderr.flush()
+
         handler.set_file_callback(file_cb)
 
 
@@ -631,7 +652,7 @@ def extract(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
     else:
         reader.extract_to(out_dir)
 
-    if args.progress:
+    if args.progress or args.show_files:
         sys.stderr.write("\n")
     sys.stdout.write(f"Successfully extracted to: {out_dir}")
 
