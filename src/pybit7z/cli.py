@@ -379,8 +379,9 @@ def _apply_progress(handler: BitArchiveEditor, args: argparse.Namespace) -> None
     last_pct: list = [0]
     last_ratio: list = [None]
     line_active: list = [False]
+    last_text: list = [""]
 
-    def render() -> None:
+    def build_text() -> str:
         parts = []
         if args.progress:
             parts.append(f"Progress: {last_pct[0]:3d}%")
@@ -391,10 +392,18 @@ def _apply_progress(handler: BitArchiveEditor, args: argparse.Namespace) -> None
                 parts.append(
                     f"Ratio: {rpct}% ({_human_size(out_size)} / {_human_size(in_size)})"
                 )
-        if parts:
-            sys.stderr.write("\r  " + "  ".join(parts))
-            sys.stderr.flush()
-            line_active[0] = True
+        return "  ".join(parts)
+
+    def render() -> None:
+        text = build_text()
+        if not text:
+            return
+        if text == last_text[0] and line_active[0]:
+            return
+        sys.stderr.write("\r  " + text)
+        sys.stderr.flush()
+        last_text[0] = text
+        line_active[0] = True
 
     if args.progress or args.ratio:
         handler.set_total_callback(_total_callback(total_ref))
@@ -420,10 +429,12 @@ def _apply_progress(handler: BitArchiveEditor, args: argparse.Namespace) -> None
 
         def file_cb(path: str) -> None:
             if line_active[0]:
-                sys.stderr.write("\n")
+                sys.stderr.write("\r" + " " * 80 + "\r")
                 line_active[0] = False
-            sys.stderr.write(f"  + {path}")
+                last_text[0] = ""
+            sys.stderr.write(f"  + {path}\n")
             sys.stderr.flush()
+            render()
 
         handler.set_file_callback(file_cb)
 
@@ -591,7 +602,7 @@ def compress(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
         writer.compress_to(out)
         if args.progress or args.ratio:
             sys.stderr.write("\n")
-        sys.stdout.write(f"Successfully created archive: {out}")
+        sys.stdout.write(f"Successfully created archive: {out}\n")
 
     # Delete source files after successful compression (7z -sdel).
     if args.delete_after and source_files:
@@ -652,9 +663,9 @@ def extract(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
     else:
         reader.extract_to(out_dir)
 
-    if args.progress or args.show_files:
+    if args.progress or args.ratio:
         sys.stderr.write("\n")
-    sys.stdout.write(f"Successfully extracted to: {out_dir}")
+    sys.stdout.write(f"Successfully extracted to: {out_dir}\n")
 
 
 def list_archive(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
@@ -708,9 +719,9 @@ def test_archive(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
     else:
         reader.test()
 
-    if args.progress:
+    if args.progress or args.ratio:
         sys.stderr.write("\n")
-    sys.stdout.write("Archive integrity test passed.")
+    sys.stdout.write("Archive integrity test passed.\n")
 
 
 def info_archive(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
@@ -801,9 +812,9 @@ def update_archive(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
     _apply_progress(editor, args)
     editor.apply_changes()
 
-    if args.progress:
+    if args.progress or args.ratio:
         sys.stderr.write("\n")
-    sys.stdout.write("Successfully updated archive.")
+    sys.stdout.write("Successfully updated archive.\n")
 
 
 if __name__ == "__main__":
