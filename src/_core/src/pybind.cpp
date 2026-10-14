@@ -548,6 +548,7 @@ Returns:
                                                  R"pbdoc(Abstract class representing a generic archive handler.)pbdoc")
         .def("format",
              &bit7z::BitAbstractArchiveHandler::format,
+             py::return_value_policy::reference_internal,
              py::doc(R"pbdoc(the format used by the handler for extracting or compressing.)pbdoc"))
         .def("password",
              &bit7z::BitAbstractArchiveHandler::password,
@@ -665,6 +666,7 @@ Args:
     py::class_<bit7z::BitAbstractArchiveOpener, bit7z::BitAbstractArchiveHandler>(m, "BitAbstractArchiveOpener")
         .def("extraction_format",
              &bit7z::BitAbstractArchiveOpener::extractionFormat,
+             py::return_value_policy::reference_internal,
              py::doc(R"pbdoc(the archive format used by the archive opener.)pbdoc"));
 
     // bit7z::UpdateMode enum bindings
@@ -688,6 +690,7 @@ Args:
         R"pbdoc(Abstract class representing a generic archive creator.)pbdoc")
         .def("compression_format",
              &bit7z::BitAbstractArchiveCreator::compressionFormat,
+             py::return_value_policy::reference_internal,
              py::doc(R"pbdoc(the format used for creating/updating an archive.)pbdoc"))
         .def("crypt_headers",
              &bit7z::BitAbstractArchiveCreator::cryptHeaders,
@@ -935,6 +938,7 @@ Args:
     py::class_<bit7z::BitInputArchive>(m, "BitInputArchive")
         .def("detected_format",
              &bit7z::BitInputArchive::detectedFormat,
+             py::return_value_policy::reference_internal,
              py::doc(R"pydoc(the detected format of the file.)pydoc"))
         .def("archive_property",
              &bit7z::BitInputArchive::archiveProperty,
