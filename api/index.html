@@ -865,6 +865,18 @@ Generally, archives may contain multiple items with the same paths. If this is t
 <span class="sig-name descname"><span class="pre">update_item</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pybit7z.BitArchiveEditor.update_item" title="Link to this definition">¶</a></dt>
 <dd><p>Overloaded function.</p>
 <ol class="arabic simple">
+<li><p>update_item(self: object, index: int, input_buffer: bytes) -&gt; None</p></li>
+</ol>
+<p>Requests to update the content of the item at the specified index with the data from the given buffer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>index</strong> – the index of the item to be updated.</p></li>
+<li><p><strong>input_buffer</strong> – the buffer containing the new data for the item.</p></li>
+</ul>
+</dd>
+</dl>
+<ol class="arabic simple" start="2">
 <li><p>update_item(self: pybit7z._core.BitArchiveEditor, index: int, in_file: str) -&gt; None</p></li>
 </ol>
 <p>Requests to update the content of the item at the specified index with the data from the given file.</p>
@@ -876,19 +888,19 @@ Generally, archives may contain multiple items with the same paths. If this is t
 </ul>
 </dd>
 </dl>
-<ol class="arabic simple" start="2">
-<li><p>update_item(self: pybit7z._core.BitArchiveEditor, index: int, input_buffer: bytes) -&gt; None</p></li>
+<ol class="arabic simple" start="3">
+<li><p>update_item(self: object, item_path: str, input_buffer: bytes) -&gt; None</p></li>
 </ol>
-<p>Requests to update the content of the item at the specified index with the data from the given buffer.</p>
+<p>Requests to update the content of the item at the specified path with the data from the given buffer.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>index</strong> – the index of the item to be updated.</p></li>
+<li><p><strong>item_path</strong> – the path of the item to be updated.</p></li>
 <li><p><strong>input_buffer</strong> – the buffer containing the new data for the item.</p></li>
 </ul>
 </dd>
 </dl>
-<ol class="arabic simple" start="3">
+<ol class="arabic simple" start="4">
 <li><p>update_item(self: pybit7z._core.BitArchiveEditor, item_path: str, in_file: str) -&gt; None</p></li>
 </ol>
 <p>Requests to update the content of the item at the specified path with the data from the given file.</p>
@@ -897,18 +909,6 @@ Generally, archives may contain multiple items with the same paths. If this is t
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>item_path</strong> – the path of the item to be updated.</p></li>
 <li><p><strong>in_file</strong> – the path of the file to be used for the update.</p></li>
-</ul>
-</dd>
-</dl>
-<ol class="arabic simple" start="4">
-<li><p>update_item(self: pybit7z._core.BitArchiveEditor, item_path: str, input_buffer: bytes) -&gt; None</p></li>
-</ol>
-<p>Requests to update the content of the item at the specified path with the data from the given buffer.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>item_path</strong> – the path of the item to be updated.</p></li>
-<li><p><strong>input_buffer</strong> – the buffer containing the new data for the item.</p></li>
 </ul>
 </dd>
 </dl>
@@ -1747,6 +1747,78 @@ Generally, archives may contain multiple items with the same paths. If this is t
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="pybit7z.BitInputItem">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pybit7z.</span></span><span class="sig-name descname"><span class="pre">BitInputItem</span></span><a class="headerlink" href="#pybit7z.BitInputItem" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.BitInputItem.attributes">
+<span class="sig-name descname"><span class="pre">attributes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitInputItem" title="pybit7z._core.BitInputItem"><span class="pre">pybit7z._core.BitInputItem</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span></span><a class="headerlink" href="#pybit7z.BitInputItem.attributes" title="Link to this definition">¶</a></dt>
+<dd><p>the filesystem attributes of the item.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.BitInputItem.has_new_data">
+<span class="sig-name descname"><span class="pre">has_new_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitInputItem" title="pybit7z._core.BitInputItem"><span class="pre">pybit7z._core.BitInputItem</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span></span><a class="headerlink" href="#pybit7z.BitInputItem.has_new_data" title="Link to this definition">¶</a></dt>
+<dd><p>true if the item contributes new data to the archive.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.BitInputItem.in_archive_path">
+<span class="sig-name descname"><span class="pre">in_archive_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitInputItem" title="pybit7z._core.BitInputItem"><span class="pre">pybit7z._core.BitInputItem</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></span><a class="headerlink" href="#pybit7z.BitInputItem.in_archive_path" title="Link to this definition">¶</a></dt>
+<dd><p>the path of the item as it will be stored inside the archive.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.BitInputItem.is_dir">
+<span class="sig-name descname"><span class="pre">is_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitInputItem" title="pybit7z._core.BitInputItem"><span class="pre">pybit7z._core.BitInputItem</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span></span><a class="headerlink" href="#pybit7z.BitInputItem.is_dir" title="Link to this definition">¶</a></dt>
+<dd><p>true if the item represents a directory.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.BitInputItem.is_sym_link">
+<span class="sig-name descname"><span class="pre">is_sym_link</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitInputItem" title="pybit7z._core.BitInputItem"><span class="pre">pybit7z._core.BitInputItem</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span></span><a class="headerlink" href="#pybit7z.BitInputItem.is_sym_link" title="Link to this definition">¶</a></dt>
+<dd><p>true if the item represents a symbolic link.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.BitInputItem.item_property">
+<span class="sig-name descname"><span class="pre">item_property</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitInputItem" title="pybit7z._core.BitInputItem"><span class="pre">pybit7z._core.BitInputItem</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">property</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitProperty" title="pybit7z._core.BitProperty"><span class="pre">pybit7z._core.BitProperty</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pybit7z.BitPropVariant" title="pybit7z._core.BitPropVariant"><span class="pre">pybit7z._core.BitPropVariant</span></a></span></span><a class="headerlink" href="#pybit7z.BitInputItem.item_property" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the value of the given property for this item.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.BitInputItem.path">
+<span class="sig-name descname"><span class="pre">path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitInputItem" title="pybit7z._core.BitInputItem"><span class="pre">pybit7z._core.BitInputItem</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></span><a class="headerlink" href="#pybit7z.BitInputItem.path" title="Link to this definition">¶</a></dt>
+<dd><p>the native filesystem path of the item.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.BitInputItem.set_creation_time">
+<span class="sig-name descname"><span class="pre">set_creation_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitInputItem" title="pybit7z._core.BitInputItem"><span class="pre">pybit7z._core.BitInputItem</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">creation_time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.15)"><span class="pre">datetime.datetime</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#pybit7z.BitInputItem.set_creation_time" title="Link to this definition">¶</a></dt>
+<dd><p>Sets the creation time of the item.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.BitInputItem.set_last_access_time">
+<span class="sig-name descname"><span class="pre">set_last_access_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitInputItem" title="pybit7z._core.BitInputItem"><span class="pre">pybit7z._core.BitInputItem</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">last_access_time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.15)"><span class="pre">datetime.datetime</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#pybit7z.BitInputItem.set_last_access_time" title="Link to this definition">¶</a></dt>
+<dd><p>Sets the last access time of the item.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.BitInputItem.set_last_write_time">
+<span class="sig-name descname"><span class="pre">set_last_write_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitInputItem" title="pybit7z._core.BitInputItem"><span class="pre">pybit7z._core.BitInputItem</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">last_write_time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.15)"><span class="pre">datetime.datetime</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#pybit7z.BitInputItem.set_last_write_time" title="Link to this definition">¶</a></dt>
+<dd><p>Sets the last write time of the item.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.BitInputItem.size">
+<span class="sig-name descname"><span class="pre">size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitInputItem" title="pybit7z._core.BitInputItem"><span class="pre">pybit7z._core.BitInputItem</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span></span><a class="headerlink" href="#pybit7z.BitInputItem.size" title="Link to this definition">¶</a></dt>
+<dd><p>the uncompressed size of the item, in bytes.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="pybit7z.BitMemCompressor">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pybit7z.</span></span><span class="sig-name descname"><span class="pre">BitMemCompressor</span></span><a class="headerlink" href="#pybit7z.BitMemCompressor" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pybit7z.BitAbstractArchiveCreator" title="pybit7z._core.BitAbstractArchiveCreator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BitAbstractArchiveCreator</span></code></a></p>
@@ -1945,14 +2017,39 @@ Generally, archives may contain multiple items with the same paths. If this is t
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pybit7z.BitOutputArchive.add_file">
-<span class="sig-name descname"><span class="pre">add_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitOutputArchive" title="pybit7z._core.BitOutputArchive"><span class="pre">pybit7z._core.BitOutputArchive</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#bytes" title="(in Python v3.15)"><span class="pre">bytes</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#pybit7z.BitOutputArchive.add_file" title="Link to this definition">¶</a></dt>
-<dd><p>Adds the given memory buffer, with an optional user-defined path to be used in the output archive.</p>
+<span class="sig-name descname"><span class="pre">add_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pybit7z.BitOutputArchive.add_file" title="Link to this definition">¶</a></dt>
+<dd><p>Overloaded function.</p>
+<ol class="arabic simple">
+<li><p>add_file(self: object, input: bytes, name: str) -&gt; pybit7z._core.BitInputItem</p></li>
+</ol>
+<p>Adds the given memory buffer, with an optional user-defined path to be used in the output archive.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>input</strong> – the memory buffer to be added to the output archive.</p></li>
 <li><p><strong>name</strong> – user-defined path to be used inside the output archive.</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A reference to the input item just added, valid until the next call that adds items to the archive.</p>
+</dd>
+</dl>
+<ol class="arabic simple" start="2">
+<li><p>add_file(self: pybit7z._core.BitOutputArchive, in_file: str, name: str = ‘’) -&gt; pybit7z._core.BitInputItem</p></li>
+</ol>
+<dl>
+<dt>Adds the given file path, with an optional user-defined path to be used in the</dt><dd><blockquote>
+<div><p>output archive.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>Args:</dt><dd><p>in_file: the path to the filesystem file to be added to the output archive.
+name: (optional) user-defined path to be used inside the output archive.</p>
+</dd>
+<dt>Note:</dt><dd><p>If a directory path is given, a BitException is thrown.</p>
+</dd>
+<dt>Returns:</dt><dd><p>A reference to the input item just added, valid until the next call that adds items to the archive.</p>
+</dd>
+</dl>
 </dd>
 </dl>
 </dd></dl>
@@ -1967,7 +2064,7 @@ Generally, archives may contain multiple items with the same paths. If this is t
 <p>Adds all the files in the given vector of filesystem paths.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>in_files</strong> – the paths to be added to the archive.</p>
+<dd class="field-odd"><p><strong>in_files</strong> – the vector of paths to files.</p>
 </dd>
 </dl>
 <div class="admonition note">
@@ -3146,6 +3243,38 @@ Generally, archives may contain multiple items with the same paths. If this is t
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="pybit7z.SymlinkPolicy">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pybit7z.</span></span><span class="sig-name descname"><span class="pre">SymlinkPolicy</span></span><a class="headerlink" href="#pybit7z.SymlinkPolicy" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_object</span></code></p>
+<p>The SymlinkPolicy enum specifies how symbolic links should be handled when adding files to an archive.</p>
+<p>Members:</p>
+<blockquote>
+<div><p>Follow : Follow symbolic links, storing the content of the pointed-to file.</p>
+<p>DoNotFollow : Do not follow symbolic links, storing the link itself.</p>
+</div></blockquote>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pybit7z.SymlinkPolicy.DoNotFollow">
+<span class="sig-name descname"><span class="pre">DoNotFollow</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;SymlinkPolicy.DoNotFollow:</span> <span class="pre">1&gt;</span></span><a class="headerlink" href="#pybit7z.SymlinkPolicy.DoNotFollow" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pybit7z.SymlinkPolicy.Follow">
+<span class="sig-name descname"><span class="pre">Follow</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;SymlinkPolicy.Follow:</span> <span class="pre">0&gt;</span></span><a class="headerlink" href="#pybit7z.SymlinkPolicy.Follow" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">SymlinkPolicy.name</span> <span class="pre">-&gt;</span> <span class="pre">str</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pybit7z.SymlinkPolicy.value">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#pybit7z.SymlinkPolicy.value" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="pybit7z.UpdateMode">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pybit7z.</span></span><span class="sig-name descname"><span class="pre">UpdateMode</span></span><a class="headerlink" href="#pybit7z.UpdateMode" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_object</span></code></p>
@@ -3443,6 +3572,20 @@ Generally, archives may contain multiple items with the same paths. If this is t
 <li><a class="reference internal" href="#pybit7z.BitInputArchive.use_format_property"><code class="docutils literal notranslate"><span class="pre">BitInputArchive.use_format_property()</span></code></a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#pybit7z.BitInputItem"><code class="docutils literal notranslate"><span class="pre">BitInputItem</span></code></a><ul>
+<li><a class="reference internal" href="#pybit7z.BitInputItem.attributes"><code class="docutils literal notranslate"><span class="pre">BitInputItem.attributes()</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitInputItem.has_new_data"><code class="docutils literal notranslate"><span class="pre">BitInputItem.has_new_data()</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitInputItem.in_archive_path"><code class="docutils literal notranslate"><span class="pre">BitInputItem.in_archive_path()</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitInputItem.is_dir"><code class="docutils literal notranslate"><span class="pre">BitInputItem.is_dir()</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitInputItem.is_sym_link"><code class="docutils literal notranslate"><span class="pre">BitInputItem.is_sym_link()</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitInputItem.item_property"><code class="docutils literal notranslate"><span class="pre">BitInputItem.item_property()</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitInputItem.path"><code class="docutils literal notranslate"><span class="pre">BitInputItem.path()</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitInputItem.set_creation_time"><code class="docutils literal notranslate"><span class="pre">BitInputItem.set_creation_time()</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitInputItem.set_last_access_time"><code class="docutils literal notranslate"><span class="pre">BitInputItem.set_last_access_time()</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitInputItem.set_last_write_time"><code class="docutils literal notranslate"><span class="pre">BitInputItem.set_last_write_time()</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitInputItem.size"><code class="docutils literal notranslate"><span class="pre">BitInputItem.size()</span></code></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#pybit7z.BitMemCompressor"><code class="docutils literal notranslate"><span class="pre">BitMemCompressor</span></code></a><ul>
 <li><a class="reference internal" href="#pybit7z.BitMemCompressor.compress_file"><code class="docutils literal notranslate"><span class="pre">BitMemCompressor.compress_file()</span></code></a></li>
 </ul>
@@ -3641,6 +3784,12 @@ Generally, archives may contain multiple items with the same paths. If this is t
 <li><a class="reference internal" href="#pybit7z.OverwriteMode.Overwrite"><code class="docutils literal notranslate"><span class="pre">OverwriteMode.Overwrite</span></code></a></li>
 <li><a class="reference internal" href="#pybit7z.OverwriteMode.Skip"><code class="docutils literal notranslate"><span class="pre">OverwriteMode.Skip</span></code></a></li>
 <li><a class="reference internal" href="#pybit7z.OverwriteMode.value"><code class="docutils literal notranslate"><span class="pre">OverwriteMode.value</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#pybit7z.SymlinkPolicy"><code class="docutils literal notranslate"><span class="pre">SymlinkPolicy</span></code></a><ul>
+<li><a class="reference internal" href="#pybit7z.SymlinkPolicy.DoNotFollow"><code class="docutils literal notranslate"><span class="pre">SymlinkPolicy.DoNotFollow</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.SymlinkPolicy.Follow"><code class="docutils literal notranslate"><span class="pre">SymlinkPolicy.Follow</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.SymlinkPolicy.value"><code class="docutils literal notranslate"><span class="pre">SymlinkPolicy.value</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#pybit7z.UpdateMode"><code class="docutils literal notranslate"><span class="pre">UpdateMode</span></code></a><ul>
