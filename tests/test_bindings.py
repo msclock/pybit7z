@@ -1,12 +1,6 @@
 from __future__ import annotations
 
 import datetime
-import gc
-import os
-import tempfile
-from pathlib import Path
-
-import pytest
 
 import pybit7z
 from pybit7z import (
@@ -15,19 +9,12 @@ from pybit7z import (
     BitArchiveReader,
     BitArchiveWriter,
     BitCompressionLevel,
-    BitException,
     BitFileCompressor,
-    BitFileExtractor,
-    BitInputArchive,
     BitInputItem,
-    BitMemCompressor,
-    BitOutputArchive,
+    BitProperty,
     BitPropVariant,
     BitPropVariantType,
-    BitProperty,
-    DeletePolicy,
     FormatSevenZip,
-    FormatZip,
     SymlinkPolicy,
     UpdateMode,
 )
@@ -106,7 +93,7 @@ class TestBitInputItem:
         f.write_text("file content here")
         item = BitInputItem(str(f))
         assert not item.is_dir()
-        assert item.size() == len("file content here".encode())
+        assert item.size() == len(b"file content here")
         assert str(f) in item.path()
 
     def test_from_file_path_with_archive_path(self, tmp_path):

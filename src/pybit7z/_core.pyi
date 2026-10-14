@@ -1698,12 +1698,19 @@ class BitInputItem:
         The bytes object is referenced directly (no copy); it must outlive the item.
         """
     @typing.overload
-    def __init__(self, path: str, symlink_policy: SymlinkPolicy = SymlinkPolicy.Follow) -> None:
+    def __init__(
+        self, path: str, symlink_policy: SymlinkPolicy = SymlinkPolicy.Follow
+    ) -> None:
         """
         Constructs a BitInputItem from a filesystem path.
         """
     @typing.overload
-    def __init__(self, path: str, in_archive_path: str, symlink_policy: SymlinkPolicy = SymlinkPolicy.Follow) -> None:
+    def __init__(
+        self,
+        path: str,
+        in_archive_path: str,
+        symlink_policy: SymlinkPolicy = SymlinkPolicy.Follow,
+    ) -> None:
         """
         Constructs a BitInputItem from a filesystem path, with a custom path to be used inside the archive.
         """

@@ -403,7 +403,6 @@ def test_archive_writer_bytes_input(temp_dir):
         assert len(output_bytes) > 0
 
 
-
 @pytest.fixture
 def multi_file_archive_bytes(temp_dir):
     """Create a multi-file 7z archive in memory for extractor tests."""
@@ -502,7 +501,9 @@ def test_mem_extractor_extract_items(multi_file_archive_bytes, temp_dir):
         assert data in files.values()
 
 
-def test_mem_extractor_extract_matching_regex_to_dir(multi_file_archive_bytes, temp_dir):
+def test_mem_extractor_extract_matching_regex_to_dir(
+    multi_file_archive_bytes, temp_dir
+):
     archive_bytes, files = multi_file_archive_bytes
     out_dir = temp_dir / "out"
     out_dir.mkdir()
@@ -695,7 +696,9 @@ def test_editor_update_item_by_index(editable_archive):
     new_data = b"updated content via index"
 
     with pybit7z.lib7zip_context() as lib:
-        editor = pybit7z.BitArchiveEditor(lib, str(editable_archive), pybit7z.FormatSevenZip)
+        editor = pybit7z.BitArchiveEditor(
+            lib, str(editable_archive), pybit7z.FormatSevenZip
+        )
         editor.update_item(0, new_data)
         editor.apply_changes()
 
@@ -710,7 +713,9 @@ def test_editor_update_item_by_path(editable_archive):
     new_data = b"updated content via path"
 
     with pybit7z.lib7zip_context() as lib:
-        editor = pybit7z.BitArchiveEditor(lib, str(editable_archive), pybit7z.FormatSevenZip)
+        editor = pybit7z.BitArchiveEditor(
+            lib, str(editable_archive), pybit7z.FormatSevenZip
+        )
         editor.update_item("original.txt", new_data)
         editor.apply_changes()
 
@@ -731,7 +736,9 @@ def test_editor_update_item_lifetime_survives_gc(editable_archive):
     new_data = b"lifetime update payload" * 50
 
     with pybit7z.lib7zip_context() as lib:
-        editor = pybit7z.BitArchiveEditor(lib, str(editable_archive), pybit7z.FormatSevenZip)
+        editor = pybit7z.BitArchiveEditor(
+            lib, str(editable_archive), pybit7z.FormatSevenZip
+        )
         payload = bytes(new_data)
         editor.update_item(0, payload)
         del payload
@@ -749,7 +756,9 @@ def test_editor_update_item_by_path_lifetime(editable_archive):
     new_data = b"lifetime update via path" * 50
 
     with pybit7z.lib7zip_context() as lib:
-        editor = pybit7z.BitArchiveEditor(lib, str(editable_archive), pybit7z.FormatSevenZip)
+        editor = pybit7z.BitArchiveEditor(
+            lib, str(editable_archive), pybit7z.FormatSevenZip
+        )
         payload = bytes(new_data)
         editor.update_item("original.txt", payload)
         del payload
