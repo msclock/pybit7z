@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import fnmatch
+import os
 import re
 import sys
 from pathlib import Path
@@ -14,6 +15,7 @@ from . import (
     BitArchiveWriter,
     BitCompressionLevel,
     BitCompressionMethod,
+    BitInFormat,
     BitInOutFormat,
     BitPropVariant,
     DeletePolicy,
@@ -77,11 +79,11 @@ def _human_size(num: float) -> str:
     return f"{num:.1f} EB"
 
 
-def _progress_callback(stream: Any) -> Any:
+def _progress_callback(total_ref: list) -> Any:
     """Build a progress callback that writes a percentage to stderr."""
 
     def cb(processed_size: int) -> bool:
-        total = getattr(stream, "_pybit7z_total", 0)
+        total = total_ref[0] if total_ref else 0
         if total > 0:
             pct = min(100, int(100.0 * processed_size / total))
             sys.stderr.write(f"\r  Progress: {pct:3d}%")
@@ -91,9 +93,9 @@ def _progress_callback(stream: Any) -> Any:
     return cb
 
 
-def _total_callback(stream: Any) -> Any:
+def _total_callback(total_ref: list) -> Any:
     def cb(total_size: int) -> None:
-        stream._pybit7z_total = total_size
+        total_ref[0] = total_size
 
     return cb
 
@@ -113,12 +115,13 @@ def build_parser() -> argparse.ArgumentParser:
             "test",
             "info",
             "update",
+            "formats",
         ],
         help="Operation to perform",
     )
     parser.add_argument(
         "paths",
-        nargs="+",
+        nargs="*",
         help="File/directory paths (or archive path) to process",
     )
     parser.add_argument(
@@ -207,9 +210,62 @@ def build_parser() -> argparse.ArgumentParser:
         help="How to handle symbolic links",
     )
     parser.add_argument(
+        "--store-open-files",
+        action="store_true",
+        help="Compress files that are open by other processes (7z -ssw)",
+    )
+    parser.add_argument(
+        "-x",
+        "--exclude",
+        action="append",
+        default=[],
+        metavar="PATTERN",
+        help="Exclude files matching the wildcard pattern during compression "
+        "(can be repeated)",
+    )
+    parser.add_argument(
+        "--stdin",
+        action="store_true",
+        help="Read input data from stdin for compression (7z -si)",
+    )
+    parser.add_argument(
+        "--stdin-name",
+        default="stdin",
+        help="Name to use for the stdin input item (default: stdin)",
+    )
+    parser.add_argument(
+        "--delete-after",
+        action="store_true",
+        help="Delete source files after successful compression (7z -sdel)",
+    )
+    parser.add_argument(
+        "--format-property",
+        action="append",
+        default=[],
+        metavar="KEY=VALUE",
+        help="Set a raw 7z format property (e.g. '0=4' for 4 threads). "
+        "Can be repeated.",
+    )
+    parser.add_argument(
+        "-y",
+        "--yes",
+        action="store_true",
+        help="Assume Yes on all queries (suppress overwrite prompts)",
+    )
+    parser.add_argument(
+        "--show-files",
+        action="store_true",
+        help="Log each file as it is processed",
+    )
+    parser.add_argument(
         "--progress",
         action="store_true",
         help="Show progress percentage during operations",
+    )
+    parser.add_argument(
+        "--ratio",
+        action="store_true",
+        help="Show compression ratio during progress",
     )
 
     # Extract-specific options
@@ -288,9 +344,23 @@ def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
 
-    if args.action in ("compress", "decompress", "extract") and not args.output:
-        if not (args.action in ("decompress", "extract") and args.to_stdout):
-            parser.error("Output file/directory path is required")
+    # 'formats' does not need an archive or input paths.
+    if args.action == "formats":
+        show_formats()
+        return
+
+    # Compression requires output; stdin mode allows no input paths.
+    if args.action == "compress":
+        if not args.output:
+            parser.error("Output file path is required for compression")
+        if not args.paths and not args.stdin:
+            parser.error("Input paths are required (or use --stdin)")
+
+    if args.action in ("decompress", "extract") and not args.output and not args.to_stdout:
+        parser.error("Output file/directory path is required")
+
+    if args.action in ("list", "test", "info", "update") and not args.paths:
+        parser.error("Archive path is required")
 
     try:
         with lib7zip_context() as lib:
@@ -319,9 +389,72 @@ def _resolve_read_format(args: argparse.Namespace) -> Any:
 
 
 def _apply_progress(handler: BitArchiveEditor, args: argparse.Namespace) -> None:
-    if args.progress:
-        handler.set_total_callback(_total_callback(handler))
-        handler.set_progress_callback(_progress_callback(handler))
+    total_ref: list = [0]
+    if args.progress or args.ratio:
+        handler.set_total_callback(_total_callback(total_ref))
+        handler.set_progress_callback(_progress_callback(total_ref))
+    if args.ratio:
+        def ratio_cb(in_size: int, out_size: int) -> None:
+            if in_size > 0:
+                pct = int(100.0 * out_size / in_size)
+                sys.stderr.write(f"  Ratio: {pct}% ({_human_size(out_size)} / {_human_size(in_size)})\r")
+                sys.stderr.flush()
+        handler.set_ratio_callback(ratio_cb)
+    if args.show_files:
+        def file_cb(path: str) -> None:
+            sys.stderr.write(f"  + {path}\n")
+            sys.stderr.flush()
+        handler.set_file_callback(file_cb)
+
+
+def show_formats() -> None:
+    """List all supported archive formats with their extensions and features."""
+    # Import all format objects dynamically from the package.
+    from . import _core
+
+    writable = []
+    readable = []
+    for name in dir(_core):
+        if not name.startswith("Format"):
+            continue
+        obj = getattr(_core, name)
+        if isinstance(obj, type):
+            continue
+        if isinstance(obj, BitInOutFormat):
+            writable.append((name, obj))
+        elif isinstance(obj, BitInFormat):
+            readable.append((name, obj))
+
+    sys.stdout.write("Writable formats:\n")
+    header = f"  {'Name':<12} {'Extension':<10} {'Features'}\n"
+    sys.stdout.write(header)
+    sys.stdout.write("  " + "-" * 50 + "\n")
+    for name, fmt in sorted(writable, key=lambda x: x[0]):
+        features = _format_features_str(fmt)
+        sys.stdout.write(f"  {name:<12} {fmt.extension():<10} {features}\n")
+
+    sys.stdout.write("\nRead-only formats:\n")
+    sys.stdout.write(header)
+    sys.stdout.write("  " + "-" * 50 + "\n")
+    for name, fmt in sorted(readable, key=lambda x: x[0]):
+        sys.stdout.write(f"  {name:<12} {'-':<10} id={fmt.value()}\n")
+
+
+def _format_features_str(fmt: BitInOutFormat) -> str:
+    feats = []
+    if fmt.has_feature(FormatFeatures.MultipleFiles):
+        feats.append("multi-file")
+    if fmt.has_feature(FormatFeatures.SolidArchive):
+        feats.append("solid")
+    if fmt.has_feature(FormatFeatures.CompressionLevel):
+        feats.append("levels")
+    if fmt.has_feature(FormatFeatures.Encryption):
+        feats.append("encrypt")
+    if fmt.has_feature(FormatFeatures.HeaderEncryption):
+        feats.append("hdr-enc")
+    if fmt.has_feature(FormatFeatures.MultipleMethods):
+        feats.append("methods")
+    return ",".join(feats) if feats else "-"
 
 
 def compress(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
@@ -365,23 +498,68 @@ def compress(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
         writer.set_store_creation_time(False)
         writer.set_store_last_access_time(False)
         writer.set_store_last_write_time(False)
+    if args.store_open_files:
+        writer.set_store_open_files(True)
 
     # Symbolic link handling: 'donotfollow' stores links as-is,
     # 'follow' (default) stores the target file content.
     writer.set_store_symbolic_links(args.symlinks == "donotfollow")
 
-    # Add each path: files use add_file, directories use add_directory.
-    for p in args.paths:
-        path = Path(p)
-        if not path.exists():
-            sys.stderr.write(f"Warning: path does not exist, skipping: {p}\n")
-            continue
-        if path.is_dir():
-            writer.add_directory(str(path))
+    # Raw 7z format properties (e.g. '0=4' -> 4 threads, 'x=9' -> ultra level).
+    for prop in args.format_property:
+        if "=" not in prop:
+            raise ValueError(f"Invalid --format-property (expected KEY=VALUE): {prop}")
+        key, value = prop.split("=", 1)
+        # bit7z's BitPropVariant only supports bool/uint64; parse numeric values.
+        if value.lower() in ("true", "false"):
+            variant = BitPropVariant(value.lower() == "true")
         else:
-            writer.add_file(str(path))
+            variant = BitPropVariant(int(value))
+        writer.set_format_property(key, variant)
 
+    # Collect source files (with exclusion filtering) and track for --delete-after.
+    source_files: list[Path] = []
+    exclude_patterns = args.exclude
+
+    def _excluded(name: str) -> bool:
+        return any(fnmatch.fnmatch(name, pat) for pat in exclude_patterns)
+
+    # IMPORTANT: callbacks (progress/ratio/file) must be set BEFORE adding
+    # any input items, otherwise bit7z captures an inconsistent internal
+    # state and the operation can deadlock.
     _apply_progress(writer, args)
+
+    if args.stdin:
+        data = sys.stdin.buffer.read()
+        writer.add_file(data, args.stdin_name)
+    else:
+        for p in args.paths:
+            path = Path(p)
+            if not path.exists():
+                sys.stderr.write(f"Warning: path does not exist, skipping: {p}\n")
+                continue
+            if path.is_dir():
+                if exclude_patterns:
+                    # Walk directory and add files individually, skipping excluded names.
+                    for root, dirs, files in os.walk(path):
+                        dirs[:] = [d for d in dirs if not _excluded(d)]
+                        for fname in files:
+                            if _excluded(fname):
+                                continue
+                            fpath = Path(root) / fname
+                            writer.add_file(str(fpath))
+                            source_files.append(fpath)
+                else:
+                    writer.add_directory(str(path))
+                    # Collect files for --delete-after.
+                    for root, _dirs, files in os.walk(path):
+                        for fname in files:
+                            source_files.append(Path(root) / fname)
+            else:
+                if _excluded(path.name):
+                    continue
+                writer.add_file(str(path))
+                source_files.append(path)
 
     out = args.output
     if out == "-":
@@ -390,9 +568,17 @@ def compress(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
         sys.stdout.buffer.write(buf)
     else:
         writer.compress_to(out)
-        if args.progress:
+        if args.progress or args.ratio:
             sys.stderr.write("\n")
         sys.stdout.write(f"Successfully created archive: {out}")
+
+    # Delete source files after successful compression (7z -sdel).
+    if args.delete_after and source_files:
+        for f in source_files:
+            try:
+                f.unlink()
+            except OSError as exc:
+                sys.stderr.write(f"Warning: could not delete {f}: {exc}\n")
 
 
 def extract(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
@@ -513,14 +699,18 @@ def info_archive(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
 
     detected = reader.detected_format()
     fmt_name = FORMAT_NAMES.get(detected, f"id={detected.value()}")
+    uncompressed = reader.size()
+    compressed = reader.pack_size()
+    ratio = f"{100.0 * compressed / uncompressed:.1f}%" if uncompressed else "N/A"
     sys.stdout.write(
         f"Archive: {args.paths[0]}\n"
         f"  Format:          {fmt_name}\n"
         f"  Items count:     {reader.items_count()}\n"
         f"  Files count:     {reader.files_count()}\n"
         f"  Folders count:   {reader.folders_count()}\n"
-        f"  Uncompressed:    {_human_size(reader.size())}\n"
-        f"  Compressed:      {_human_size(reader.pack_size())}\n"
+        f"  Uncompressed:    {_human_size(uncompressed)}\n"
+        f"  Compressed:      {_human_size(compressed)}\n"
+        f"  Ratio:           {ratio}\n"
         f"  Encrypted:       {reader.is_encrypted()}\n"
         f"  Has encrypted:   {reader.has_encrypted_items()}\n"
         f"  Solid:           {reader.is_solid()}\n"
