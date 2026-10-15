@@ -3120,6 +3120,35 @@ name: (optional) user-defined path to be used inside the output archive.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="pybit7z.EncryptionScope">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pybit7z.</span></span><span class="sig-name descname"><span class="pre">EncryptionScope</span></span><a class="headerlink" href="#pybit7z.EncryptionScope" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_object</span></code></p>
+<p>Members:</p>
+<p>DataOnly : Only the archive’s file data is encrypted.</p>
+<p>DataAndHeaders : Both the archive’s file data and headers are encrypted (valid only for the 7z format).</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pybit7z.EncryptionScope.DataAndHeaders">
+<span class="sig-name descname"><span class="pre">DataAndHeaders</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;EncryptionScope.DataAndHeaders:</span> <span class="pre">1&gt;</span></span><a class="headerlink" href="#pybit7z.EncryptionScope.DataAndHeaders" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pybit7z.EncryptionScope.DataOnly">
+<span class="sig-name descname"><span class="pre">DataOnly</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;EncryptionScope.DataOnly:</span> <span class="pre">0&gt;</span></span><a class="headerlink" href="#pybit7z.EncryptionScope.DataOnly" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">EncryptionScope.name</span> <span class="pre">-&gt;</span> <span class="pre">str</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pybit7z.EncryptionScope.value">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#pybit7z.EncryptionScope.value" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="pybit7z.FilterPolicy">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pybit7z.</span></span><span class="sig-name descname"><span class="pre">FilterPolicy</span></span><a class="headerlink" href="#pybit7z.FilterPolicy" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_object</span></code></p>
@@ -3761,6 +3790,12 @@ name: (optional) user-defined path to be used inside the output archive.</p>
 <li><a class="reference internal" href="#pybit7z.DeletePolicy.ItemOnly"><code class="docutils literal notranslate"><span class="pre">DeletePolicy.ItemOnly</span></code></a></li>
 <li><a class="reference internal" href="#pybit7z.DeletePolicy.RecurseDirs"><code class="docutils literal notranslate"><span class="pre">DeletePolicy.RecurseDirs</span></code></a></li>
 <li><a class="reference internal" href="#pybit7z.DeletePolicy.value"><code class="docutils literal notranslate"><span class="pre">DeletePolicy.value</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#pybit7z.EncryptionScope"><code class="docutils literal notranslate"><span class="pre">EncryptionScope</span></code></a><ul>
+<li><a class="reference internal" href="#pybit7z.EncryptionScope.DataAndHeaders"><code class="docutils literal notranslate"><span class="pre">EncryptionScope.DataAndHeaders</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.EncryptionScope.DataOnly"><code class="docutils literal notranslate"><span class="pre">EncryptionScope.DataOnly</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.EncryptionScope.value"><code class="docutils literal notranslate"><span class="pre">EncryptionScope.value</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#pybit7z.FilterPolicy"><code class="docutils literal notranslate"><span class="pre">FilterPolicy</span></code></a><ul>
