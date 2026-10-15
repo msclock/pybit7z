@@ -399,7 +399,9 @@ class _ProgressHelper:
         self.args = args
         self.total_ref: list[int] = [0]
         self.last_pct: list[int] = [0]
-        self.last_ratio: list[Optional[Tuple[int, int]]] = [None]
+        # Use lowercase 'tuple' in the annotation to help pylint's type inference
+        # and avoid a false-positive "Attempting to unpack a non-sequence" error.
+        self.last_ratio: list[Optional[tuple[int, int]]] = [None]
         self.line_active: list[bool] = [False]
         self.last_text: list[str] = [""]
 
@@ -408,13 +410,15 @@ class _ProgressHelper:
         parts = []
         if self.args.progress:
             parts.append(f"Progress: {self.last_pct[0]:3d}%")
-        if self.args.ratio and self.last_ratio[0] is not None:
-            in_size, out_size = self.last_ratio[0]
-            if in_size > 0:
-                rpct = int(100.0 * out_size / in_size)
-                parts.append(
-                    f"Ratio: {rpct}% ({_human_size(out_size)} / {_human_size(in_size)})"
-                )
+        if self.args.ratio:
+            ratio = self.last_ratio[0]
+            if ratio is not None:
+                in_size, out_size = ratio
+                if in_size > 0:
+                    rpct = int(100.0 * out_size / in_size)
+                    parts.append(
+                        f"Ratio: {rpct}% ({_human_size(out_size)} / {_human_size(in_size)})"
+                    )
         return "  ".join(parts)
 
     def render(self) -> None:
