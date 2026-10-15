@@ -399,8 +399,6 @@ class _ProgressHelper:
         self.args = args
         self.total_ref: list[int] = [0]
         self.last_pct: list[int] = [0]
-        # Use lowercase 'tuple' in the annotation to help pylint's type inference
-        # and avoid a false-positive "Attempting to unpack a non-sequence" error.
         self.last_ratio: list[Optional[tuple[int, int]]] = [None]
         self.line_active: list[bool] = [False]
         self.last_text: list[str] = [""]
@@ -498,18 +496,18 @@ def show_formats() -> None:
             readable.append((name, obj))
 
     sys.stdout.write("Writable formats:\n")
-    header = f"  {'Name':<12} {'Extension':<10} {'Features'}\n"
+    header = f"  {'Name':<16} {'Extension':<10} {'Features'}\n"
     sys.stdout.write(header)
     sys.stdout.write("  " + "-" * 50 + "\n")
     for name, fmt in sorted(writable, key=lambda x: x[0]):
         features = _format_features_str(fmt)
-        sys.stdout.write(f"  {name:<12} {fmt.extension():<10} {features}\n")
+        sys.stdout.write(f"  {name:<16} {fmt.extension():<10} {features}\n")
 
     sys.stdout.write("\nRead-only formats:\n")
     sys.stdout.write(header)
     sys.stdout.write("  " + "-" * 50 + "\n")
     for name, fmt in sorted(readable, key=lambda x: x[0]):  # type: ignore[assignment]
-        sys.stdout.write(f"  {name:<12} {'-':<10} id={fmt.value()}\n")
+        sys.stdout.write(f"  {name:<16} {'-':<10} id={fmt.value():#04X}\n")
 
 
 def _format_features_str(fmt: BitInOutFormat) -> str:
