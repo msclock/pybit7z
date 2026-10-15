@@ -64,14 +64,8 @@ EXTENSION_MAP: dict[str, str] = {
 # All readable formats supported by bit7z (FormatAuto handles detection).
 READABLE_FORMATS = {"auto": FormatAuto}
 
-# Maps writable format objects (or their ids) to their display names (for info output).
-# Some of the bit7z format objects may not be Python types suitable for use as
-# dict keys in isinstance checks or as hashable keys; map by a stable key when
-# possible (prefer the .value() if provided).
-FORMAT_NAMES: dict[Any, str] = {}
-for name, fmt in WRITABLE_FORMATS.items():
-    key = fmt.value() if hasattr(fmt, "value") else fmt
-    FORMAT_NAMES[key] = name
+# Maps writable format objects to their display names (for info output).
+FORMAT_NAMES: dict[Any, str] = {fmt: name for name, fmt in WRITABLE_FORMATS.items()}
 
 LEVEL_NAMES = [e.name for e in BitCompressionLevel.__members__.values()]
 METHOD_NAMES = [e.name for e in BitCompressionMethod.__members__.values()]
@@ -496,11 +490,11 @@ def show_formats() -> None:
         if not name.startswith("Format"):
             continue
         obj = getattr(_core, name)
-        # Avoid isinstance checks against non-type objects which can raise
-        # TypeError during import; use duck-typing instead.
-        if hasattr(obj, "has_feature") and hasattr(obj, "extension"):
+        if isinstance(obj, type):
+            continue
+        if isinstance(obj, BitInOutFormat):
             writable.append((name, obj))
-        elif hasattr(obj, "value"):
+        elif isinstance(obj, BitInFormat):
             readable.append((name, obj))
 
     sys.stdout.write("Writable formats:\n")
@@ -509,17 +503,13 @@ def show_formats() -> None:
     sys.stdout.write("  " + "-" * 50 + "\n")
     for name, fmt in sorted(writable, key=lambda x: x[0]):
         features = _format_features_str(fmt)
-        # Some format objects expose an extension() method.
-        ext = fmt.extension() if hasattr(fmt, "extension") else "-"
-        sys.stdout.write(f"  {name:<12} {ext:<10} {features}\n")
+        sys.stdout.write(f"  {name:<12} {fmt.extension():<10} {features}\n")
 
     sys.stdout.write("\nRead-only formats:\n")
     sys.stdout.write(header)
     sys.stdout.write("  " + "-" * 50 + "\n")
     for name, fmt in sorted(readable, key=lambda x: x[0]):  # type: ignore[assignment]
-        # For read-only formats print their id/value when available.
-        val = fmt.value() if hasattr(fmt, "value") else str(fmt)
-        sys.stdout.write(f"  {name:<12} {'-':<10} id={val}\n")
+        sys.stdout.write(f"  {name:<12} {'-':<10} id={fmt.value()}\n")
 
 
 def _format_features_str(fmt: BitInOutFormat) -> str:
@@ -657,7 +647,12 @@ def compress(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
                 continue
             if path.is_dir():
                 if exclude_patterns:
-                    _add_files_from_directory(writer, path, exclude_patterns, source_files)
+                    _add_files_from_directory(
+                        writer,
+                        path,
+                        exclude_patterns,
+                        source_files,
+                    )
                 else:
                     writer.add_directory(str(path))
                     _collect_files_under_directory(path, source_files)
@@ -770,7 +765,7 @@ def list_archive(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
     sys.stdout.write("\n")
 
     # Table header
-    header = f"{ 'Idx':>4}  {'Size':>10}  {'Packed':>10}  {'Flags':>6}  Name"
+    header = f"{'Idx':>4}  {'Size':>10}  {'Packed':>10}  {'Flags':>6}  Name"
     sys.stdout.write(header + "\n")
     sys.stdout.write("-" * len(header) + "\n")
 
@@ -812,8 +807,7 @@ def info_archive(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
     reader = BitArchiveReader(lib, args.paths[0], fmt, password)
 
     detected = reader.detected_format()
-    key = detected.value() if hasattr(detected, "value") else detected
-    fmt_name = FORMAT_NAMES.get(key, f"id={detected.value()}" if hasattr(detected, "value") else str(detected))
+    fmt_name = FORMAT_NAMES.get(detected, f"id={detected.value()}")
     uncompressed = reader.size()
     compressed = reader.pack_size()
     ratio = f"{100.0 * compressed / uncompressed:.1f}%" if uncompressed else "N/A"
