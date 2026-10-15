@@ -549,9 +549,15 @@ def _add_files_from_directory(
     """Walk a directory, adding files to writer while applying exclude patterns."""
     for root, dirs, files in os.walk(base_path):
         if exclude_patterns:
-            dirs[:] = [d for d in dirs if not any(fnmatch.fnmatch(d, pat) for pat in exclude_patterns)]
+            dirs[:] = [
+                d
+                for d in dirs
+                if not any(fnmatch.fnmatch(d, pat) for pat in exclude_patterns)
+            ]
         for fname in files:
-            if exclude_patterns and any(fnmatch.fnmatch(fname, pat) for pat in exclude_patterns):
+            if exclude_patterns and any(
+                fnmatch.fnmatch(fname, pat) for pat in exclude_patterns
+            ):
                 continue
             fpath = Path(root) / fname
             writer.add_file(str(fpath))
