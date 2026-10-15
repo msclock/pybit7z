@@ -1124,6 +1124,7 @@ Args:
         .def(
             "test",
             [](bit7z::BitInputArchive &self, const std::vector<uint32_t> &indices) { self.test(indices); },
+            py::call_guard<py::gil_scoped_release>(),
             py::arg("indices") = py::list(),
             py::doc(R"pydoc(Tests the archive without extracting its content.
 
@@ -1391,6 +1392,7 @@ Args:
 )pydoc"))
         .def("compress_to",
              static_cast<void (bit7z::BitOutputArchive::*)(const std::string &)>(&bit7z::BitOutputArchive::compressTo),
+             py::call_guard<py::gil_scoped_release>(),
              py::arg("out_file"),
              py::doc(R"pydoc(Compresses all the items added to this object to the specified archive file path.
 
@@ -1404,7 +1406,10 @@ Note:
             "compress_to",
             [](bit7z::BitOutputArchive &self) -> py::bytes {
                 std::vector<bit7z::byte_t> out_buffer;
-                self.compressTo(out_buffer);
+                {
+                    py::gil_scoped_release release;
+                    self.compressTo(out_buffer);
+                }
                 return py::bytes(reinterpret_cast<const char *>(out_buffer.data()), out_buffer.size());
             },
             py::doc(R"pydoc(Compresses all the items added to this object to the specified buffer.)pydoc"))

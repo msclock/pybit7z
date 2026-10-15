@@ -62,6 +62,7 @@ exclude_patterns = [
 linkcheck_ignore = [
     "https://github.com/msclock/pybit7z",
     "https://msclock.github.io/pybit7z",
+    "https://sevenzip.osdn.jp",
 ]
 
 # -- Options for HTML output -------------------------------------------------
