@@ -6,7 +6,7 @@ import os
 import re
 import sys
 from pathlib import Path
-from typing import Any, Optional, Tuple
+from typing import Any, Optional
 
 from . import (
     Bit7zLibrary,
