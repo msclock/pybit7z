@@ -6,7 +6,7 @@ import os
 import re
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional, Tuple
 
 from . import (
     Bit7zLibrary,
@@ -384,7 +384,7 @@ def _apply_progress(
 ) -> None:
     total_ref: list[int] = [0]
     last_pct: list[int] = [0]
-    last_ratio: list[tuple[int, int] | None] = [None]
+    last_ratio: list[Optional[Tuple[int, int]]] = [None]
     line_active: list[bool] = [False]
     last_text: list[str] = [""]
 
