@@ -34,6 +34,7 @@ from . import (
     OverwriteMode,
     UpdateMode,
     lib7zip_context,
+    _core,
 )
 
 # Maps command-line format names to bit7z format objects.
@@ -81,6 +82,8 @@ def _human_size(num: float) -> str:
 
 
 def _total_callback(total_ref: list[int]) -> Any:
+    """Return a callback that updates total_ref[0] with the total size."""
+
     def cb(total_size: int) -> None:
         total_ref[0] = total_size
 
@@ -88,6 +91,7 @@ def _total_callback(total_ref: list[int]) -> Any:
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Build and return the ArgumentParser for the CLI."""
     parser = argparse.ArgumentParser(
         prog="pybit7z",
         description="pybit7z command-line compression tool",
@@ -328,6 +332,10 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main() -> None:
+    """Entry point for the CLI application.
+
+    Parses arguments and dispatches to the appropriate handler.
+    """
     parser = build_parser()
     args = parser.parse_args()
 
@@ -379,21 +387,29 @@ def _resolve_read_format(args: argparse.Namespace) -> Any:
     return WRITABLE_FORMATS[args.format]
 
 
-def _apply_progress(
-    handler: BitAbstractArchiveHandler, args: argparse.Namespace
-) -> None:
-    total_ref: list[int] = [0]
-    last_pct: list[int] = [0]
-    last_ratio: list[Optional[Tuple[int, int]]] = [None]
-    line_active: list[bool] = [False]
-    last_text: list[str] = [""]
+class _ProgressHelper:
+    """Helper that encapsulates progress/ratio/file display state and callbacks.
 
-    def build_text() -> str:
+    This avoids deep nested callbacks by keeping mutable state in instance
+    attributes and exposing methods suitable for passing as callbacks to the
+    underlying bit7z handler.
+    """
+
+    def __init__(self, args: argparse.Namespace) -> None:
+        self.args = args
+        self.total_ref: list[int] = [0]
+        self.last_pct: list[int] = [0]
+        self.last_ratio: list[Optional[Tuple[int, int]]] = [None]
+        self.line_active: list[bool] = [False]
+        self.last_text: list[str] = [""]
+
+    def build_text(self) -> str:
+        """Build the current status text from progress/ratio state."""
         parts = []
-        if args.progress:
-            parts.append(f"Progress: {last_pct[0]:3d}%")
-        if args.ratio and last_ratio[0] is not None:
-            in_size, out_size = last_ratio[0]
+        if self.args.progress:
+            parts.append(f"Progress: {self.last_pct[0]:3d}%")
+        if self.args.ratio and self.last_ratio[0] is not None:
+            in_size, out_size = self.last_ratio[0]
             if in_size > 0:
                 rpct = int(100.0 * out_size / in_size)
                 parts.append(
@@ -401,55 +417,65 @@ def _apply_progress(
                 )
         return "  ".join(parts)
 
-    def render() -> None:
-        text = build_text()
+    def render(self) -> None:
+        """Render the current status text to stderr (updates single line)."""
+        text = self.build_text()
         if not text:
             return
-        if text == last_text[0] and line_active[0]:
+        if text == self.last_text[0] and self.line_active[0]:
             return
         sys.stderr.write("\r  " + text)
         sys.stderr.flush()
-        last_text[0] = text
-        line_active[0] = True
+        self.last_text[0] = text
+        self.line_active[0] = True
 
-    if args.progress or args.ratio:
-        handler.set_total_callback(_total_callback(total_ref))
+    def progress_cb(self, processed_size: int) -> bool:
+        """Progress callback expected by the handler; returns True to continue."""
+        total = self.total_ref[0] if self.total_ref else 0
+        if total > 0:
+            self.last_pct[0] = min(100, int(100.0 * processed_size / total))
+            self.render()
+        return True
 
-        def progress_cb(processed_size: int) -> bool:
-            total = total_ref[0] if total_ref else 0
-            if total > 0:
-                last_pct[0] = min(100, int(100.0 * processed_size / total))
-                render()
-            return True
+    def ratio_cb(self, in_size: int, out_size: int) -> None:
+        """Ratio callback to store sizes and re-render."""
+        self.last_ratio[0] = (in_size, out_size)
+        self.render()
 
-        handler.set_progress_callback(progress_cb)
+    def file_cb(self, path: str) -> None:
+        """File callback to log each processed file on its own line."""
+        if self.line_active[0]:
+            sys.stderr.write("\r" + " " * 80 + "\r")
+            self.line_active[0] = False
+            self.last_text[0] = ""
+        sys.stderr.write(f"  + {path}\n")
+        sys.stderr.flush()
+        self.render()
 
-        if args.ratio:
+    def attach(self, handler: BitAbstractArchiveHandler) -> None:
+        """Attach callbacks to the provided handler based on CLI flags."""
+        if self.args.progress or self.args.ratio:
+            handler.set_total_callback(_total_callback(self.total_ref))
+            handler.set_progress_callback(self.progress_cb)
+            if self.args.ratio:
+                handler.set_ratio_callback(self.ratio_cb)
+        if self.args.show_files:
+            handler.set_file_callback(self.file_cb)
 
-            def ratio_cb(in_size: int, out_size: int) -> None:
-                last_ratio[0] = (in_size, out_size)
-                render()
 
-            handler.set_ratio_callback(ratio_cb)
+def _apply_progress(handler: BitAbstractArchiveHandler, args: argparse.Namespace) -> None:
+    """Configure progress/ratio/file callbacks on the provided handler.
 
-    if args.show_files:
-
-        def file_cb(path: str) -> None:
-            if line_active[0]:
-                sys.stderr.write("\r" + " " * 80 + "\r")
-                line_active[0] = False
-                last_text[0] = ""
-            sys.stderr.write(f"  + {path}\n")
-            sys.stderr.flush()
-            render()
-
-        handler.set_file_callback(file_cb)
+    This implementation uses _ProgressHelper to keep callback state at the
+    instance level and avoid deeply nested inner functions that trigger
+    "too many nested blocks" lint warnings.
+    """
+    helper = _ProgressHelper(args)
+    helper.attach(handler)
 
 
 def show_formats() -> None:
     """List all supported archive formats with their extensions and features."""
-    # Import all format objects dynamically from the package.
-    from . import _core
 
     writable: list[tuple[str, BitInOutFormat]] = []
     readable: list[tuple[str, BitInFormat]] = []
@@ -480,6 +506,7 @@ def show_formats() -> None:
 
 
 def _format_features_str(fmt: BitInOutFormat) -> str:
+    """Return a comma-separated string describing format features."""
     feats = []
     if fmt.has_feature(FormatFeatures.MultipleFiles):
         feats.append("multi-file")
@@ -497,6 +524,8 @@ def _format_features_str(fmt: BitInOutFormat) -> str:
 
 
 def compress(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
+    """Create an archive from the provided paths or stdin using the writer API."""
+
     fmt_name = args.format
     if fmt_name == "auto":
         if args.output and args.output != "-":
@@ -622,6 +651,7 @@ def compress(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
 
 
 def extract(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
+    """Extract files from an archive to the given destination or stdout."""
     fmt = _resolve_read_format(args)
     password = args.password or ""
     reader = BitArchiveReader(lib, args.paths[0], fmt, password)
@@ -681,6 +711,7 @@ def extract(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
 
 
 def list_archive(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
+    """Print a listing of archive contents and basic archive metadata."""
     fmt = _resolve_read_format(args)
     password = args.password or ""
     reader = BitArchiveReader(lib, args.paths[0], fmt, password)
@@ -720,6 +751,7 @@ def list_archive(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
 
 
 def test_archive(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
+    """Run integrity test(s) on the archive items specified."""
     fmt = _resolve_read_format(args)
     password = args.password or ""
     reader = BitArchiveReader(lib, args.paths[0], fmt, password)
@@ -737,6 +769,7 @@ def test_archive(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
 
 
 def info_archive(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
+    """Print detailed archive information (format, sizes, flags, properties)."""
     fmt = _resolve_read_format(args)
     password = args.password or ""
     reader = BitArchiveReader(lib, args.paths[0], fmt, password)
@@ -771,6 +804,7 @@ def info_archive(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
 
 
 def _variant_to_str(variant: BitPropVariant) -> str:
+    """Convert a BitPropVariant to a human-readable string."""
     if variant.is_string():
         return variant.get_string()
     if variant.is_uint64():
@@ -781,6 +815,11 @@ def _variant_to_str(variant: BitPropVariant) -> str:
 
 
 def update_archive(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
+    """Apply updates (delete/rename) to an existing archive.
+
+    The function validates arguments, performs requested update operations,
+    and applies changes using BitArchiveEditor.
+    """
     if args.format == "auto":
         parser = build_parser()
         parser.error(
