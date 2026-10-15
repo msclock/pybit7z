@@ -33,8 +33,8 @@ from . import (
     FormatZip,
     OverwriteMode,
     UpdateMode,
-    lib7zip_context,
     _core,
+    lib7zip_context,
 )
 
 # Maps command-line format names to bit7z format objects.
@@ -463,7 +463,10 @@ class _ProgressHelper:
             handler.set_file_callback(self.file_cb)
 
 
-def _apply_progress(handler: BitAbstractArchiveHandler, args: argparse.Namespace) -> None:
+def _apply_progress(
+    handler: BitAbstractArchiveHandler,
+    args: argparse.Namespace,
+) -> None:
     """Configure progress/ratio/file callbacks on the provided handler.
 
     This implementation uses _ProgressHelper to keep callback state at the
