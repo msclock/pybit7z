@@ -1211,7 +1211,7 @@ class BitAbstractArchiveCreator(BitAbstractArchiveHandler):
         """
     def set_format_property(self, name: str, value: BitPropVariant) -> None:
         """
-        Sets a property for the output archive format as described by the 7-zip documentation.
+        Sets a property for the output archive format as described by the 7-zip documentation(e.g., https://sevenzip.osdn.jp/chm/cmdline/switches/method.htm).
 
         For example, passing the string L"tm" with a false value while creating a .7z archive will disable storing the last modified timestamps of the compressed files.
 
