@@ -209,7 +209,7 @@ def build_parser() -> argparse.ArgumentParser:
         "-x",
         "--exclude",
         action="append",
-        default=[],
+        default=None,
         metavar="PATTERN",
         help="Exclude files matching the wildcard pattern during compression "
         "(can be repeated)",
@@ -232,7 +232,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--format-property",
         action="append",
-        default=[],
+        default=None,
         metavar="KEY=VALUE",
         help="Set a raw 7z format property (e.g. '0=4' for 4 threads). "
         "Can be repeated.",
@@ -298,27 +298,27 @@ def build_parser() -> argparse.ArgumentParser:
     update_group.add_argument(
         "--delete",
         action="append",
-        default=[],
+        default=None,
         help="Delete item(s) by in-archive path (can be repeated)",
     )
     update_group.add_argument(
         "--delete-index",
         type=int,
         action="append",
-        default=[],
+        default=None,
         help="Delete item(s) by index (can be repeated)",
     )
     update_group.add_argument(
         "--rename",
         action="append",
-        default=[],
+        default=None,
         metavar="OLD=NEW",
         help="Rename item from OLD path to NEW path (can be repeated)",
     )
     update_group.add_argument(
         "--rename-index",
         action="append",
-        default=[],
+        default=None,
         metavar="INDEX:NEW",
         help="Rename item at INDEX to NEW path (can be repeated)",
     )
@@ -530,6 +530,31 @@ def _format_features_str(fmt: BitInOutFormat) -> str:
     return ",".join(feats) if feats else "-"
 
 
+def _add_files_from_directory(
+    writer: BitArchiveWriter,
+    base_path: Path,
+    exclude_patterns: list[str],
+    source_files: list[Path],
+) -> None:
+    """Walk a directory, adding files to writer while applying exclude patterns."""
+    for root, dirs, files in os.walk(base_path):
+        if exclude_patterns:
+            dirs[:] = [d for d in dirs if not any(fnmatch.fnmatch(d, pat) for pat in exclude_patterns)]
+        for fname in files:
+            if exclude_patterns and any(fnmatch.fnmatch(fname, pat) for pat in exclude_patterns):
+                continue
+            fpath = Path(root) / fname
+            writer.add_file(str(fpath))
+            source_files.append(fpath)
+
+
+def _collect_files_under_directory(base_path: Path, source_files: list[Path]) -> None:
+    """Collect all files under base_path into source_files (for deletion)."""
+    for root, _dirs, files in os.walk(base_path):
+        for fname in files:
+            source_files.append(Path(root) / fname)
+
+
 def compress(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
     """Create an archive from the provided paths or stdin using the writer API."""
 
@@ -581,7 +606,7 @@ def compress(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
     writer.set_store_symbolic_links(args.symlinks == "donotfollow")
 
     # Raw 7z format properties (e.g. '0=4' -> 4 threads, 'x=9' -> ultra level).
-    for prop in args.format_property:
+    for prop in args.format_property or []:
         if "=" not in prop:
             msg = f"Invalid --format-property (expected KEY=VALUE): {prop}"
             raise ValueError(msg)
@@ -595,7 +620,7 @@ def compress(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
 
     # Collect source files (with exclusion filtering) and track for --delete-after.
     source_files: list[Path] = []
-    exclude_patterns = args.exclude
+    exclude_patterns = args.exclude or []
 
     def _excluded(name: str) -> bool:
         return any(fnmatch.fnmatch(name, pat) for pat in exclude_patterns)
@@ -616,23 +641,12 @@ def compress(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
                 continue
             if path.is_dir():
                 if exclude_patterns:
-                    # Walk directory and add files individually, skipping excluded names.
-                    for root, dirs, files in os.walk(path):
-                        dirs[:] = [d for d in dirs if not _excluded(d)]
-                        for fname in files:
-                            if _excluded(fname):
-                                continue
-                            fpath = Path(root) / fname
-                            writer.add_file(str(fpath))
-                            source_files.append(fpath)
+                    _add_files_from_directory(writer, path, exclude_patterns, source_files)
                 else:
                     writer.add_directory(str(path))
-                    # Collect files for --delete-after.
-                    for root, _dirs, files in os.walk(path):
-                        for fname in files:
-                            source_files.append(Path(root) / fname)
+                    _collect_files_under_directory(path, source_files)
             else:
-                if _excluded(path.name):
+                if exclude_patterns and _excluded(path.name):
                     continue
                 writer.add_file(str(path))
                 source_files.append(path)
@@ -845,21 +859,21 @@ def update_archive(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
 
     changed = False
 
-    for path in args.delete:
+    for path in args.delete or []:
         editor.delete_item(path, delete_policy)
         changed = True
-    for idx in args.delete_index:
+    for idx in args.delete_index or []:
         editor.delete_item(idx, delete_policy)
         changed = True
 
-    for spec in args.rename:
+    for spec in args.rename or []:
         if "=" not in spec:
             msg = f"Invalid --rename spec (expected OLD=NEW): {spec}"
             raise ValueError(msg)
         old, new = spec.split("=", 1)
         editor.rename_item(old, new)
         changed = True
-    for spec in args.rename_index:
+    for spec in args.rename_index or []:
         if ":" not in spec:
             msg = f"Invalid --rename-index spec (expected INDEX:NEW): {spec}"
             raise ValueError(msg)
