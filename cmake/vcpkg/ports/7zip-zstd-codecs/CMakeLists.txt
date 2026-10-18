@@ -272,7 +272,7 @@ endfunction()
 add_format_dll(zstd
     "CPP/7zip/Archive/ZstdHandler.cpp"
     "CPP/7zip/Compress/ZstdDecoder.cpp;CPP/7zip/Compress/ZstdEncoder.cpp;CPP/7zip/Compress/ZstdRegister.cpp;${ZSTD_C_SOURCES};C/hashes/xxhash.c;C/zstdmt/zstd-mt_threading.c"
-    "ZSTD_LEGACY_SUPPORT;ZSTD_MULTITHREAD"
+    "ZSTD_LEGACY_SUPPORT;ZSTD_MULTITHREAD;ZSTD_DISABLE_ASM"
     "${CMAKE_CURRENT_SOURCE_DIR}/C/zstd;${CMAKE_CURRENT_SOURCE_DIR}/C/zstdmt;${CMAKE_CURRENT_SOURCE_DIR}/C/hashes"
 )
 
@@ -312,7 +312,7 @@ add_format_dll(lz5
 add_format_dll(lizard
     "CPP/7zip/Archive/LizardHandler.cpp"
     "CPP/7zip/Compress/LizardDecoder.cpp;CPP/7zip/Compress/LizardEncoder.cpp;CPP/7zip/Compress/LizardRegister.cpp;C/lizard/lizard_compress.c;C/lizard/lizard_decompress.c;C/lizard/lizard_frame.c;C/lizard/liz_entropy_common.c;C/lizard/liz_fse_compress.c;C/lizard/liz_fse_decompress.c;C/lizard/liz_huf_compress.c;C/lizard/liz_huf_decompress.c;C/zstd/debug.c;C/zstd/entropy_common.c;C/zstd/error_private.c;C/zstd/fse_compress.c;C/zstd/fse_decompress.c;C/zstd/hist.c;C/zstd/huf_compress.c;C/zstd/huf_decompress.c;C/hashes/xxhash.c;C/zstdmt/lizard-mt_common.c;C/zstdmt/lizard-mt_compress.c;C/zstdmt/lizard-mt_decompress.c;C/zstdmt/zstd-mt_threading.c"
-    ""
+    "ZSTD_DISABLE_ASM"
     "${CMAKE_CURRENT_SOURCE_DIR}/C/lizard;${CMAKE_CURRENT_SOURCE_DIR}/C/zstd;${CMAKE_CURRENT_SOURCE_DIR}/C/zstdmt"
 )
 
