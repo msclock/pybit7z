@@ -14,6 +14,10 @@ vcpkg_from_github(
 file(COPY "${CMAKE_CURRENT_LIST_DIR}/CMakeLists.txt" DESTINATION "${SOURCE_PATH}")
 file(COPY "${CMAKE_CURRENT_LIST_DIR}/7zip-compression-zoo-codecs-config.cmake.in" DESTINATION "${SOURCE_PATH}")
 
+file(REMOVE_RECURSE
+    "${SOURCE_PATH}/plugins/bsc/upstream/CMakeLists.txt"
+)
+
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
 )
