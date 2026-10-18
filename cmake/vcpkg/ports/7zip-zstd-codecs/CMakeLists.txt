@@ -12,6 +12,16 @@ function(add_codec_dll name codec_sources extra_defs extra_includes)
 
     if(WIN32)
         target_sources(${name} PRIVATE "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/include/7zip/CPP/7zip/Compress/Codec.def")
+    elseif(NOT APPLE)
+        set(VERSION_SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/${name}.version")
+        file(WRITE "${VERSION_SCRIPT}"
+"{
+  global: CreateObject; GetNumberOfMethods; GetMethodProperty;
+          CreateDecoder; CreateEncoder; GetModuleProp;
+  local: *;
+};
+")
+        target_link_options(${name} PRIVATE "-Wl,--version-script=${VERSION_SCRIPT}")
     endif()
 
     target_link_libraries(${name} PRIVATE 7zip::7zip-codec-common)
@@ -29,7 +39,7 @@ function(add_codec_dll name codec_sources extra_defs extra_includes)
         PREFIX ""
     )
 
-    if(NOT MSVC)
+    if(NOT MSVC AND NOT APPLE)
         target_compile_options(${name} PRIVATE -fvisibility=hidden)
     endif()
 endfunction()
@@ -42,6 +52,20 @@ function(add_format_dll name handler_source codec_sources extra_defs extra_inclu
 
     if(WIN32)
         target_sources(fmt_${name} PRIVATE "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/include/7zip/CPP/7zip/Archive/Archive2.def")
+    elseif(NOT APPLE)
+        set(VERSION_SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/fmt_${name}.version")
+        file(WRITE "${VERSION_SCRIPT}"
+"{
+  global: CreateObject;
+          GetHandlerProperty; GetNumberOfFormats; GetHandlerProperty2;
+          GetIsArc; GetNumberOfMethods; GetMethodProperty;
+          CreateDecoder; CreateEncoder; GetHashers;
+          SetCodecs; SetLargePageMode; SetLargePageMode2; SetCaseSensitive;
+          GetModuleProp;
+  local: *;
+};
+")
+        target_link_options(fmt_${name} PRIVATE "-Wl,--version-script=${VERSION_SCRIPT}")
     endif()
 
     target_link_libraries(fmt_${name} PRIVATE 7zip::7zip-format-common)
@@ -59,7 +83,7 @@ function(add_format_dll name handler_source codec_sources extra_defs extra_inclu
         PREFIX ""
     )
 
-    if(NOT MSVC)
+    if(NOT MSVC AND NOT APPLE)
         target_compile_options(fmt_${name} PRIVATE -fvisibility=hidden)
     endif()
 endfunction()

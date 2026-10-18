@@ -239,6 +239,12 @@ vcpkg_replace_string("${SOURCE_PATH}/include/bit7z/bitabstractarchivecreator.hpp
     protected:]]
 )
 
+# Add RTLD_LOCAL | RTLD_DEEPBIND to dlopen so codec .so symbols don't
+# enter the global namespace (prevents ELF interpose use-after-free crashes)
+vcpkg_replace_string("${SOURCE_PATH}/src/bitsharedlibrary.cpp"
+    "dlopen( (lib_name), RTLD_LAZY )"
+    "dlopen( (lib_name), RTLD_LAZY | RTLD_LOCAL | RTLD_DEEPBIND )"
+)
 vcpkg_check_features(
     OUT_FEATURE_OPTIONS FEATURE_OPTIONS
     FEATURES

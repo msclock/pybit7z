@@ -9,6 +9,16 @@ function(add_codec_dll name codec_sources extra_defs extra_includes)
 
     if(WIN32)
         target_sources(${name} PRIVATE "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/include/7zip/CPP/7zip/Compress/Codec.def")
+    elseif(NOT APPLE)
+        set(VERSION_SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/${name}.version")
+        file(WRITE "${VERSION_SCRIPT}"
+"{
+  global: CreateObject; GetNumberOfMethods; GetMethodProperty;
+          CreateDecoder; CreateEncoder; GetModuleProp;
+  local: *;
+};
+")
+        target_link_options(${name} PRIVATE "-Wl,--version-script=${VERSION_SCRIPT}")
     endif()
 
     target_link_libraries(${name} PRIVATE 7zip::7zip-codec-common)
@@ -22,7 +32,7 @@ function(add_codec_dll name codec_sources extra_defs extra_includes)
         PREFIX ""
     )
 
-    if(NOT MSVC)
+    if(NOT MSVC AND NOT APPLE)
         target_compile_options(${name} PRIVATE -fvisibility=hidden)
     endif()
 endfunction()
