@@ -33,6 +33,26 @@ foreach(src ${ZOO_CODEC_FILES})
     endif()
 endforeach()
 
+# libzpaq.cpp uses #ifdef unix to detect non-Windows platforms, but the
+# legacy "unix" macro is not guaranteed to be defined by modern compilers
+# in strict C++ standard modes. Replace with !defined(_WIN32) which is
+# reliably defined (or not) across all platforms and compilers.
+vcpkg_replace_string(
+    "${SOURCE_PATH}/plugins/zpaq/upstream/libzpaq.cpp"
+    "#ifdef unix"
+    "#ifndef _WIN32"
+)
+vcpkg_replace_string(
+    "${SOURCE_PATH}/plugins/zpaq/upstream/libzpaq.cpp"
+    "#if defined(unix) && !defined(__CYGWIN__)"
+    "#if !defined(_WIN32) && !defined(__CYGWIN__)"
+)
+vcpkg_replace_string(
+    "${SOURCE_PATH}/plugins/zpaq/upstream/libzpaq.cpp"
+    "#if !defined(unix) || defined(__CYGWIN__)"
+    "#if defined(_WIN32) || defined(__CYGWIN__)"
+)
+
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
 )
