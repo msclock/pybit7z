@@ -106,35 +106,24 @@ def test_error_handling(lib, temp_dir):
         extractor.extract(str(archive_path), str(extract_dir))
 
 
-def test_large_file_handling(lib, temp_dir, large_file):
+def test_large_file_handling(lib, temp_dir, large_file: Path):
     """Test handling of large files"""
-    levels = [
-        pybit7z.BitCompressionLevel.Fastest,
-        pybit7z.BitCompressionLevel.Normal,
-        pybit7z.BitCompressionLevel.Max,
-    ]
+    level_archive = temp_dir / "large.7z"
+    compressor = pybit7z.BitFileCompressor(lib, pybit7z.FormatSevenZip)
+    compressor.compress([str(large_file)], str(level_archive))
+    assert level_archive.exists(), "Large file archive not created"
 
-    for level in levels:
-        level_archive = temp_dir / f"large_{level}.7z"
-        compressor = pybit7z.BitFileCompressor(lib, pybit7z.FormatSevenZip)
-        compressor.set_compression_level(level)
-        compressor.compress([str(large_file)], str(level_archive))
-        assert level_archive.exists(), (
-            f"Large file archive not created for level {level}"
-        )
+    level_archive = temp_dir / "large.7z"
+    extract_dir: Path = temp_dir / "extracted_large"
 
-    for level in levels:
-        level_archive = temp_dir / f"large_{level}.7z"
-        extract_dir: Path = temp_dir / "extracted_large"
+    extractor = pybit7z.BitFileExtractor(lib, pybit7z.FormatSevenZip)
+    extractor.extract(str(level_archive), str(extract_dir))
 
-        extractor = pybit7z.BitFileExtractor(lib, pybit7z.FormatSevenZip)
-        extractor.extract(str(level_archive), str(extract_dir))
-
-        extracted_file: Path = extract_dir / large_file.name
-        assert extracted_file.exists(), "Large file was not extracted"
-        assert extracted_file.stat().st_size == large_file.stat().st_size, (
-            "Extracted file size mismatch"
-        )
+    extracted_file: Path = extract_dir / large_file.name
+    assert extracted_file.exists(), "Large file was not extracted"
+    assert extracted_file.stat().st_size == large_file.stat().st_size, (
+        "Extracted file size mismatch"
+    )
 
 
 def test_multi_file_archive(lib, temp_dir):

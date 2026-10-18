@@ -452,6 +452,278 @@ target_sources(7zip PRIVATE
 )
 
 
+# ---------------------------------------------------------------------------
+# 7zip-codec-common: static library for standalone codec DLLs
+#   (flzma2, bsc, zpaq ...)
+#   DllExportsCompress.cpp is the sole TU that include MyInitGuid.h,
+#   so all COM GUIDs are defined exactly once inside this library.
+# ---------------------------------------------------------------------------
+add_library(7zip-codec-common STATIC
+    # codec-only DLL entry (includes MyInitGuid.h → sole GUID definer here)
+    # Also defines g_Codecs/g_Hashers/RegisterCodec — the ONLY copy in this library
+    CPP/7zip/Compress/DllExportsCompress.cpp
+
+    # codec export functions
+    CPP/7zip/Compress/CodecExports.cpp
+    CPP/7zip/Compress/CopyCoder.cpp
+
+    # 7zip common infrastructure (NO CreateCoder.cpp — it defines the same
+    # g_Codecs/g_Hashers/RegisterCodec as DllExportsCompress.cpp above!)
+    CPP/7zip/Common/CWrappers.cpp
+    CPP/7zip/Common/InBuffer.cpp
+    CPP/7zip/Common/InOutTempBuffer.cpp
+    CPP/7zip/Common/FilterCoder.cpp
+    CPP/7zip/Common/LimitedStreams.cpp
+    CPP/7zip/Common/LockedStream.cpp
+    CPP/7zip/Common/MemBlocks.cpp
+    CPP/7zip/Common/MethodId.cpp
+    CPP/7zip/Common/MethodProps.cpp
+    CPP/7zip/Common/OffsetStream.cpp
+    CPP/7zip/Common/OutBuffer.cpp
+    CPP/7zip/Common/OutMemStream.cpp
+    CPP/7zip/Common/ProgressMt.cpp
+    CPP/7zip/Common/ProgressUtils.cpp
+    CPP/7zip/Common/PropId.cpp
+    CPP/7zip/Common/StreamBinder.cpp
+    CPP/7zip/Common/StreamObjects.cpp
+    CPP/7zip/Common/StreamUtils.cpp
+    CPP/7zip/Common/UniqBlocks.cpp
+    CPP/7zip/Common/VirtThread.cpp
+
+    # archive common
+    CPP/7zip/Archive/Common/CoderMixer2.cpp
+    CPP/7zip/Archive/Common/DummyOutStream.cpp
+    CPP/7zip/Archive/Common/FindSignature.cpp
+    CPP/7zip/Archive/Common/HandlerOut.cpp
+    CPP/7zip/Archive/Common/InStreamWithCRC.cpp
+    CPP/7zip/Archive/Common/ItemNameUtils.cpp
+    CPP/7zip/Archive/Common/MultiStream.cpp
+    CPP/7zip/Archive/Common/OutStreamWithCRC.cpp
+    CPP/7zip/Archive/Common/OutStreamWithSha1.cpp
+    CPP/7zip/Archive/Common/ParseProperties.cpp
+
+    # CPP common
+    CPP/Common/CRC.cpp
+    CPP/Common/CrcReg.cpp
+    CPP/Common/DynLimBuf.cpp
+    CPP/Common/IntToString.cpp
+    CPP/Common/LzFindPrepare.cpp
+    CPP/Common/MyMap.cpp
+    CPP/Common/MyString.cpp
+    CPP/Common/MyVector.cpp
+    CPP/Common/MyXml.cpp
+    CPP/Common/NewHandler.cpp
+    CPP/Common/Sha1Reg.cpp
+    CPP/Common/Sha256Reg.cpp
+    CPP/Common/Sha3Reg.cpp
+    CPP/Common/Sha512Reg.cpp
+    CPP/Common/Sha512Prepare.cpp
+    CPP/Common/StringConvert.cpp
+    CPP/Common/StringToInt.cpp
+    CPP/Common/UTFConvert.cpp
+    CPP/Common/Wildcard.cpp
+    CPP/Common/XzCrc64Init.cpp
+    CPP/Common/XzCrc64Reg.cpp
+
+    # Windows abstraction (Unix COM simulation on non-Windows)
+    CPP/Windows/FileDir.cpp
+    CPP/Windows/FileFind.cpp
+    CPP/Windows/FileIO.cpp
+    CPP/Windows/FileName.cpp
+    CPP/Windows/PropVariant.cpp
+    CPP/Windows/PropVariantConv.cpp
+    CPP/Windows/PropVariantUtils.cpp
+    CPP/Windows/Synchronization.cpp
+    CPP/Windows/System.cpp
+    CPP/Windows/TimeUtils.cpp
+
+    # C sources
+    C/7zBuf2.c
+    C/7zCrc.c
+    C/7zCrcOpt.c
+    C/7zStream.c
+    C/Alloc.c
+    C/CpuArch.c
+    C/LzFind.c
+    C/Md5.c
+    C/Sha1.c
+    C/Sha1Opt.c
+    C/Sha256.c
+    C/Sha256Opt.c
+    C/Sha3.c
+    C/Sha512.c
+    C/Sha512Opt.c
+    C/Threads.c
+    C/XzCrc64.c
+    C/XzCrc64Opt.c
+)
+
+target_include_directories(7zip-codec-common
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/CPP
+        ${CMAKE_CURRENT_SOURCE_DIR}/C
+    INTERFACE
+        $<INSTALL_INTERFACE:include>/7zip/CPP
+        $<INSTALL_INTERFACE:include>/7zip/CPP/Common
+        $<INSTALL_INTERFACE:include>/7zip/C
+)
+
+target_compile_definitions(7zip-codec-common PUBLIC Z7_EXTERNAL_CODECS)
+
+if(WIN32)
+    target_compile_definitions(7zip-codec-common PUBLIC UNICODE _UNICODE)
+    target_link_libraries(7zip-codec-common PUBLIC oleaut32 uuid)
+else()
+    target_sources(7zip-codec-common PRIVATE CPP/Common/MyWindows.cpp)
+endif()
+
+if(NOT MSVC)
+    target_compile_definitions(7zip-codec-common
+        PUBLIC
+            -D_REENTRANT
+            -D_FILE_OFFSET_BITS=64
+            -D_LARGEFILE_SOURCE
+    )
+endif()
+
+
+# ---------------------------------------------------------------------------
+# 7zip-format-common: static library for format (archive handler) DLLs
+#   (fmt_zstd, fmt_brotli, fmt_lz4, fmt_lizard ...)
+#   DllExports2.cpp is the sole TU that include MyInitGuid.h,
+#   so all COM GUIDs and CLSID_CArchiveHandler are defined exactly once.
+# ---------------------------------------------------------------------------
+add_library(7zip-format-common STATIC
+    # format DLL entry (includes MyInitGuid.h → sole GUID definer here)
+    CPP/7zip/Archive/DllExports2.cpp
+
+    # archive handler export functions
+    CPP/7zip/Archive/ArchiveExports.cpp
+
+    # codec export functions (shared with codec-common)
+    CPP/7zip/Compress/CodecExports.cpp
+    CPP/7zip/Compress/CopyCoder.cpp
+
+    # 7zip common infrastructure
+    CPP/7zip/Common/CreateCoder.cpp
+    CPP/7zip/Common/CWrappers.cpp
+    CPP/7zip/Common/InBuffer.cpp
+    CPP/7zip/Common/InOutTempBuffer.cpp
+    CPP/7zip/Common/FilterCoder.cpp
+    CPP/7zip/Common/LimitedStreams.cpp
+    CPP/7zip/Common/LockedStream.cpp
+    CPP/7zip/Common/MemBlocks.cpp
+    CPP/7zip/Common/MethodId.cpp
+    CPP/7zip/Common/MethodProps.cpp
+    CPP/7zip/Common/OffsetStream.cpp
+    CPP/7zip/Common/OutBuffer.cpp
+    CPP/7zip/Common/OutMemStream.cpp
+    CPP/7zip/Common/ProgressMt.cpp
+    CPP/7zip/Common/ProgressUtils.cpp
+    CPP/7zip/Common/PropId.cpp
+    CPP/7zip/Common/StreamBinder.cpp
+    CPP/7zip/Common/StreamObjects.cpp
+    CPP/7zip/Common/StreamUtils.cpp
+    CPP/7zip/Common/UniqBlocks.cpp
+    CPP/7zip/Common/VirtThread.cpp
+
+    # archive common
+    CPP/7zip/Archive/Common/CoderMixer2.cpp
+    CPP/7zip/Archive/Common/DummyOutStream.cpp
+    CPP/7zip/Archive/Common/FindSignature.cpp
+    CPP/7zip/Archive/Common/HandlerOut.cpp
+    CPP/7zip/Archive/Common/InStreamWithCRC.cpp
+    CPP/7zip/Archive/Common/ItemNameUtils.cpp
+    CPP/7zip/Archive/Common/MultiStream.cpp
+    CPP/7zip/Archive/Common/OutStreamWithCRC.cpp
+    CPP/7zip/Archive/Common/OutStreamWithSha1.cpp
+    CPP/7zip/Archive/Common/ParseProperties.cpp
+
+    # CPP common
+    CPP/Common/CRC.cpp
+    CPP/Common/CrcReg.cpp
+    CPP/Common/DynLimBuf.cpp
+    CPP/Common/IntToString.cpp
+    CPP/Common/LzFindPrepare.cpp
+    CPP/Common/MyMap.cpp
+    CPP/Common/MyString.cpp
+    CPP/Common/MyVector.cpp
+    CPP/Common/MyXml.cpp
+    CPP/Common/NewHandler.cpp
+    CPP/Common/Sha1Reg.cpp
+    CPP/Common/Sha256Reg.cpp
+    CPP/Common/Sha3Reg.cpp
+    CPP/Common/Sha512Reg.cpp
+    CPP/Common/Sha512Prepare.cpp
+    CPP/Common/StringConvert.cpp
+    CPP/Common/StringToInt.cpp
+    CPP/Common/UTFConvert.cpp
+    CPP/Common/Wildcard.cpp
+    CPP/Common/XzCrc64Init.cpp
+    CPP/Common/XzCrc64Reg.cpp
+
+    # Windows abstraction (Unix COM simulation on non-Windows)
+    CPP/Windows/FileDir.cpp
+    CPP/Windows/FileFind.cpp
+    CPP/Windows/FileIO.cpp
+    CPP/Windows/FileName.cpp
+    CPP/Windows/PropVariant.cpp
+    CPP/Windows/PropVariantConv.cpp
+    CPP/Windows/PropVariantUtils.cpp
+    CPP/Windows/Synchronization.cpp
+    CPP/Windows/System.cpp
+    CPP/Windows/TimeUtils.cpp
+
+    # C sources
+    C/7zBuf2.c
+    C/7zCrc.c
+    C/7zCrcOpt.c
+    C/7zStream.c
+    C/Alloc.c
+    C/CpuArch.c
+    C/LzFind.c
+    C/Md5.c
+    C/Sha1.c
+    C/Sha1Opt.c
+    C/Sha256.c
+    C/Sha256Opt.c
+    C/Sha3.c
+    C/Sha512.c
+    C/Sha512Opt.c
+    C/Threads.c
+    C/XzCrc64.c
+    C/XzCrc64Opt.c
+)
+
+target_include_directories(7zip-format-common
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/CPP
+        ${CMAKE_CURRENT_SOURCE_DIR}/C
+    INTERFACE
+        $<INSTALL_INTERFACE:include>/7zip/CPP
+        $<INSTALL_INTERFACE:include>/7zip/CPP/Common
+        $<INSTALL_INTERFACE:include>/7zip/C
+)
+
+target_compile_definitions(7zip-format-common PUBLIC Z7_EXTERNAL_CODECS)
+
+if(WIN32)
+    target_compile_definitions(7zip-format-common PUBLIC UNICODE _UNICODE)
+    target_link_libraries(7zip-format-common PUBLIC oleaut32 uuid)
+else()
+    target_sources(7zip-format-common PRIVATE CPP/Common/MyWindows.cpp)
+endif()
+
+if(NOT MSVC)
+    target_compile_definitions(7zip-format-common
+        PUBLIC
+            -D_REENTRANT
+            -D_FILE_OFFSET_BITS=64
+            -D_LARGEFILE_SOURCE
+    )
+endif()
+
+
 # install
 
 target_include_directories(7zip
@@ -461,7 +733,7 @@ target_include_directories(7zip
 )
 
 install(
-    TARGETS 7zip
+    TARGETS 7zip 7zip-codec-common 7zip-format-common
     EXPORT 7zip-targets
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib
@@ -481,6 +753,15 @@ install(FILES ${HEADERS} DESTINATION "include/7zip/CPP/7zip")
 
 file(GLOB HEADERS "${CMAKE_CURRENT_LIST_DIR}/CPP/7zip/Archive/*.h")
 install (FILES ${HEADERS} DESTINATION "include/7zip/CPP/7zip/Archive")
+
+file(GLOB HEADERS "${CMAKE_CURRENT_LIST_DIR}/CPP/7zip/Archive/*.def")
+install (FILES ${HEADERS} DESTINATION "include/7zip/CPP/7zip/Archive")
+
+file(GLOB HEADERS "${CMAKE_CURRENT_LIST_DIR}/CPP/7zip/Compress/*.def")
+install(FILES ${HEADERS} DESTINATION "include/7zip/CPP/7zip/Compress")
+
+file(GLOB HEADERS "${CMAKE_CURRENT_LIST_DIR}/CPP/7zip/Common/*.h")
+install(FILES ${HEADERS} DESTINATION "include/7zip/CPP/7zip/Common")
 
 include(CMakePackageConfigHelpers)
 configure_package_config_file(

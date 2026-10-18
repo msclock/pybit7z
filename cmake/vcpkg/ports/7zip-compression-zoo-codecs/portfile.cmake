@@ -15,8 +15,23 @@ file(COPY "${CMAKE_CURRENT_LIST_DIR}/CMakeLists.txt" DESTINATION "${SOURCE_PATH}
 file(COPY "${CMAKE_CURRENT_LIST_DIR}/7zip-compression-zoo-codecs-config.cmake.in" DESTINATION "${SOURCE_PATH}")
 
 file(REMOVE_RECURSE
-    "${SOURCE_PATH}/plugins/bsc/upstream/CMakeLists.txt"
+    "${SOURCE_PATH}/plugins/bsc/upstream/version"
+    "${SOURCE_PATH}/plugins/bsc/upstream/VERSION"
 )
+
+# Redirect zoo codec source includes from bundled SDK to standard 7zip port headers.
+# Before: #include "../../sdk/CPP/Common/ComTry.h"
+# After:  #include "Common/ComTry.h"   (resolves via 7zip::7zip-codec-common INTERFACE include)
+file(GLOB_RECURSE ZOO_CODEC_FILES
+    "${SOURCE_PATH}/plugins/*/*.cpp"
+    "${SOURCE_PATH}/plugins/*/*.h"
+)
+foreach(src ${ZOO_CODEC_FILES})
+    file(READ "${src}" CONTENTS)
+    if(CONTENTS MATCHES "#include \"../../sdk/CPP/.*\"")
+        vcpkg_replace_string("${src}" "../../sdk/CPP/" "")
+    endif()
+endforeach()
 
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
