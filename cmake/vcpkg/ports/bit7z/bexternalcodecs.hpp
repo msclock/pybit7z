@@ -15,6 +15,7 @@
 #include "bitsharedlibrary.hpp"
 #include "bittypes.hpp"
 #include "internal/com.hpp"
+#include "internal/guids.hpp"
 #include "internal/macros.hpp"
 
 #include <7zip/Archive/IArchive.h>
