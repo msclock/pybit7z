@@ -39,6 +39,29 @@ vcpkg_replace_string(
           _props._level = LZ5MT_LEVEL_MIN;"
 )
 
+# Fix use-after-free in Extract(): outStream.Release() deletes the
+# CDummyOutStream object owned by outStreamSpec, but later code calls
+# outStreamSpec->GetSize() on the freed pointer.  Capture the size into a
+# local variable before Release() and use it afterwards.
+foreach(_handler BrotliHandler LizardHandler Lz4Handler Lz5Handler ZstdHandler)
+    set(_handler_file "${SOURCE_PATH}/CPP/7zip/Archive/${_handler}.cpp")
+    if(EXISTS "${_handler_file}")
+        vcpkg_replace_string(
+            "${_handler_file}"
+            "  decoderSpec->ReleaseInStream();
+  outStream.Release();"
+            "  decoderSpec->ReleaseInStream();
+  const UInt64 _outStreamSize = outStreamSpec->GetSize();
+  outStream.Release();"
+        )
+        vcpkg_replace_string(
+            "${_handler_file}"
+            "    _unpackSize = outStreamSpec->GetSize();"
+            "    _unpackSize = _outStreamSize;"
+        )
+    endif()
+endforeach()
+
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
 )
