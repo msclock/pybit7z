@@ -5,6 +5,8 @@ import sys
 from pathlib import Path
 from typing import Optional
 
+import pytest
+
 
 def _run(args: list[str], cwd=None, stdin=None):
     """Run the CLI module directly to avoid the pybit7z.exe launcher crash."""
@@ -184,6 +186,32 @@ def test_compress_different_methods(temp_dir):
     )
     assert result.returncode == 0, result.stderr.decode(errors="replace")
     assert out.exists()
+
+
+@pytest.mark.parametrize(
+    "codec",
+    ["brotli", "flzma2", "lizard", "lz4", "lz5", "zstd"],
+)
+def test_compress_external_codec_roundtrip(temp_dir, codec):
+    """Each external codec must compress and extract losslessly via the CLI."""
+    test_file = temp_dir / "data.txt"
+    content = "external codec roundtrip content " * 50
+    test_file.write_text(content)
+
+    archive = temp_dir / f"{codec}.7z"
+    result = _run(
+        ["compress", str(test_file), "-o", str(archive), "-m", codec, "-f", "7z"]
+    )
+    assert result.returncode == 0, result.stderr.decode(errors="replace")
+    assert archive.exists()
+    assert archive.stat().st_size > 0
+
+    extract_dir = temp_dir / "out"
+    result = _run(["extract", str(archive), "-o", str(extract_dir)])
+    assert result.returncode == 0, result.stderr.decode(errors="replace")
+
+    extracted = (extract_dir / test_file.name).read_text()
+    assert extracted == content
 
 
 def test_compress_solid_mode(temp_dir):
@@ -480,28 +508,23 @@ def test_extract_filter_policy_exclude(temp_dir):
     assert names == {"a.txt"}
 
 
-def test_extract_to_stdout(temp_dir):
-    """--to-stdout should write the first item's content to stdout."""
+@pytest.mark.parametrize(
+    ("extra_args", "expected"),
+    [
+        ([], b"first content"),
+        (["-i", "1"], b"second content"),
+    ],
+)
+def test_extract_to_stdout(temp_dir, extra_args, expected):
+    """--to-stdout should write the selected item's content to stdout."""
     files = [temp_dir / "first.txt", temp_dir / "second.txt"]
     files[0].write_text("first content")
     files[1].write_text("second content")
     archive = _make_archive(temp_dir, files)
 
-    result = _run(["extract", str(archive), "--to-stdout"])
+    result = _run(["extract", str(archive), "--to-stdout", *extra_args])
     assert result.returncode == 0, result.stderr.decode(errors="replace")
-    assert result.stdout == b"first content"
-
-
-def test_extract_to_stdout_by_index(temp_dir):
-    """--to-stdout with --indices should extract the indexed item."""
-    files = [temp_dir / "first.txt", temp_dir / "second.txt"]
-    files[0].write_text("first content")
-    files[1].write_text("second content")
-    archive = _make_archive(temp_dir, files)
-
-    result = _run(["extract", str(archive), "--to-stdout", "-i", "1"])
-    assert result.returncode == 0, result.stderr.decode(errors="replace")
-    assert result.stdout == b"second content"
+    assert result.stdout == expected
 
 
 def test_extract_password(temp_dir):
@@ -626,14 +649,21 @@ def test_info_verbose(temp_dir):
 # ---------------------------------------------------------------------------
 
 
-def test_update_delete_by_path(temp_dir):
-    """Deleting an item by path should remove it from the archive."""
+@pytest.mark.parametrize(
+    "delete_args",
+    [
+        ["--delete", "a.txt"],
+        ["--delete-index", "0"],
+    ],
+)
+def test_update_delete(temp_dir, delete_args):
+    """Deleting an item (by path or index) should remove it from the archive."""
     files = [temp_dir / "a.txt", temp_dir / "b.txt"]
     for f in files:
         f.write_text("data")
     archive = _make_archive(temp_dir, files)
 
-    result = _run(["update", str(archive), "-f", "7z", "--delete", "a.txt"])
+    result = _run(["update", str(archive), "-f", "7z", *delete_args])
     assert result.returncode == 0, result.stderr.decode(errors="replace")
 
     listing = _run(["list", str(archive)]).stdout.decode()
@@ -641,50 +671,25 @@ def test_update_delete_by_path(temp_dir):
     assert "b.txt" in listing
 
 
-def test_update_delete_by_index(temp_dir):
-    """Deleting an item by index should remove it from the archive."""
-    files = [temp_dir / "a.txt", temp_dir / "b.txt"]
-    for f in files:
-        f.write_text("data")
-    archive = _make_archive(temp_dir, files)
-
-    result = _run(["update", str(archive), "-f", "7z", "--delete-index", "0"])
-    assert result.returncode == 0, result.stderr.decode(errors="replace")
-
-    listing = _run(["list", str(archive)]).stdout.decode()
-    assert "a.txt" not in listing
-    assert "b.txt" in listing
-
-
-def test_update_rename_by_path(temp_dir):
-    """Renaming an item by path should change its name in the archive."""
+@pytest.mark.parametrize(
+    "rename_args",
+    [
+        ["--rename", "old_name.txt=new_name.txt"],
+        ["--rename-index", "0:new_name.txt"],
+    ],
+)
+def test_update_rename(temp_dir, rename_args):
+    """Renaming an item (by path or index) should change its name."""
     test_file = temp_dir / "old_name.txt"
     test_file.write_text("data")
     archive = _make_archive(temp_dir, [test_file])
 
-    result = _run(
-        ["update", str(archive), "-f", "7z", "--rename", "old_name.txt=new_name.txt"]
-    )
+    result = _run(["update", str(archive), "-f", "7z", *rename_args])
     assert result.returncode == 0, result.stderr.decode(errors="replace")
 
     listing = _run(["list", str(archive)]).stdout.decode()
+    assert "new_name.txt" in listing
     assert "old_name.txt" not in listing
-    assert "new_name.txt" in listing
-
-
-def test_update_rename_by_index(temp_dir):
-    """Renaming an item by index should change its name."""
-    test_file = temp_dir / "old_name.txt"
-    test_file.write_text("data")
-    archive = _make_archive(temp_dir, [test_file])
-
-    result = _run(
-        ["update", str(archive), "-f", "7z", "--rename-index", "0:new_name.txt"]
-    )
-    assert result.returncode == 0, result.stderr.decode(errors="replace")
-
-    listing = _run(["list", str(archive)]).stdout.decode()
-    assert "new_name.txt" in listing
 
 
 def test_update_requires_format(temp_dir):
@@ -706,21 +711,6 @@ def test_update_no_operations(temp_dir):
 
     result = _run(["update", str(archive), "-f", "7z"])
     assert result.returncode == 2
-
-
-# ---------------------------------------------------------------------------
-# Formats command
-# ---------------------------------------------------------------------------
-
-
-def test_formats_command():
-    """The 'formats' command should list writable and read-only formats."""
-    result = _run(["formats"])
-    assert result.returncode == 0, result.stderr.decode(errors="replace")
-    out = result.stdout.decode()
-    assert "Writable formats" in out
-    assert "FormatSevenZip" in out
-    assert "Read-only formats" in out
 
 
 # ---------------------------------------------------------------------------

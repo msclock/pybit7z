@@ -29,11 +29,13 @@ __all__: list[str] = [
     "BitArchiveItemOffset",
     "BitArchiveReader",
     "BitArchiveWriter",
+    "BitCodecInfo",
     "BitCompressionLevel",
     "BitCompressionMethod",
     "BitException",
     "BitFileCompressor",
     "BitFileExtractor",
+    "BitFormatInfo",
     "BitGenericItem",
     "BitInFormat",
     "BitInOutFormat",
@@ -82,13 +84,15 @@ __all__: list[str] = [
     "FilterPolicy",
     "FilterResult",
     "FolderPathPolicy",
+    "FormatAPFS",
     "FormatAPM",
+    "FormatAVB",
     "FormatArj",
     "FormatAuto",
     "FormatBZip2",
+    "FormatCOFF",
     "FormatCab",
     "FormatChm",
-    "FormatCoff",
     "FormatCompound",
     "FormatCpio",
     "FormatCramFS",
@@ -99,12 +103,14 @@ __all__: list[str] = [
     "FormatFat",
     "FormatFeatures",
     "FormatFlv",
+    "FormatGPT",
     "FormatGZip",
-    "FormatGpt",
     "FormatHfs",
     "FormatHxs",
     "FormatIHex",
     "FormatIso",
+    "FormatLP",
+    "FormatLVM",
     "FormatLzh",
     "FormatLzma",
     "FormatLzma86",
@@ -121,6 +127,7 @@ __all__: list[str] = [
     "FormatRar5",
     "FormatRpm",
     "FormatSevenZip",
+    "FormatSparse",
     "FormatSplit",
     "FormatSquashFS",
     "FormatSwf",
@@ -130,15 +137,16 @@ __all__: list[str] = [
     "FormatUEFIc",
     "FormatUEFIs",
     "FormatUdf",
-    "FormatVdi",
+    "FormatVDI",
+    "FormatVMDK",
     "FormatVhd",
     "FormatVhdx",
-    "FormatVmdk",
     "FormatWim",
     "FormatXar",
     "FormatXz",
     "FormatZ",
     "FormatZip",
+    "FormatZstd",
     "FreeSpace",
     "Group",
     "HandlerItemIndex",
@@ -243,11 +251,100 @@ __all__: list[str] = [
     "version",
 ]
 
+class BitFormatInfo:
+    """
+    Information about an archive format supported by the 7-zip library.
+    """
+
+    add_extension: str
+    extension: str
+    flags: int
+    name: str
+    signature_offset: int
+    update: bool
+    def __init__(self) -> None: ...
+    @property
+    def signature(self) -> bytes: ...
+    @signature.setter
+    def signature(self, arg1: str) -> None: ...
+
+class BitCodecInfo:
+    """
+    Information about a compression codec (method) supported by the 7-zip library.
+    """
+
+    decoder: bool
+    description: str
+    encoder: bool
+    id: int
+    is_external: bool
+    is_filter: bool
+    name: str
+    pack_streams: int
+    unpack_streams: int
+    def __init__(self) -> None: ...
+
 class Bit7zLibrary:
     """
     The Bit7zLibrary class allows accessing the basic functionalities provided by the 7z DLLs.
     """
     def __init__(self, lib_path: str = "") -> None: ...
+    def get_codec_paths(self) -> list[str]:
+        """
+        Returns the file paths of all external codec DLLs currently loaded.
+
+        Returns:
+            A list of strings with the paths of the loaded codec DLLs.
+        """
+    def get_codecs(self) -> list[BitCodecInfo]:
+        """
+        Enumerates all compression codecs (methods) supported by the loaded 7-zip library.
+
+        Returns:
+            A list of BitCodecInfo describing each supported codec.
+        """
+    def get_external_in_format(self, name: str) -> typing.Any:
+        """
+        Returns the read-only archive format (BitInFormat) for the given external format name.
+
+        Args:
+            name: the name of the external format (as returned by get_formats).
+
+        Returns:
+            A BitInFormat instance, or None if the format was not found.
+        """
+    def get_external_in_out_format(self, name: str) -> typing.Any:
+        """
+        Returns the read-write archive format (BitInOutFormat) for the given external format name.
+
+        Args:
+            name: the name of the external format (as returned by get_formats).
+
+        Returns:
+            A BitInOutFormat instance, or None if the format was not found.
+        """
+    def get_formats(self) -> list[BitFormatInfo]:
+        """
+        Enumerates all archive formats supported by the loaded 7-zip library.
+
+        Returns:
+            A list of BitFormatInfo describing each supported format.
+        """
+    def load_plugins(self, codecs_path: str, formats_path: str) -> bool:
+        """
+        Loads external codec and format DLLs from the given folders and registers them with the 7-zip library.
+
+        Follows the official 7-Zip LoadCodecs.cpp flow: the Codecs folder is scanned first, then the Formats folder.
+        Every DLL is inspected for both codec exports and format-handler exports, so a single DLL can supply both
+        codecs and archive handlers.
+
+        Args:
+            codecs_path: the path to the folder containing the external codec DLLs.
+            formats_path: the path to the folder containing the external format handler DLLs.
+
+        Returns:
+            True if at least one codec or format was successfully loaded, False otherwise.
+        """
     def use_large_pages(self) -> None:
         """
         Enable large page mode for 7zip library. This can improve performance on some systems.
@@ -828,6 +925,11 @@ class BitPropVariant:
     def __init__(self, value: bool) -> None: ...
     @typing.overload
     def __init__(self, value: int) -> None: ...
+    @typing.overload
+    def __init__(self, value: str) -> None:
+        """
+        Constructs a string BitPropVariant from a string.
+        """
     def clear(self) -> None:
         """
         Clears the variant.
@@ -1188,12 +1290,12 @@ class BitAbstractArchiveCreator(BitAbstractArchiveHandler):
         """
         the dictionary size used for creating/updating an archive.
         """
-    def set_compression_level(self, level: BitCompressionLevel) -> None:
+    def set_compression_level(self, level: typing.Any) -> None:
         """
         Sets the compression level to be used when creating/updating an archive.
 
         Args:
-            level: the compression level desired.
+            level: the compression level desired. Can be a BitCompressionLevel enum value or an integer.
         """
     def set_compression_method(self, method: BitCompressionMethod) -> None:
         """
@@ -1389,35 +1491,6 @@ class FilterPolicy:
     Exclude: typing.ClassVar[FilterPolicy]
     Include: typing.ClassVar[FilterPolicy]
     __members__: typing.ClassVar[dict[str, FilterPolicy]]
-    def __eq__(self, other: typing.Any) -> bool: ...
-    def __getstate__(self) -> int: ...
-    def __hash__(self) -> int: ...
-    def __index__(self) -> int: ...
-    def __init__(self, value: int) -> None: ...
-    def __int__(self) -> int: ...
-    def __ne__(self, other: typing.Any) -> bool: ...
-    def __repr__(self) -> str: ...
-    def __setstate__(self, state: int) -> None: ...
-    def __str__(self) -> str: ...
-    @property
-    def name(self) -> str: ...
-    @property
-    def value(self) -> int: ...
-
-class SymlinkPolicy:
-    """
-    The SymlinkPolicy enum specifies how symbolic links should be handled when adding files to an archive.
-
-    Members:
-
-      Follow : Follow symbolic links, storing the content of the pointed-to file.
-
-      DoNotFollow : Do not follow symbolic links, storing the link itself.
-    """
-
-    DoNotFollow: typing.ClassVar[SymlinkPolicy]
-    Follow: typing.ClassVar[SymlinkPolicy]
-    __members__: typing.ClassVar[dict[str, SymlinkPolicy]]
     def __eq__(self, other: typing.Any) -> bool: ...
     def __getstate__(self) -> int: ...
     def __hash__(self) -> int: ...
@@ -1686,10 +1759,36 @@ class BitInputArchive:
             property: the property value.
         """
 
+class SymlinkPolicy:
+    """
+    The SymlinkPolicy enum specifies how symbolic links should be handled when adding files to an archive.
+
+    Members:
+
+      Follow : Follow symbolic links, storing the content of the pointed-to file.
+
+      DoNotFollow : Do not follow symbolic links, storing the link itself.
+    """
+
+    DoNotFollow: typing.ClassVar[SymlinkPolicy]
+    Follow: typing.ClassVar[SymlinkPolicy]
+    __members__: typing.ClassVar[dict[str, SymlinkPolicy]]
+    def __eq__(self, other: typing.Any) -> bool: ...
+    def __getstate__(self) -> int: ...
+    def __hash__(self) -> int: ...
+    def __index__(self) -> int: ...
+    def __init__(self, value: int) -> None: ...
+    def __int__(self) -> int: ...
+    def __ne__(self, other: typing.Any) -> bool: ...
+    def __repr__(self) -> str: ...
+    def __setstate__(self, state: int) -> None: ...
+    def __str__(self) -> str: ...
+    @property
+    def name(self) -> str: ...
+    @property
+    def value(self) -> int: ...
+
 class BitInputItem:
-    """
-    The BitInputItem class represents a generic input item for compression operations.
-    """
     @typing.overload
     def __init__(self, input: bytes, name: str) -> None:
         """
@@ -1698,44 +1797,61 @@ class BitInputItem:
         The bytes object is referenced directly (no copy); it must outlive the item.
         """
     @typing.overload
-    def __init__(
-        self, path: str, symlink_policy: SymlinkPolicy = SymlinkPolicy.Follow
-    ) -> None:
+    def __init__(self, path: str, symlink_policy: SymlinkPolicy = ...) -> None:
         """
         Constructs a BitInputItem from a filesystem path.
         """
     @typing.overload
     def __init__(
-        self,
-        path: str,
-        in_archive_path: str,
-        symlink_policy: SymlinkPolicy = SymlinkPolicy.Follow,
+        self, path: str, in_archive_path: str, symlink_policy: SymlinkPolicy = ...
     ) -> None:
         """
         Constructs a BitInputItem from a filesystem path, with a custom path to be used inside the archive.
         """
-    def is_dir(self) -> bool:
-        """true if the item represents a directory."""
-    def is_sym_link(self) -> bool:
-        """true if the item represents a symbolic link."""
-    def size(self) -> int:
-        """the uncompressed size of the item, in bytes."""
-    def path(self) -> str:
-        """the native filesystem path of the item."""
     def attributes(self) -> int:
-        """the filesystem attributes of the item."""
-    def in_archive_path(self) -> str:
-        """the path of the item as it will be stored inside the archive."""
-    def item_property(self, property: BitProperty) -> BitPropVariant:
-        """Returns the value of the given property for this item."""
+        """
+        the filesystem attributes of the item.
+        """
     def has_new_data(self) -> bool:
-        """true if the item contributes new data to the archive."""
+        """
+        true if the item contributes new data to the archive.
+        """
+    def in_archive_path(self) -> str:
+        """
+        the path of the item as it will be stored inside the archive.
+        """
+    def is_dir(self) -> bool:
+        """
+        true if the item represents a directory.
+        """
+    def is_sym_link(self) -> bool:
+        """
+        true if the item represents a symbolic link.
+        """
+    def item_property(self, property: BitProperty) -> BitPropVariant:
+        """
+        Returns the value of the given property for this item.
+        """
+    def path(self) -> str:
+        """
+        the native filesystem path of the item.
+        """
     def set_creation_time(self, creation_time: datetime.datetime) -> None:
-        """Sets the creation time of the item."""
-    def set_last_write_time(self, last_write_time: datetime.datetime) -> None:
-        """Sets the last write time of the item."""
+        """
+        Sets the creation time of the item.
+        """
     def set_last_access_time(self, last_access_time: datetime.datetime) -> None:
-        """Sets the last access time of the item."""
+        """
+        Sets the last access time of the item.
+        """
+    def set_last_write_time(self, last_write_time: datetime.datetime) -> None:
+        """
+        Sets the last write time of the item.
+        """
+    def size(self) -> int:
+        """
+        the uncompressed size of the item, in bytes.
+        """
 
 class BitOutputArchive:
     def add_directory(self, in_dir: str) -> None:
@@ -1791,14 +1907,18 @@ class BitOutputArchive:
     @typing.overload
     def add_file(self, in_file: str, name: str = "") -> BitInputItem:
         """
-        Adds the given file path, with an optional user-defined path to be used in the output archive.
+        Adds the given file path, with an optional user-defined path to be used in the
+                                output archive.
 
-        Args:
-            in_file: the path to the filesystem file to be added to the output archive.
-            name: (optional) user-defined path to be used inside the output archive.
+                Args:
+                    in_file: the path to the filesystem file to be added to the output archive.
+                    name: (optional) user-defined path to be used inside the output archive.
 
-        Returns:
-            A reference to the input item just added, valid until the next call that adds items to the archive.
+                Note:
+                    If a directory path is given, a BitException is thrown.
+
+                Returns:
+                    A reference to the input item just added, valid until the next call that adds items to the archive.
         """
     @typing.overload
     def add_files(self, in_files: list[str]) -> None:
@@ -1806,7 +1926,8 @@ class BitOutputArchive:
         Adds all the files in the given vector of filesystem paths.
 
         Args:
-            in_files: the paths to be added to the archive.
+            in_files: the vector of paths to files.
+
         Note:
             Paths to directories are ignored.
         """
@@ -2409,15 +2530,6 @@ class BitArchiveEditor(BitArchiveWriter):
             BitArchiveEditor doesn't support UpdateMode::Nothing.
         """
     @typing.overload
-    def update_item(self, index: int, in_file: str) -> None:
-        """
-        Requests to update the content of the item at the specified index with the data from the given file.
-
-        Args:
-            index: the index of the item to be updated.
-            in_file: the path of the file to be used for the update.
-        """
-    @typing.overload
     def update_item(self, index: int, input_buffer: bytes) -> None:
         """
         Requests to update the content of the item at the specified index with the data from the given buffer.
@@ -2427,12 +2539,12 @@ class BitArchiveEditor(BitArchiveWriter):
             input_buffer: the buffer containing the new data for the item.
         """
     @typing.overload
-    def update_item(self, item_path: str, in_file: str) -> None:
+    def update_item(self, index: int, in_file: str) -> None:
         """
-        Requests to update the content of the item at the specified path with the data from the given file.
+        Requests to update the content of the item at the specified index with the data from the given file.
 
         Args:
-            item_path: the path of the item to be updated.
+            index: the index of the item to be updated.
             in_file: the path of the file to be used for the update.
         """
     @typing.overload
@@ -2443,6 +2555,15 @@ class BitArchiveEditor(BitArchiveWriter):
         Args:
             item_path: the path of the item to be updated.
             input_buffer: the buffer containing the new data for the item.
+        """
+    @typing.overload
+    def update_item(self, item_path: str, in_file: str) -> None:
+        """
+        Requests to update the content of the item at the specified path with the data from the given file.
+
+        Args:
+            item_path: the path of the item to be updated.
+            in_file: the path of the file to be used for the update.
         """
 
 def platform_lib7zip_name() -> str:
@@ -2493,13 +2614,15 @@ Fast: BitCompressionLevel
 Fastest: BitCompressionLevel
 FileSystem: BitProperty
 FileTime: BitPropVariantType
+FormatAPFS: BitInFormat
 FormatAPM: BitInFormat
+FormatAVB: BitInFormat
 FormatArj: BitInFormat
 FormatAuto: BitInFormat
 FormatBZip2: BitInOutFormat
+FormatCOFF: BitInFormat
 FormatCab: BitInFormat
 FormatChm: BitInFormat
-FormatCoff: BitInFormat
 FormatCompound: BitInFormat
 FormatCpio: BitInFormat
 FormatCramFS: BitInFormat
@@ -2509,12 +2632,14 @@ FormatElf: BitInFormat
 FormatExt: BitInFormat
 FormatFat: BitInFormat
 FormatFlv: BitInFormat
+FormatGPT: BitInFormat
 FormatGZip: BitInOutFormat
-FormatGpt: BitInFormat
 FormatHfs: BitInFormat
 FormatHxs: BitInFormat
 FormatIHex: BitInFormat
 FormatIso: BitInFormat
+FormatLP: BitInFormat
+FormatLVM: BitInFormat
 FormatLzh: BitInFormat
 FormatLzma: BitInFormat
 FormatLzma86: BitInFormat
@@ -2531,6 +2656,7 @@ FormatRar: BitInFormat
 FormatRar5: BitInFormat
 FormatRpm: BitInFormat
 FormatSevenZip: BitInOutFormat
+FormatSparse: BitInFormat
 FormatSplit: BitInFormat
 FormatSquashFS: BitInFormat
 FormatSwf: BitInFormat
@@ -2540,15 +2666,16 @@ FormatTar: BitInOutFormat
 FormatUEFIc: BitInFormat
 FormatUEFIs: BitInFormat
 FormatUdf: BitInFormat
-FormatVdi: BitInFormat
+FormatVDI: BitInFormat
+FormatVMDK: BitInFormat
 FormatVhd: BitInFormat
 FormatVhdx: BitInFormat
-FormatVmdk: BitInFormat
 FormatWim: BitInOutFormat
 FormatXar: BitInFormat
 FormatXz: BitInOutFormat
 FormatZ: BitInFormat
 FormatZip: BitInOutFormat
+FormatZstd: BitInFormat
 FreeSpace: BitProperty
 Group: BitProperty
 HandlerItemIndex: BitProperty

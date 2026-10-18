@@ -7,6 +7,8 @@ from pathlib import Path
 
 import pytest
 
+import pybit7z
+
 
 @pytest.fixture
 def temp_dir():
@@ -16,6 +18,13 @@ def temp_dir():
             yield Path(tmp_dir)
     except Exception:
         ...  # Ignore errors from cleanup
+
+
+@pytest.fixture
+def lib():
+    """Fixture to provide a Bit7zLibrary instance via lib7zip_context."""
+    with pybit7z.lib7zip_context() as lib:
+        yield lib
 
 
 @pytest.fixture

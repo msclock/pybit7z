@@ -1,0 +1,5 @@
+# 7zip-compression-zoo-codecs-config.cmake
+# This config module exposes the directory containing the external codec
+# binaries (bsc.dll, zpaq.dll).
+
+set(7ZIP_COMPRESSION_ZOO_CODECS_DIR "${CMAKE_CURRENT_LIST_DIR}/../../bin/codecs" CACHE PATH "Directory containing compression-zoo external codec DLLs")

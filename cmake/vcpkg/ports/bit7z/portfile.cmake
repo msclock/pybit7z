@@ -9,6 +9,229 @@ vcpkg_from_github(
     PATCHES fix_dependencies.patch
 )
 
+# Copy external codecs support source files (internal)
+file(COPY "${CMAKE_CURRENT_LIST_DIR}/bexternalcodecs.hpp" DESTINATION "${SOURCE_PATH}/src/internal")
+file(COPY "${CMAKE_CURRENT_LIST_DIR}/bexternalcodecs.cpp" DESTINATION "${SOURCE_PATH}/src/internal")
+# Copy the public header (BitFormatInfo / BitCodecInfo) to the public include directory
+file(COPY "${CMAKE_CURRENT_LIST_DIR}/bitformatinfo.hpp" DESTINATION "${SOURCE_PATH}/include/bit7z")
+
+# Register new source files in CMakeLists.txt
+vcpkg_replace_string("${SOURCE_PATH}/CMakeLists.txt"
+    "        src/internal/failuresourcecategory.cpp"
+    "        src/internal/failuresourcecategory.cpp\n        src/internal/bexternalcodecs.cpp"
+)
+
+# Register the public header in PUBLIC_HEADERS list so it gets installed
+vcpkg_replace_string("${SOURCE_PATH}/CMakeLists.txt"
+    "        include/bit7z/bit7z.hpp"
+    "        include/bit7z/bit7z.hpp\n        include/bit7z/bitformatinfo.hpp"
+)
+vcpkg_replace_string("${SOURCE_PATH}/CMakeLists.txt"
+    "        src/internal/bufferutil.hpp"
+    "        src/internal/bufferutil.hpp
+        src/internal/bexternalcodecs.hpp"
+)
+
+# Add loadPlugins / getFormats / getCodecs / ... methods to Bit7zLibrary public API
+vcpkg_replace_string("${SOURCE_PATH}/include/bit7z/bit7zlibrary.hpp"
+    "    private:
+        BitSharedLibrary mLibrary;"
+    "        /**
+         * @brief Loads external codec and format DLLs from the given folders and
+         *        registers them with the 7-zip library.
+         *
+         * Follows the official 7-Zip LoadCodecs.cpp flow: the Codecs folder is
+         * scanned first, then the Formats folder.  Every DLL is inspected for
+         * both codec exports (GetNumberOfMethods / GetMethodProperty /
+         * CreateDecoder / CreateEncoder) and format-handler exports
+         * (CreateObject / GetNumberOfFormats / GetHandlerProperty2), so a
+         * single DLL can supply both codecs and archive handlers.
+         *
+         * @param codecsPath   the path to the folder containing codec DLLs.
+         * @param formatsPath  the path to the folder containing format handler DLLs.
+         * @return true if at least one codec or format was successfully loaded.
+         */
+        bool loadPlugins( const tstring& codecsPath, const tstring& formatsPath );
+
+        /**
+         * @brief Enumerates all archive formats supported by the loaded 7-zip library.
+         *
+         * @return a vector of BitFormatInfo describing each supported format.
+         */
+        auto getFormats() const -> std::vector< struct BitFormatInfo >;
+
+        /**
+         * @brief Enumerates all compression codecs (methods) supported by the loaded 7-zip library.
+         *
+         * @return a vector of BitCodecInfo describing each supported codec.
+         */
+        auto getCodecs() const -> std::vector< struct BitCodecInfo >;
+
+        /**
+         * @brief Returns the paths of all external codec DLLs currently loaded.
+         *
+         * @return a vector of strings with the file paths of the loaded codec DLLs.
+         */
+        auto getCodecPaths() const -> std::vector< std::string >;
+
+        /**
+         * @brief Returns the read-only archive format (BitInFormat) for the given
+         *        external format name, if it was loaded.
+         *
+         * @param name the name of the external format (as returned by getFormats).
+         * @return a pointer to the BitInFormat, or nullptr if not found.
+         */
+        const class BitInFormat* getExternalInFormat( const std::string& name ) const;
+
+        /**
+         * @brief Returns the read-write archive format (BitInOutFormat) for the given
+         *        external format name, if it was loaded.
+         *
+         * @param name the name of the external format (as returned by getFormats).
+         * @return a pointer to the BitInOutFormat, or nullptr if not found.
+         */
+        const class BitInOutFormat* getExternalInOutFormat( const std::string& name ) const;
+
+        ~Bit7zLibrary();
+    private:
+        BitSharedLibrary mLibrary;
+        class CExternalCodecsInfo* mExternalCodecs = nullptr;
+        void releaseExternalCodecs();"
+)
+
+# Change default destructor to custom one (must be done after adding the declaration above)
+vcpkg_replace_string("${SOURCE_PATH}/include/bit7z/bit7zlibrary.hpp"
+    "        ~Bit7zLibrary() = default;"
+    ""
+)
+
+# Add include and implementation in bit7zlibrary.cpp
+vcpkg_replace_string("${SOURCE_PATH}/src/bit7zlibrary.cpp"
+    "#include \"bit7zlibrary.hpp\""
+    "#include \"bit7zlibrary.hpp\"
+#include \"internal/bexternalcodecs.hpp\""
+)
+vcpkg_replace_string("${SOURCE_PATH}/src/bit7zlibrary.cpp"
+    "using CreateObjectFunc = HRESULT (WINAPI*)( const GUID* clsID"
+    "void Bit7zLibrary::releaseExternalCodecs() {
+    if ( mExternalCodecs == nullptr ) {
+        return;
+    }
+    using SetCodecsFunc = HRESULT ( WINAPI* )( ICompressCodecsInfo* );
+    try {
+        SetCodecsFunc pSetCodecs = mLibrary.getFunction< SetCodecsFunc >( \"SetCodecs\" );
+        pSetCodecs( nullptr );
+    } catch ( const BitException& ) {
+    }
+    mExternalCodecs->Release();
+    mExternalCodecs = nullptr;
+}
+
+Bit7zLibrary::~Bit7zLibrary() {
+    releaseExternalCodecs();
+}
+
+bool Bit7zLibrary::loadPlugins( const tstring& codecsPath, const tstring& formatsPath ) {
+    using SetCodecsFunc = HRESULT ( WINAPI* )( ICompressCodecsInfo* );
+    SetCodecsFunc pSetCodecs = nullptr;
+    try {
+        pSetCodecs = mLibrary.getFunction< SetCodecsFunc >( \"SetCodecs\" );
+    } catch ( const BitException& ) {
+        return false;
+    }
+
+    if ( mExternalCodecs == nullptr ) {
+        mExternalCodecs = new CExternalCodecsInfo();
+    }
+
+    if ( !mExternalCodecs->loadPlugins( codecsPath, formatsPath ) ) {
+        return false;
+    }
+
+    const HRESULT res = pSetCodecs( mExternalCodecs );
+    if ( res != S_OK ) {
+        return false;
+    }
+
+    return true;
+}
+
+const BitInFormat* Bit7zLibrary::getExternalInFormat( const std::string& name ) const {
+    if ( mExternalCodecs == nullptr ) {
+        return nullptr;
+    }
+    return const_cast< CExternalCodecsInfo* >( mExternalCodecs )->findInFormat( name );
+}
+
+const BitInOutFormat* Bit7zLibrary::getExternalInOutFormat( const std::string& name ) const {
+    if ( mExternalCodecs == nullptr ) {
+        return nullptr;
+    }
+    return const_cast< CExternalCodecsInfo* >( mExternalCodecs )->findInOutFormat( name );
+}
+
+using CreateObjectFunc = HRESULT (WINAPI*)( const GUID* clsID"
+)
+
+# Route external archive formats to their owning format DLL's CreateObject.
+vcpkg_replace_string("${SOURCE_PATH}/src/bit7zlibrary.cpp"
+    "BIT7Z_NODISCARD
+auto Bit7zLibrary::initInArchive( const BitInFormat& format ) const -> CMyComPtr< IInArchive > {
+    CMyComPtr< IInArchive > inArchive{};
+    const HRESULT res = createArchiveObject( mCreateObjectFunc, format, &inArchive );
+    if ( res != S_OK || inArchive == nullptr ) {
+        throw BitException( \"Failed to initialize the input archive object\", make_hresult_code( res ) );
+    }
+    return inArchive;
+}"
+    "BIT7Z_NODISCARD
+auto Bit7zLibrary::initInArchive( const BitInFormat& format ) const -> CMyComPtr< IInArchive > {
+    CMyComPtr< IInArchive > inArchive{};
+    const auto formatID = formatGuid( format );
+    HRESULT res = E_FAIL;
+    if ( mExternalCodecs != nullptr &&
+         const_cast< CExternalCodecsInfo* >( mExternalCodecs )->findFormat( formatID ) != nullptr ) {
+        res = const_cast< CExternalCodecsInfo* >( mExternalCodecs )
+                  ->createInArchive( formatID, reinterpret_cast< void** >( &inArchive ) );
+    } else {
+        res = createArchiveObject( mCreateObjectFunc, format, &inArchive );
+    }
+    if ( res != S_OK || inArchive == nullptr ) {
+        throw BitException( \"Failed to initialize the input archive object\", make_hresult_code( res ) );
+    }
+    return inArchive;
+}"
+)
+
+vcpkg_replace_string("${SOURCE_PATH}/src/bit7zlibrary.cpp"
+    "BIT7Z_NODISCARD
+auto Bit7zLibrary::initOutArchive( const BitInOutFormat& format ) const -> CMyComPtr< IOutArchive > {
+    CMyComPtr< IOutArchive > outArchive{};
+    const HRESULT res = createArchiveObject( mCreateObjectFunc, format, &outArchive );
+    if ( res != S_OK || outArchive == nullptr ) {
+        throw BitException( \"Failed to initialize the output archive object\", make_hresult_code( res ) );
+    }
+    return outArchive;
+}"
+    "BIT7Z_NODISCARD
+auto Bit7zLibrary::initOutArchive( const BitInOutFormat& format ) const -> CMyComPtr< IOutArchive > {
+    CMyComPtr< IOutArchive > outArchive{};
+    const auto formatID = formatGuid( format );
+    HRESULT res = E_FAIL;
+    if ( mExternalCodecs != nullptr &&
+         const_cast< CExternalCodecsInfo* >( mExternalCodecs )->findFormat( formatID ) != nullptr ) {
+        res = const_cast< CExternalCodecsInfo* >( mExternalCodecs )
+                  ->createOutArchive( formatID, reinterpret_cast< void** >( &outArchive ) );
+    } else {
+        res = createArchiveObject( mCreateObjectFunc, format, &outArchive );
+    }
+    if ( res != S_OK || outArchive == nullptr ) {
+        throw BitException( \"Failed to initialize the output archive object\", make_hresult_code( res ) );
+    }
+    return outArchive;
+}"
+)
+
 vcpkg_replace_string("${SOURCE_PATH}/include/bit7z/bitabstractarchivecreator.hpp"
     [[protected:]]
     [[

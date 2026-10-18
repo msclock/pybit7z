@@ -369,3 +369,4 @@ src/*/_version.py
 
 # ruff
 .ruff_cache/
+vcpkg_installed/
