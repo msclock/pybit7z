@@ -239,11 +239,14 @@ vcpkg_replace_string("${SOURCE_PATH}/include/bit7z/bitabstractarchivecreator.hpp
     protected:]]
 )
 
-# Add RTLD_LOCAL | RTLD_DEEPBIND to dlopen so codec .so symbols don't
-# enter the global namespace (prevents ELF interpose use-after-free crashes)
+# Add RTLD_LOCAL | RTLD_NODELETE to dlopen so codec .so symbols don't
+# enter the global namespace (prevents ELF interpose). RTLD_NODELETE makes
+# dlclose a no-op so codec .so are never unmapped at runtime — the glibc
+# cleanup ordering during Python process shutdown otherwise triggers
+# use-after-free / heap corruption in dlclose.
 vcpkg_replace_string("${SOURCE_PATH}/src/bitsharedlibrary.cpp"
     "dlopen( (lib_name), RTLD_LAZY )"
-    "dlopen( (lib_name), RTLD_LAZY | RTLD_LOCAL | RTLD_DEEPBIND )"
+    "dlopen( (lib_name), RTLD_LAZY | RTLD_LOCAL | RTLD_NODELETE )"
 )
 vcpkg_check_features(
     OUT_FEATURE_OPTIONS FEATURE_OPTIONS

@@ -50,6 +50,21 @@ sanitize_target(${target_name})
 
 target_link_libraries(${target_name} PRIVATE ${target_name_internal})
 
+if(NOT WIN32)
+  target_compile_options(${target_name} PRIVATE -fvisibility=hidden)
+  if(APPLE)
+    set(PYBIND_SYMBOLS_FILE "${CMAKE_CURRENT_BINARY_DIR}/pybind.symbols")
+    file(WRITE "${PYBIND_SYMBOLS_FILE}" "PyInit__core\n")
+    target_link_options(${target_name} PRIVATE
+                        "-Wl,-exported_symbols_list,${PYBIND_SYMBOLS_FILE}")
+  else()
+    set(PYBIND_VERSION_SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/pybind.version")
+    file(WRITE "${PYBIND_VERSION_SCRIPT}" "{ global: PyInit_*; local: *; };")
+    target_link_options(${target_name} PRIVATE
+                        "-Wl,--version-script=${PYBIND_VERSION_SCRIPT}")
+  endif()
+endif()
+
 add_custom_command(
   TARGET ${target_name}
   POST_BUILD
@@ -63,7 +78,7 @@ add_custom_command(
   COMMAND ${CMAKE_COMMAND} -E copy_directory "${7ZIP_ZSTD_FORMATS_DIR}"
           "$<TARGET_FILE_DIR:${target_name}>/Formats"
   COMMENT
-    "Sync 7zip runtime library, external codecs and format handlers to build path."
+    "Sync 7zip runtime library external codecs and format handlers to build path."
 )
 
 install(
