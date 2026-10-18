@@ -120,9 +120,19 @@ vcpkg_replace_string("${SOURCE_PATH}/src/bit7zlibrary.cpp"
     using SetCodecsFunc = HRESULT ( WINAPI* )( ICompressCodecsInfo* );
     try {
         SetCodecsFunc pSetCodecs = mLibrary.getFunction< SetCodecsFunc >( \"SetCodecs\" );
+        // SetCodecs( nullptr ) invokes g_ExternalCodecs.ClearAndRelease(), which
+        // releases the ICompressCodecsInfo held by g_ExternalCodecs.GetCodecs.
+        // Since that CMyComPtr owns the single strong reference to our
+        // CExternalCodecsInfo (refcount drops to 0), the object is deleted
+        // inside this call.  We must NOT call mExternalCodecs->Release()
+        // afterwards, or it would be a use-after-free.
         pSetCodecs( nullptr );
+        mExternalCodecs = nullptr;
+        return;
     } catch ( const BitException& ) {
     }
+    // SetCodecs is unavailable (e.g. 7z.so built without external-codec
+    // support): release the object directly.
     mExternalCodecs->Release();
     mExternalCodecs = nullptr;
 }
