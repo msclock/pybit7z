@@ -2,7 +2,7 @@
 
 <!-- SPHINX-START -->
 
-A wrapper based on bit7z.
+A Python wrapper around [bit7z](https://github.com/rikyoz/bit7z) for creating and extracting 7-zip archives, with bundled external codec and format plugins.
 
 [![Documentation](https://img.shields.io/badge/Documentation-sphinx-blue)](https://msclock.github.io/pybit7z)
 [![License](https://img.shields.io/github/license/msclock/pybit7z)](https://github.com/msclock/pybit7z/blob/master/LICENSE)
@@ -25,17 +25,35 @@ A wrapper based on bit7z.
 [![markdownlint](https://img.shields.io/badge/markdownlint-enabled-blue)](https://github.com/igorshubovych/markdownlint-cli)
 [![shellcheck](https://img.shields.io/badge/shellcheck-enabled-blue)](https://github.com/shellcheck-py/shellcheck-py)
 
-<!-- writes more things here -->
+## Features
+
+- **Compression & extraction** of 7z, zip, tar, gzip, bzip2, xz, wim archives (writing); reading support for 60+ formats (rar, iso, cab, chm, nsis, vmdk, vhdx, squashfs, and more).
+- **Bundled external plugins** — zstd, brotli, lz4, lz5, lizard, flzma2, bsc, and zpaq codecs/formats are packaged with the wheel and loaded automatically.
+- **In-memory operations** — compress/extract directly to/from `bytes` buffers and strings.
+- **Archive metadata** — inspect items count, sizes, CRC, and per-item properties.
+- **Encryption** — password-protected archives with optional header encryption (7z).
+- **Solid archives, multi-volume splitting, compression levels & methods**, custom dictionary/word sizes, multi-threading.
+- **Command-line interface** — `pybit7z` CLI for compress / decompress / extract / list / test / info / update.
+- **Python 3.9+** on Windows, macOS, and Linux (including musllinux).
 
 ## Installation
 
-Package-built has uploaded to pypi and just install with the command:
+Install from PyPI:
 
 ```bash
 pip install pybit7z
 ```
 
-## Example
+## Quick Start
+
+All operations require a `Bit7zLibrary` instance. Use the `lib7zip_context()` context manager, which locates the bundled `lib7zip` and external plugins automatically:
+
+```python
+import pybit7z
+
+with pybit7z.lib7zip_context() as lib:
+    ...
+```
 
 ### Extract Files from an Archive
 
@@ -57,7 +75,7 @@ try:
         extractor.set_password("password")
         extractor.extract("path/to/another/archive.7z", "out/dir/")
 except pybit7z.BitException as e:
-    ... # handle the exception
+    ...  # handle the exception
 ```
 
 Work on a single archive:
@@ -76,7 +94,7 @@ try:
         # Extracting the archive
         archive.extract_to("out/dir/")
 except pybit7z.BitException as e:
-    ... # handle the exception
+    ...  # handle the exception
 ```
 
 ### Compress Files into an Archive
@@ -96,7 +114,7 @@ try:
         # Creating a zip archive with a custom directory structure
         files_map: dict[str, str] = {
             "path/to/file1.jpg": "alias/path/file1.jpg",
-            "path/to/file2.pdf": "alias/path/file2.pdf"
+            "path/to/file2.pdf": "alias/path/file2.pdf",
         }
         compressor.compress(files_map, "output_archive2.zip")
 
@@ -115,7 +133,7 @@ try:
         compressor2 = pybit7z.BitFileCompressor(lib, pybit7z.FormatBZip2)
         buffer: bytes = compressor2.compress_file(files[0])
 except pybit7z.BitException as e:
-    ... # handle the exception
+    ...  # handle the exception
 ```
 
 Work on a single archive:
@@ -134,7 +152,7 @@ try:
         # Compressing the added items to the output archive
         archive.compress_to("output.7z")
 except pybit7z.BitException as e:
-    ... # handle the exception
+    ...  # handle the exception
 ```
 
 ### Read Archive Metadata
@@ -147,31 +165,135 @@ try:
         arc = pybit7z.BitArchiveReader(lib, "archive.7z", pybit7z.FormatSevenZip)
 
         # Printing archive metadata
-        print("Archive properties:",
-            "\n  Items count: "   , arc.items_count()
-            "\n  Folders count: " , arc.folders_count()
-            "\n  Files count: "   , arc.files_count()
-            "\n  Size: "          , arc.size()
-            "\n  Packed size: "   , arc.pack_size())
+        print(
+            "Archive properties:",
+            "\n  Items count: ",
+            arc.items_count(),
+            "\n  Folders count: ",
+            arc.folders_count(),
+            "\n  Files count: ",
+            arc.files_count(),
+            "\n  Size: ",
+            arc.size(),
+            "\n  Packed size: ",
+            arc.pack_size(),
+        )
 
         # Printing the metadata of the archived items
         print("Archived items")
         for item in arc:
-            print("    Item index: "    , item.index(),
-                "\n    Name: "          , item.name(),
-                "\n    Extension: "     , item.extension(),
-                "\n    Path: "          , item.path(),
-                "\n    IsDir: "         , item.is_dir(),
-                "\n    Size: "          , item.size(),
-                "\n    Packed size: "   , item.pack_size(),
-                "\n    CRC: "           , item.crc())
+            print(
+                "    Item index: ",
+                item.index(),
+                "\n    Name: ",
+                item.name(),
+                "\n    Extension: ",
+                item.extension(),
+                "\n    Path: ",
+                item.path(),
+                "\n    IsDir: ",
+                item.is_dir(),
+                "\n    Size: ",
+                item.size(),
+                "\n    Packed size: ",
+                item.pack_size(),
+                "\n    CRC: ",
+                item.crc(),
+            )
 except pybit7z.BitException as e:
-    ... # handle the exception
+    ...  # handle the exception
 ```
 
 A complete API reference is available in the [documentation](https://msclock.github.io/pybit7z/api/).
 
+## Command-Line Interface
+
+`pybit7z` ships a command-line tool for everyday archive tasks:
+
+```bash
+# Compress
+pybit7z compress file.txt -o out.7z
+pybit7z compress dir/ -o out.zip -f zip -l Ultra
+
+# Extract
+pybit7z extract archive.7z -o out_dir/
+pybit7z decompress archive.tar.gz -o out_dir/
+
+# List / test
+pybit7z list archive.7z
+pybit7z test archive.7z
+
+# Show supported formats and codecs
+pybit7z info
+```
+
+Run `pybit7z --help` for the full option list (passwords, compression method, threads, volumes, filtering, stdin/stdout piping, and more).
+
+## Supported Formats & Codecs
+
+pybit7z bundles the full 7-zip format/codec set plus additional external plugins.
+Run `pybit7z info` to see the exact list available in your build.
+
+### Writable formats
+
+`7z`, `zip`, `tar`, `gzip`, `bzip2`, `xz`, `wim`
+
+### Readable formats (60+)
+
+`7z`, `zip`, `tar`, `gzip`, `bzip2`, `xz`, `z`, `lzma`, `lzma86`, `apfs`, `arj`, `cab`, `chm`, `cpio`, `cramfs`, `dmg`, `elf`, `ext`, `fat`, `flv`, `gpt`, `hfs`, `ihex`, `iso`, `lzh`, `macho`, `mbr`, `mslz`, `mub`, `ntfs`, `pe`, `coff`, `te`, `ppmd`, `qcow`, `rar`, `rar5`, `rpm`, `squashfs`, `swf`, `swfc`, `uefic`, `vdi`, `vhd`, `vhdx`, `vmdk`, `xar`, `udf`, `wim`, `nsis`, `split`, and more.
+
+### Bundled external codecs & formats
+
+| Plugin | Type | Description |
+| --- | --- | --- |
+| **zstd** | format + codec | Zstandard compression |
+| **brotli** | format + codec | Brotli compression |
+| **lz4** | format + codec | LZ4 compression |
+| **lz5** | format + codec | LZ5 compression |
+| **lizard** | format + codec | Lizard (LZ5) compression |
+| **flzma2** | codec | Fast LZMA2 |
+| **bsc** | codec | BSC (libbsc) compression |
+| **zpaq** | codec | ZPAQ compression |
+
+These are packaged inside the wheel and loaded automatically; no extra installation is required.
+
+## Building from Source
+
+The build uses [scikit-build-core](https://github.com/scikit-build/scikit-build-core) + CMake + [vcpkg](https://vcpkg.io) (with custom overlay ports for bit7z and the external codec plugins).
+
+### Prerequisites
+
+- Python 3.9+
+- CMake &ge; 3.20
+- Ninja
+- A C++17 compiler (MSVC on Windows, GCC/Clang on Linux/macOS)
+- [uv](https://github.com/astral-sh/uv) (recommended) or pip
+
+### Build
+
+```bash
+# Editable install with verbose build output
+uv pip install -e . -v
+```
+
+The build downloads and compiles 7-zip, bit7z, and the bundled codec plugins via vcpkg. This may take several minutes the first time.
+
+### Running tests
+
+```bash
+uv pip install -e ".[test]"
+pytest
+```
+
+## Development
+
+The project uses [pre-commit](https://pre-commit.com) hooks for linting and formatting:
+
+```bash
+pre-commit install
+pre-commit run -a
+```
 
 ## License
 
-Apache Software License, for more details, see the [LICENSE](https://github.com/msclock/pybit7z/blob/master/LICENSE) file.
+Apache Software License 2.0, for more details, see the [LICENSE](https://github.com/msclock/pybit7z/blob/master/LICENSE) file.
