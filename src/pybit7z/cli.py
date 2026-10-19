@@ -354,13 +354,19 @@ def _load_codecs(lib: Bit7zLibrary, extra_dirs: Optional[list[str]] = None) -> N
                 lib.load_plugins(d, d)
 
 
-def main() -> None:
+def main(argv: Optional[list[str]] = None) -> None:
     """Entry point for the CLI application.
 
     Parses arguments and dispatches to the appropriate handler.
+
+    Args:
+        argv: Optional list of command-line arguments. If None, ``sys.argv[1:]``
+            is used (the normal process-argument behaviour). Passing an explicit
+            list allows the function to be driven from tests without spawning a
+            subprocess.
     """
     parser = build_parser()
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     # 'info' without an archive path shows library info.
     if args.action == "info" and not args.paths:
