@@ -38,8 +38,11 @@ dependencies = [
 pybit7z = "pybit7z.cli:main"
 
 [project.optional-dependencies]
-test = ["pytest >=6", "pytest-cov >=3"]
-dev = ["pytest >=6", "pytest-cov >=3"]
+test = [
+  "pytest >=6",
+  "pytest-cov >=3",
+  "pytest-xdist >=3.1",
+]
 docs = [
   "sphinx>=7.0",
   "myst_parser>=0.13",
