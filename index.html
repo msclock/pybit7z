@@ -243,7 +243,7 @@
           <section id="welcome-to-pybit7z-s-documentation">
 <h1>Welcome to pybit7z’s documentation<a class="headerlink" href="#welcome-to-pybit7z-s-documentation" title="Link to this heading">¶</a></h1>
 <!-- Extract content from start line 1 of README.md -->
-<p>A wrapper based on bit7z.</p>
+<p>A Python wrapper around <a class="reference external" href="https://github.com/rikyoz/bit7z">bit7z</a> for creating and extracting 7-zip archives, with bundled external codec and format plugins.</p>
 <p><a class="reference external" href="https://msclock.github.io/pybit7z"><img alt="Documentation" src="https://img.shields.io/badge/Documentation-sphinx-blue" /></a>
 <a class="reference external" href="https://github.com/msclock/pybit7z/blob/master/LICENSE"><img alt="License" src="https://img.shields.io/github/license/msclock/pybit7z" /></a>
 <a class="reference external" href="https://github.com/serious-scaffold/ss-pybind11"><img alt="SS Badge" src="https://img.shields.io/badge/Serious%20Scaffold-pybind11-blue" /></a></p>
@@ -261,16 +261,35 @@
 <a class="reference external" href="https://github.com/codespell-project/codespell"><img alt="codespell" src="https://img.shields.io/badge/codespell-enabled-blue" /></a>
 <a class="reference external" href="https://github.com/igorshubovych/markdownlint-cli"><img alt="markdownlint" src="https://img.shields.io/badge/markdownlint-enabled-blue" /></a>
 <a class="reference external" href="https://github.com/shellcheck-py/shellcheck-py"><img alt="shellcheck" src="https://img.shields.io/badge/shellcheck-enabled-blue" /></a></p>
-<!-- writes more things here -->
+<section id="features">
+<h2>Features<a class="headerlink" href="#features" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><strong>Compression &amp; extraction</strong> of 7z, zip, tar, gzip, bzip2, xz, wim archives (writing); reading support for 60+ formats (rar, iso, cab, chm, nsis, vmdk, vhdx, squashfs, and more).</p></li>
+<li><p><strong>Bundled external plugins</strong> — zstd, brotli, lz4, lz5, lizard, flzma2, bsc, and zpaq codecs/formats are packaged with the wheel and loaded automatically.</p></li>
+<li><p><strong>In-memory operations</strong> — compress/extract directly to/from <code class="docutils literal notranslate"><span class="pre">bytes</span></code> buffers and strings.</p></li>
+<li><p><strong>Archive metadata</strong> — inspect items count, sizes, CRC, and per-item properties.</p></li>
+<li><p><strong>Encryption</strong> — password-protected archives with optional header encryption (7z).</p></li>
+<li><p><strong>Solid archives, multi-volume splitting, compression levels &amp; methods</strong>, custom dictionary/word sizes, multi-threading.</p></li>
+<li><p><strong>Command-line interface</strong> — <code class="docutils literal notranslate"><span class="pre">pybit7z</span></code> CLI for compress / decompress / extract / list / test / info / update.</p></li>
+<li><p><strong>Python 3.9+</strong> on Windows, macOS, and Linux (including musllinux).</p></li>
+</ul>
+</section>
 <section id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Link to this heading">¶</a></h2>
-<p>Package-built has uploaded to pypi and just install with the command:</p>
+<p>Install from PyPI:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>pybit7z
 </pre></div>
 </div>
 </section>
-<section id="example">
-<h2>Example<a class="headerlink" href="#example" title="Link to this heading">¶</a></h2>
+<section id="quick-start">
+<h2>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading">¶</a></h2>
+<p>All operations require a <code class="docutils literal notranslate"><span class="pre">Bit7zLibrary</span></code> instance. Use the <code class="docutils literal notranslate"><span class="pre">lib7zip_context()</span></code> context manager, which locates the bundled <code class="docutils literal notranslate"><span class="pre">lib7zip</span></code> and external plugins automatically:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pybit7z</span>
+
+<span class="k">with</span> <span class="n">pybit7z</span><span class="o">.</span><span class="n">lib7zip_context</span><span class="p">()</span> <span class="k">as</span> <span class="n">lib</span><span class="p">:</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
 <section id="extract-files-from-an-archive">
 <h3>Extract Files from an Archive<a class="headerlink" href="#extract-files-from-an-archive" title="Link to this heading">¶</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pybit7z</span>
@@ -290,7 +309,7 @@
         <span class="n">extractor</span><span class="o">.</span><span class="n">set_password</span><span class="p">(</span><span class="s2">"password"</span><span class="p">)</span>
         <span class="n">extractor</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="s2">"path/to/another/archive.7z"</span><span class="p">,</span> <span class="s2">"out/dir/"</span><span class="p">)</span>
 <span class="k">except</span> <span class="n">pybit7z</span><span class="o">.</span><span class="n">BitException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-    <span class="o">...</span> <span class="c1"># handle the exception</span>
+    <span class="o">...</span>  <span class="c1"># handle the exception</span>
 </pre></div>
 </div>
 <p>Work on a single archive:</p>
@@ -307,7 +326,7 @@
         <span class="c1"># Extracting the archive</span>
         <span class="n">archive</span><span class="o">.</span><span class="n">extract_to</span><span class="p">(</span><span class="s2">"out/dir/"</span><span class="p">)</span>
 <span class="k">except</span> <span class="n">pybit7z</span><span class="o">.</span><span class="n">BitException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-    <span class="o">...</span> <span class="c1"># handle the exception</span>
+    <span class="o">...</span>  <span class="c1"># handle the exception</span>
 </pre></div>
 </div>
 </section>
@@ -327,7 +346,7 @@
         <span class="c1"># Creating a zip archive with a custom directory structure</span>
         <span class="n">files_map</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">"path/to/file1.jpg"</span><span class="p">:</span> <span class="s2">"alias/path/file1.jpg"</span><span class="p">,</span>
-            <span class="s2">"path/to/file2.pdf"</span><span class="p">:</span> <span class="s2">"alias/path/file2.pdf"</span>
+            <span class="s2">"path/to/file2.pdf"</span><span class="p">:</span> <span class="s2">"alias/path/file2.pdf"</span><span class="p">,</span>
         <span class="p">}</span>
         <span class="n">compressor</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">files_map</span><span class="p">,</span> <span class="s2">"output_archive2.zip"</span><span class="p">)</span>
 
@@ -346,7 +365,7 @@
         <span class="n">compressor2</span> <span class="o">=</span> <span class="n">pybit7z</span><span class="o">.</span><span class="n">BitFileCompressor</span><span class="p">(</span><span class="n">lib</span><span class="p">,</span> <span class="n">pybit7z</span><span class="o">.</span><span class="n">FormatBZip2</span><span class="p">)</span>
         <span class="n">buffer</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">=</span> <span class="n">compressor2</span><span class="o">.</span><span class="n">compress_file</span><span class="p">(</span><span class="n">files</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 <span class="k">except</span> <span class="n">pybit7z</span><span class="o">.</span><span class="n">BitException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-    <span class="o">...</span> <span class="c1"># handle the exception</span>
+    <span class="o">...</span>  <span class="c1"># handle the exception</span>
 </pre></div>
 </div>
 <p>Work on a single archive:</p>
@@ -363,7 +382,7 @@
         <span class="c1"># Compressing the added items to the output archive</span>
         <span class="n">archive</span><span class="o">.</span><span class="n">compress_to</span><span class="p">(</span><span class="s2">"output.7z"</span><span class="p">)</span>
 <span class="k">except</span> <span class="n">pybit7z</span><span class="o">.</span><span class="n">BitException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-    <span class="o">...</span> <span class="c1"># handle the exception</span>
+    <span class="o">...</span>  <span class="c1"># handle the exception</span>
 </pre></div>
 </div>
 </section>
@@ -376,34 +395,170 @@
         <span class="n">arc</span> <span class="o">=</span> <span class="n">pybit7z</span><span class="o">.</span><span class="n">BitArchiveReader</span><span class="p">(</span><span class="n">lib</span><span class="p">,</span> <span class="s2">"archive.7z"</span><span class="p">,</span> <span class="n">pybit7z</span><span class="o">.</span><span class="n">FormatSevenZip</span><span class="p">)</span>
 
         <span class="c1"># Printing archive metadata</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">"Archive properties:"</span><span class="p">,</span>
-            <span class="s2">"</span><span class="se">\n</span><span class="s2">  Items count: "</span>   <span class="p">,</span> <span class="n">arc</span><span class="o">.</span><span class="n">items_count</span><span class="p">()</span>
-            <span class="s2">"</span><span class="se">\n</span><span class="s2">  Folders count: "</span> <span class="p">,</span> <span class="n">arc</span><span class="o">.</span><span class="n">folders_count</span><span class="p">()</span>
-            <span class="s2">"</span><span class="se">\n</span><span class="s2">  Files count: "</span>   <span class="p">,</span> <span class="n">arc</span><span class="o">.</span><span class="n">files_count</span><span class="p">()</span>
-            <span class="s2">"</span><span class="se">\n</span><span class="s2">  Size: "</span>          <span class="p">,</span> <span class="n">arc</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
-            <span class="s2">"</span><span class="se">\n</span><span class="s2">  Packed size: "</span>   <span class="p">,</span> <span class="n">arc</span><span class="o">.</span><span class="n">pack_size</span><span class="p">())</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s2">"Archive properties:"</span><span class="p">,</span>
+            <span class="s2">"</span><span class="se">\n</span><span class="s2">  Items count: "</span><span class="p">,</span>
+            <span class="n">arc</span><span class="o">.</span><span class="n">items_count</span><span class="p">(),</span>
+            <span class="s2">"</span><span class="se">\n</span><span class="s2">  Folders count: "</span><span class="p">,</span>
+            <span class="n">arc</span><span class="o">.</span><span class="n">folders_count</span><span class="p">(),</span>
+            <span class="s2">"</span><span class="se">\n</span><span class="s2">  Files count: "</span><span class="p">,</span>
+            <span class="n">arc</span><span class="o">.</span><span class="n">files_count</span><span class="p">(),</span>
+            <span class="s2">"</span><span class="se">\n</span><span class="s2">  Size: "</span><span class="p">,</span>
+            <span class="n">arc</span><span class="o">.</span><span class="n">size</span><span class="p">(),</span>
+            <span class="s2">"</span><span class="se">\n</span><span class="s2">  Packed size: "</span><span class="p">,</span>
+            <span class="n">arc</span><span class="o">.</span><span class="n">pack_size</span><span class="p">(),</span>
+        <span class="p">)</span>
 
         <span class="c1"># Printing the metadata of the archived items</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">"Archived items"</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">arc</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">"    Item index: "</span>    <span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">index</span><span class="p">(),</span>
-                <span class="s2">"</span><span class="se">\n</span><span class="s2">    Name: "</span>          <span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">name</span><span class="p">(),</span>
-                <span class="s2">"</span><span class="se">\n</span><span class="s2">    Extension: "</span>     <span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">extension</span><span class="p">(),</span>
-                <span class="s2">"</span><span class="se">\n</span><span class="s2">    Path: "</span>          <span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">path</span><span class="p">(),</span>
-                <span class="s2">"</span><span class="se">\n</span><span class="s2">    IsDir: "</span>         <span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">is_dir</span><span class="p">(),</span>
-                <span class="s2">"</span><span class="se">\n</span><span class="s2">    Size: "</span>          <span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">size</span><span class="p">(),</span>
-                <span class="s2">"</span><span class="se">\n</span><span class="s2">    Packed size: "</span>   <span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">pack_size</span><span class="p">(),</span>
-                <span class="s2">"</span><span class="se">\n</span><span class="s2">    CRC: "</span>           <span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">crc</span><span class="p">())</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s2">"    Item index: "</span><span class="p">,</span>
+                <span class="n">item</span><span class="o">.</span><span class="n">index</span><span class="p">(),</span>
+                <span class="s2">"</span><span class="se">\n</span><span class="s2">    Name: "</span><span class="p">,</span>
+                <span class="n">item</span><span class="o">.</span><span class="n">name</span><span class="p">(),</span>
+                <span class="s2">"</span><span class="se">\n</span><span class="s2">    Extension: "</span><span class="p">,</span>
+                <span class="n">item</span><span class="o">.</span><span class="n">extension</span><span class="p">(),</span>
+                <span class="s2">"</span><span class="se">\n</span><span class="s2">    Path: "</span><span class="p">,</span>
+                <span class="n">item</span><span class="o">.</span><span class="n">path</span><span class="p">(),</span>
+                <span class="s2">"</span><span class="se">\n</span><span class="s2">    IsDir: "</span><span class="p">,</span>
+                <span class="n">item</span><span class="o">.</span><span class="n">is_dir</span><span class="p">(),</span>
+                <span class="s2">"</span><span class="se">\n</span><span class="s2">    Size: "</span><span class="p">,</span>
+                <span class="n">item</span><span class="o">.</span><span class="n">size</span><span class="p">(),</span>
+                <span class="s2">"</span><span class="se">\n</span><span class="s2">    Packed size: "</span><span class="p">,</span>
+                <span class="n">item</span><span class="o">.</span><span class="n">pack_size</span><span class="p">(),</span>
+                <span class="s2">"</span><span class="se">\n</span><span class="s2">    CRC: "</span><span class="p">,</span>
+                <span class="n">item</span><span class="o">.</span><span class="n">crc</span><span class="p">(),</span>
+            <span class="p">)</span>
 <span class="k">except</span> <span class="n">pybit7z</span><span class="o">.</span><span class="n">BitException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-    <span class="o">...</span> <span class="c1"># handle the exception</span>
+    <span class="o">...</span>  <span class="c1"># handle the exception</span>
 </pre></div>
 </div>
 <p>A complete API reference is available in the <a class="reference external" href="https://msclock.github.io/pybit7z/api/">documentation</a>.</p>
 </section>
 </section>
+<section id="command-line-interface">
+<h2>Command-Line Interface<a class="headerlink" href="#command-line-interface" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">pybit7z</span></code> ships a command-line tool for everyday archive tasks:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Compress</span>
+pybit7z<span class="w"> </span>compress<span class="w"> </span>file.txt<span class="w"> </span>-o<span class="w"> </span>out.7z
+pybit7z<span class="w"> </span>compress<span class="w"> </span>dir/<span class="w"> </span>-o<span class="w"> </span>out.zip<span class="w"> </span>-f<span class="w"> </span>zip<span class="w"> </span>-l<span class="w"> </span>Ultra
+
+<span class="c1"># Extract</span>
+pybit7z<span class="w"> </span>extract<span class="w"> </span>archive.7z<span class="w"> </span>-o<span class="w"> </span>out_dir/
+pybit7z<span class="w"> </span>decompress<span class="w"> </span>archive.tar.gz<span class="w"> </span>-o<span class="w"> </span>out_dir/
+
+<span class="c1"># List / test</span>
+pybit7z<span class="w"> </span>list<span class="w"> </span>archive.7z
+pybit7z<span class="w"> </span><span class="nb">test</span><span class="w"> </span>archive.7z
+
+<span class="c1"># Show supported formats and codecs</span>
+pybit7z<span class="w"> </span>info
+</pre></div>
+</div>
+<p>Run <code class="docutils literal notranslate"><span class="pre">pybit7z</span> <span class="pre">--help</span></code> for the full option list (passwords, compression method, threads, volumes, filtering, stdin/stdout piping, and more).</p>
+</section>
+<section id="supported-formats-codecs">
+<h2>Supported Formats &amp; Codecs<a class="headerlink" href="#supported-formats-codecs" title="Link to this heading">¶</a></h2>
+<p>pybit7z bundles the full 7-zip format/codec set plus additional external plugins.
+Run <code class="docutils literal notranslate"><span class="pre">pybit7z</span> <span class="pre">info</span></code> to see the exact list available in your build.</p>
+<section id="writable-formats">
+<h3>Writable formats<a class="headerlink" href="#writable-formats" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">7z</span></code>, <code class="docutils literal notranslate"><span class="pre">zip</span></code>, <code class="docutils literal notranslate"><span class="pre">tar</span></code>, <code class="docutils literal notranslate"><span class="pre">gzip</span></code>, <code class="docutils literal notranslate"><span class="pre">bzip2</span></code>, <code class="docutils literal notranslate"><span class="pre">xz</span></code>, <code class="docutils literal notranslate"><span class="pre">wim</span></code></p>
+</section>
+<section id="readable-formats-60">
+<h3>Readable formats (60+)<a class="headerlink" href="#readable-formats-60" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">7z</span></code>, <code class="docutils literal notranslate"><span class="pre">zip</span></code>, <code class="docutils literal notranslate"><span class="pre">tar</span></code>, <code class="docutils literal notranslate"><span class="pre">gzip</span></code>, <code class="docutils literal notranslate"><span class="pre">bzip2</span></code>, <code class="docutils literal notranslate"><span class="pre">xz</span></code>, <code class="docutils literal notranslate"><span class="pre">z</span></code>, <code class="docutils literal notranslate"><span class="pre">lzma</span></code>, <code class="docutils literal notranslate"><span class="pre">lzma86</span></code>, <code class="docutils literal notranslate"><span class="pre">apfs</span></code>, <code class="docutils literal notranslate"><span class="pre">arj</span></code>, <code class="docutils literal notranslate"><span class="pre">cab</span></code>, <code class="docutils literal notranslate"><span class="pre">chm</span></code>, <code class="docutils literal notranslate"><span class="pre">cpio</span></code>, <code class="docutils literal notranslate"><span class="pre">cramfs</span></code>, <code class="docutils literal notranslate"><span class="pre">dmg</span></code>, <code class="docutils literal notranslate"><span class="pre">elf</span></code>, <code class="docutils literal notranslate"><span class="pre">ext</span></code>, <code class="docutils literal notranslate"><span class="pre">fat</span></code>, <code class="docutils literal notranslate"><span class="pre">flv</span></code>, <code class="docutils literal notranslate"><span class="pre">gpt</span></code>, <code class="docutils literal notranslate"><span class="pre">hfs</span></code>, <code class="docutils literal notranslate"><span class="pre">ihex</span></code>, <code class="docutils literal notranslate"><span class="pre">iso</span></code>, <code class="docutils literal notranslate"><span class="pre">lzh</span></code>, <code class="docutils literal notranslate"><span class="pre">macho</span></code>, <code class="docutils literal notranslate"><span class="pre">mbr</span></code>, <code class="docutils literal notranslate"><span class="pre">mslz</span></code>, <code class="docutils literal notranslate"><span class="pre">mub</span></code>, <code class="docutils literal notranslate"><span class="pre">ntfs</span></code>, <code class="docutils literal notranslate"><span class="pre">pe</span></code>, <code class="docutils literal notranslate"><span class="pre">coff</span></code>, <code class="docutils literal notranslate"><span class="pre">te</span></code>, <code class="docutils literal notranslate"><span class="pre">ppmd</span></code>, <code class="docutils literal notranslate"><span class="pre">qcow</span></code>, <code class="docutils literal notranslate"><span class="pre">rar</span></code>, <code class="docutils literal notranslate"><span class="pre">rar5</span></code>, <code class="docutils literal notranslate"><span class="pre">rpm</span></code>, <code class="docutils literal notranslate"><span class="pre">squashfs</span></code>, <code class="docutils literal notranslate"><span class="pre">swf</span></code>, <code class="docutils literal notranslate"><span class="pre">swfc</span></code>, <code class="docutils literal notranslate"><span class="pre">uefic</span></code>, <code class="docutils literal notranslate"><span class="pre">vdi</span></code>, <code class="docutils literal notranslate"><span class="pre">vhd</span></code>, <code class="docutils literal notranslate"><span class="pre">vhdx</span></code>, <code class="docutils literal notranslate"><span class="pre">vmdk</span></code>, <code class="docutils literal notranslate"><span class="pre">xar</span></code>, <code class="docutils literal notranslate"><span class="pre">udf</span></code>, <code class="docutils literal notranslate"><span class="pre">wim</span></code>, <code class="docutils literal notranslate"><span class="pre">nsis</span></code>, <code class="docutils literal notranslate"><span class="pre">split</span></code>, and more.</p>
+</section>
+<section id="bundled-external-codecs-formats">
+<h3>Bundled external codecs &amp; formats<a class="headerlink" href="#bundled-external-codecs-formats" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Plugin</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>zstd</strong></p></td>
+<td><p>format + codec</p></td>
+<td><p>Zstandard compression</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>brotli</strong></p></td>
+<td><p>format + codec</p></td>
+<td><p>Brotli compression</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>lz4</strong></p></td>
+<td><p>format + codec</p></td>
+<td><p>LZ4 compression</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>lz5</strong></p></td>
+<td><p>format + codec</p></td>
+<td><p>LZ5 compression</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>lizard</strong></p></td>
+<td><p>format + codec</p></td>
+<td><p>Lizard (LZ5) compression</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>flzma2</strong></p></td>
+<td><p>codec</p></td>
+<td><p>Fast LZMA2</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>bsc</strong></p></td>
+<td><p>codec</p></td>
+<td><p>BSC (libbsc) compression</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>zpaq</strong></p></td>
+<td><p>codec</p></td>
+<td><p>ZPAQ compression</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>These are packaged inside the wheel and loaded automatically; no extra installation is required.</p>
+</section>
+</section>
+<section id="building-from-source">
+<h2>Building from Source<a class="headerlink" href="#building-from-source" title="Link to this heading">¶</a></h2>
+<p>The build uses <a class="reference external" href="https://github.com/scikit-build/scikit-build-core">scikit-build-core</a> + CMake + <a class="reference external" href="https://vcpkg.io">vcpkg</a> (with custom overlay ports for bit7z and the external codec plugins).</p>
+<section id="prerequisites">
+<h3>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Python 3.9+</p></li>
+<li><p>CMake ≥ 3.20</p></li>
+<li><p>Ninja</p></li>
+<li><p>A C++17 compiler (MSVC on Windows, GCC/Clang on Linux/macOS)</p></li>
+<li><p><a class="reference external" href="https://github.com/astral-sh/uv">uv</a> (recommended) or pip</p></li>
+</ul>
+</section>
+<section id="build">
+<h3>Build<a class="headerlink" href="#build" title="Link to this heading">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Editable install with verbose build output</span>
+uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="w"> </span>-v
+</pre></div>
+</div>
+<p>The build downloads and compiles 7-zip, bit7z, and the bundled codec plugins via vcpkg. This may take several minutes the first time.</p>
+</section>
+<section id="running-tests">
+<h3>Running tests<a class="headerlink" href="#running-tests" title="Link to this heading">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">".[test]"</span>
+pytest
+</pre></div>
+</div>
+</section>
+</section>
+<section id="development">
+<h2>Development<a class="headerlink" href="#development" title="Link to this heading">¶</a></h2>
+<p>The project uses <a class="reference external" href="https://pre-commit.com">pre-commit</a> hooks for linting and formatting:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pre-commit<span class="w"> </span>install
+pre-commit<span class="w"> </span>run<span class="w"> </span>-a
+</pre></div>
+</div>
+</section>
 <section id="license">
 <h2>License<a class="headerlink" href="#license" title="Link to this heading">¶</a></h2>
-<p>Apache Software License, for more details, see the <a class="reference external" href="https://github.com/msclock/pybit7z/blob/master/LICENSE">LICENSE</a> file.</p>
+<p>Apache Software License 2.0, for more details, see the <a class="reference external" href="https://github.com/msclock/pybit7z/blob/master/LICENSE">LICENSE</a> file.</p>
 </section>
 <section id="content">
 <h2>Content<a class="headerlink" href="#content" title="Link to this heading">¶</a></h2>
@@ -480,13 +635,28 @@
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">Welcome to pybit7z’s documentation</a><ul>
+<li><a class="reference internal" href="#features">Features</a></li>
 <li><a class="reference internal" href="#installation">Installation</a></li>
-<li><a class="reference internal" href="#example">Example</a><ul>
+<li><a class="reference internal" href="#quick-start">Quick Start</a><ul>
 <li><a class="reference internal" href="#extract-files-from-an-archive">Extract Files from an Archive</a></li>
 <li><a class="reference internal" href="#compress-files-into-an-archive">Compress Files into an Archive</a></li>
 <li><a class="reference internal" href="#read-archive-metadata">Read Archive Metadata</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#command-line-interface">Command-Line Interface</a></li>
+<li><a class="reference internal" href="#supported-formats-codecs">Supported Formats &amp; Codecs</a><ul>
+<li><a class="reference internal" href="#writable-formats">Writable formats</a></li>
+<li><a class="reference internal" href="#readable-formats-60">Readable formats (60+)</a></li>
+<li><a class="reference internal" href="#bundled-external-codecs-formats">Bundled external codecs &amp; formats</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#building-from-source">Building from Source</a><ul>
+<li><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
+<li><a class="reference internal" href="#build">Build</a></li>
+<li><a class="reference internal" href="#running-tests">Running tests</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#development">Development</a></li>
 <li><a class="reference internal" href="#license">License</a></li>
 <li><a class="reference internal" href="#content">Content</a><ul>
 </ul>
