@@ -120,7 +120,7 @@ repos:
     hooks:
       - id: codespell
         args:
-          - -L=lang,TE,Characts
+          - -L=lang,TE,Characts,te
           - --check-filenames
           - --write-changes
 
