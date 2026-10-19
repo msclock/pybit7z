@@ -66,10 +66,6 @@ endforeach()
 # which is too small for the lizard/zstdmt compression worker threads
 # and causes stack overflow / SIGSEGV on musllinux. Set an explicit
 # 1 MB stack size for every zstdmt worker thread.
-# The replacement is applied on all platforms, but the actual stack
-# override is guarded by `#if defined(__musl__)` so only musl libc
-# builds take it. On glibc / Windows the original NULL attr is kept
-# (Windows threading.h shim does not provide pthread_attr_t anyway).
 foreach(_codec brotli lz4 lz5 lizard)
     set(_file "${SOURCE_PATH}/C/zstdmt/${_codec}-mt_compress.c")
     if(EXISTS "${_file}")
@@ -77,14 +73,12 @@ foreach(_codec brotli lz4 lz5 lizard)
             "${_file}"
             [[pthread_create(&w->pthread, NULL, pt_compress, w);]]
             [[
-#if defined(__MUSL__)
-    { 
-        pthread_attr_t _mt_attr;
-        pthread_attr_init(&_mt_attr);
-        pthread_attr_setstacksize(&_mt_attr, 1 << 20);
-        pthread_create(&w->pthread, &_mt_attr, pt_compress, w);
-        pthread_attr_destroy(&_mt_attr);
-    }
+#if defined(__linux__) && !defined(__GLIBC__)
+    pthread_attr_t _mt_attr;
+    pthread_attr_init(&_mt_attr);
+    pthread_attr_setstacksize(&_mt_attr, 1 << 20);
+    pthread_create(&w->pthread, &_mt_attr, pt_compress, w);
+    pthread_attr_destroy(&_mt_attr);
 #else
     pthread_create(&w->pthread, NULL, pt_compress, w);
 #endif]]
@@ -96,14 +90,12 @@ foreach(_codec brotli lz4 lz5 lizard)
             "${_file}"
             [[pthread_create(&wt->pthread, NULL, pt_decompress, wt);]]
             [[
-#if defined(__MUSL__)
-    { 
-        pthread_attr_t _mt_attr;
-        pthread_attr_init(&_mt_attr);
-        pthread_attr_setstacksize(&_mt_attr, 1 << 20);
-        pthread_create(&wt->pthread, &_mt_attr, pt_decompress, wt);
-        pthread_attr_destroy(&_mt_attr);
-    }
+#if defined(__linux__) && !defined(__GLIBC__)
+    pthread_attr_t _mt_attr;
+    pthread_attr_init(&_mt_attr);
+    pthread_attr_setstacksize(&_mt_attr, 1 << 20);
+    pthread_create(&wt->pthread, &_mt_attr, pt_decompress, wt);
+    pthread_attr_destroy(&_mt_attr);
 #else
     pthread_create(&wt->pthread, NULL, pt_decompress, wt);
 #endif]]
