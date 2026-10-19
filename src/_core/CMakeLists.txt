@@ -3,6 +3,8 @@ set(PYBIND11_FINDPYTHON ON)
 find_package(7zip CONFIG REQUIRED)
 find_package(pybind11 CONFIG REQUIRED)
 find_package(bit7z CONFIG REQUIRED)
+find_package(7zip-zstd-codecs CONFIG REQUIRED)
+find_package(7zip-compression-zoo-codecs CONFIG REQUIRED)
 
 # The internal target will not be installed and only act as requirements for
 # main and tests internally
@@ -48,12 +50,31 @@ sanitize_target(${target_name})
 
 target_link_libraries(${target_name} PRIVATE ${target_name_internal})
 
+if(NOT WIN32)
+  target_compile_options(${target_name} PRIVATE -fvisibility=hidden)
+  if(NOT APPLE)
+    set(PYBIND_VERSION_SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/pybind.version")
+    file(WRITE "${PYBIND_VERSION_SCRIPT}" "{ global: PyInit_*; local: *; };")
+    target_link_options(${target_name} PRIVATE
+                        "-Wl,--version-script=${PYBIND_VERSION_SCRIPT}")
+  endif()
+endif()
+
 add_custom_command(
   TARGET ${target_name}
   POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:7zip::7zip>
           $<TARGET_FILE_DIR:${target_name}>
-  COMMENT "Sync 7zip runtime library to build path.")
+  COMMAND ${CMAKE_COMMAND} -E copy_directory "${7ZIP_ZSTD_CODECS_DIR}"
+          "$<TARGET_FILE_DIR:${target_name}>/Codecs"
+  COMMAND
+    ${CMAKE_COMMAND} -E copy_directory "${7ZIP_COMPRESSION_ZOO_CODECS_DIR}"
+    "$<TARGET_FILE_DIR:${target_name}>/Codecs"
+  COMMAND ${CMAKE_COMMAND} -E copy_directory "${7ZIP_ZSTD_FORMATS_DIR}"
+          "$<TARGET_FILE_DIR:${target_name}>/Formats"
+  COMMENT
+    "Sync 7zip runtime library external codecs and format handlers to build path."
+)
 
 install(
   IMPORTED_RUNTIME_ARTIFACTS
@@ -66,6 +87,21 @@ install(
   Runtime)
 
 install(TARGETS ${target_name} DESTINATION ${CMAKE_PROJECT_NAME})
+
+install(
+  DIRECTORY "${7ZIP_ZSTD_CODECS_DIR}/"
+  DESTINATION ${CMAKE_PROJECT_NAME}/Codecs
+  COMPONENT Runtime)
+
+install(
+  DIRECTORY "${7ZIP_COMPRESSION_ZOO_CODECS_DIR}/"
+  DESTINATION ${CMAKE_PROJECT_NAME}/Codecs
+  COMPONENT Runtime)
+
+install(
+  DIRECTORY "${7ZIP_ZSTD_FORMATS_DIR}/"
+  DESTINATION ${CMAKE_PROJECT_NAME}/Formats
+  COMPONENT Runtime)
 
 install_dependency(TARGETS ${target_name} DEPENDS_DESTINATION
                    ${CMAKE_PROJECT_NAME})

@@ -96,17 +96,118 @@ PYBIND11_MODULE(_core, m, py::mod_gil_not_used()) {
           _core::platform_lib7zip_name,
           R"pbdoc(lib7zip library name for current platform.)pbdoc");
 
+    // bit7z::BitFormatInfo struct binding
+    py::class_<bit7z::BitFormatInfo>(m,
+                                     "BitFormatInfo",
+                                     R"pbdoc(Information about an archive format supported by the 7-zip library.)pbdoc")
+        .def(py::init<>())
+        .def_readwrite("name", &bit7z::BitFormatInfo::name)
+        .def_readwrite("extension", &bit7z::BitFormatInfo::extension)
+        .def_readwrite("add_extension", &bit7z::BitFormatInfo::addExtension)
+        .def_readwrite("update", &bit7z::BitFormatInfo::update)
+        .def_property(
+            "signature",
+            [](const bit7z::BitFormatInfo &self) { return py::bytes(self.signature); },
+            [](bit7z::BitFormatInfo &self, const std::string &value) { self.signature = value; })
+        .def_readwrite("signature_offset", &bit7z::BitFormatInfo::signatureOffset)
+        .def_readwrite("flags", &bit7z::BitFormatInfo::flags);
+
+    // bit7z::BitCodecInfo struct binding
+    py::class_<bit7z::BitCodecInfo>(
+        m,
+        "BitCodecInfo",
+        R"pbdoc(Information about a compression codec (method) supported by the 7-zip library.)pbdoc")
+        .def(py::init<>())
+        .def_readwrite("id", &bit7z::BitCodecInfo::id)
+        .def_readwrite("name", &bit7z::BitCodecInfo::name)
+        .def_readwrite("decoder", &bit7z::BitCodecInfo::decoder)
+        .def_readwrite("encoder", &bit7z::BitCodecInfo::encoder)
+        .def_readwrite("pack_streams", &bit7z::BitCodecInfo::packStreams)
+        .def_readwrite("unpack_streams", &bit7z::BitCodecInfo::unpackStreams)
+        .def_readwrite("description", &bit7z::BitCodecInfo::description)
+        .def_readwrite("is_filter", &bit7z::BitCodecInfo::isFilter)
+        .def_readwrite("is_external", &bit7z::BitCodecInfo::isExternal);
+
     // bit7z::Bit7zLibrary class bindings
     py::class_<bit7z::Bit7zLibrary>(
         m,
         "Bit7zLibrary",
         R"pbdoc(The Bit7zLibrary class allows accessing the basic functionalities provided by the 7z DLLs.)pbdoc")
         .def(py::init<const std::string &>(), py::arg("lib_path") = "")
+        .def("use_large_pages",
+             &bit7z::Bit7zLibrary::useLargePages,
+             py::doc(
+                 R"pbdoc(Enable large page mode for 7zip library. This can improve performance on some systems.)pbdoc"))
         .def(
-            "use_large_pages",
-            &bit7z::Bit7zLibrary::useLargePages,
+            "load_plugins",
+            &bit7z::Bit7zLibrary::loadPlugins,
+            py::arg("codecs_path"),
+            py::arg("formats_path"),
             py::doc(
-                R"pbdoc(Enable large page mode for 7zip library. This can improve performance on some systems.)pbdoc"));
+                R"pbdoc(Loads external codec and format DLLs from the given folders and registers them with the 7-zip library.
+
+Follows the official 7-Zip LoadCodecs.cpp flow: the Codecs folder is scanned first, then the Formats folder.
+Every DLL is inspected for both codec exports and format-handler exports, so a single DLL can supply both
+codecs and archive handlers.
+
+Args:
+    codecs_path: the path to the folder containing the external codec DLLs.
+    formats_path: the path to the folder containing the external format handler DLLs.
+
+Returns:
+    True if at least one codec or format was successfully loaded, False otherwise.)pbdoc"))
+        .def("get_formats",
+             &bit7z::Bit7zLibrary::getFormats,
+             py::doc(R"pbdoc(Enumerates all archive formats supported by the loaded 7-zip library.
+
+Returns:
+    A list of BitFormatInfo describing each supported format.)pbdoc"))
+        .def("get_codecs",
+             &bit7z::Bit7zLibrary::getCodecs,
+             py::doc(R"pbdoc(Enumerates all compression codecs (methods) supported by the loaded 7-zip library.
+
+Returns:
+    A list of BitCodecInfo describing each supported codec.)pbdoc"))
+        .def("get_codec_paths",
+             &bit7z::Bit7zLibrary::getCodecPaths,
+             py::doc(R"pbdoc(Returns the file paths of all external codec DLLs currently loaded.
+
+Returns:
+    A list of strings with the paths of the loaded codec DLLs.)pbdoc"))
+        .def(
+            "get_external_in_format",
+            [](const bit7z::Bit7zLibrary &self, const std::string &name) -> py::object {
+                const auto *fmt = self.getExternalInFormat(name);
+                if (fmt == nullptr) {
+                    return py::none();
+                }
+                return py::cast(fmt, py::return_value_policy::reference);
+            },
+            py::arg("name"),
+            py::doc(R"pbdoc(Returns the read-only archive format (BitInFormat) for the given external format name.
+
+Args:
+    name: the name of the external format (as returned by get_formats).
+
+Returns:
+    A BitInFormat instance, or None if the format was not found.)pbdoc"))
+        .def(
+            "get_external_in_out_format",
+            [](const bit7z::Bit7zLibrary &self, const std::string &name) -> py::object {
+                const auto *fmt = self.getExternalInOutFormat(name);
+                if (fmt == nullptr) {
+                    return py::none();
+                }
+                return py::cast(fmt, py::return_value_policy::reference);
+            },
+            py::arg("name"),
+            py::doc(R"pbdoc(Returns the read-write archive format (BitInOutFormat) for the given external format name.
+
+Args:
+    name: the name of the external format (as returned by get_formats).
+
+Returns:
+    A BitInOutFormat instance, or None if the format was not found.)pbdoc"));
 
     // Exception handling
     py::register_exception<bit7z::BitException>(m, "BitException");
@@ -211,13 +312,19 @@ Returns:
     m.attr("FormatLzma") = py::cast(bit7z::BitFormat::Lzma, py::return_value_policy::reference);
     m.attr("FormatLzma86") = py::cast(bit7z::BitFormat::Lzma86, py::return_value_policy::reference);
     m.attr("FormatPpmd") = py::cast(bit7z::BitFormat::Ppmd, py::return_value_policy::reference);
+    m.attr("FormatZstd") = py::cast(bit7z::BitFormat::Zstd, py::return_value_policy::reference);
+    m.attr("FormatLVM") = py::cast(bit7z::BitFormat::LVM, py::return_value_policy::reference);
+    m.attr("FormatAVB") = py::cast(bit7z::BitFormat::AVB, py::return_value_policy::reference);
+    m.attr("FormatLP") = py::cast(bit7z::BitFormat::LP, py::return_value_policy::reference);
+    m.attr("FormatSparse") = py::cast(bit7z::BitFormat::Sparse, py::return_value_policy::reference);
+    m.attr("FormatAPFS") = py::cast(bit7z::BitFormat::APFS, py::return_value_policy::reference);
     m.attr("FormatVhdx") = py::cast(bit7z::BitFormat::Vhdx, py::return_value_policy::reference);
-    m.attr("FormatCoff") = py::cast(bit7z::BitFormat::COFF, py::return_value_policy::reference);
+    m.attr("FormatCOFF") = py::cast(bit7z::BitFormat::COFF, py::return_value_policy::reference);
     m.attr("FormatExt") = py::cast(bit7z::BitFormat::Ext, py::return_value_policy::reference);
-    m.attr("FormatVmdk") = py::cast(bit7z::BitFormat::VMDK, py::return_value_policy::reference);
-    m.attr("FormatVdi") = py::cast(bit7z::BitFormat::VDI, py::return_value_policy::reference);
+    m.attr("FormatVMDK") = py::cast(bit7z::BitFormat::VMDK, py::return_value_policy::reference);
+    m.attr("FormatVDI") = py::cast(bit7z::BitFormat::VDI, py::return_value_policy::reference);
     m.attr("FormatQcow") = py::cast(bit7z::BitFormat::QCow, py::return_value_policy::reference);
-    m.attr("FormatGpt") = py::cast(bit7z::BitFormat::GPT, py::return_value_policy::reference);
+    m.attr("FormatGPT") = py::cast(bit7z::BitFormat::GPT, py::return_value_policy::reference);
     m.attr("FormatRar5") = py::cast(bit7z::BitFormat::Rar5, py::return_value_policy::reference);
     m.attr("FormatIHex") = py::cast(bit7z::BitFormat::IHex, py::return_value_policy::reference);
     m.attr("FormatHxs") = py::cast(bit7z::BitFormat::Hxs, py::return_value_policy::reference);
@@ -388,6 +495,9 @@ Returns:
         .def(py::init<>())
         .def(py::init<bool>(), py::arg("value"))
         .def(py::init<uint64_t>(), py::arg("value"))
+        .def(py::init([](const std::wstring &value) { return bit7z::BitPropVariant(value); }),
+             py::arg("value"),
+             py::doc("Constructs a string BitPropVariant from a string."))
         .def("get_string", &bit7z::BitPropVariant::getString)
         .def("get_native_string", &bit7z::BitPropVariant::getNativeString)
         .def("get_uint64", &bit7z::BitPropVariant::getUInt64)
@@ -773,13 +883,21 @@ Note:
     Calling set_password when the output format doesn't support archive encryption (e.g., GZip, BZip2, etc...) does not have any effects (in other words, it doesn't throw exceptions, and it has no effects on compression operations).
     Calling set_password with "cryptHeaders" set to true does not have effects on formats different from 7z.
     After a password has been set, it will be used for every subsequent operation. To disable the use of the password, you need to call the clearPassword method (inherited from BitAbstractArchiveHandler), which is equivalent to set_password("").)pydoc"))
-        .def("set_compression_level",
-             &bit7z::BitAbstractArchiveCreator::setCompressionLevel,
-             py::arg("level"),
-             py::doc(R"pydoc(Sets the compression level to be used when creating/updating an archive.
+        .def(
+            "set_compression_level",
+            [](bit7z::BitAbstractArchiveCreator &self, py::object level) {
+                if (py::isinstance<bit7z::BitCompressionLevel>(level)) {
+                    self.setCompressionLevel(level.cast<bit7z::BitCompressionLevel>());
+                }
+                else {
+                    self.setCompressionLevel(static_cast<bit7z::BitCompressionLevel>(level.cast<std::uint8_t>()));
+                }
+            },
+            py::arg("level"),
+            py::doc(R"pydoc(Sets the compression level to be used when creating/updating an archive.
 
 Args:
-    level: the compression level desired.)pydoc"))
+    level: the compression level desired. Can be a BitCompressionLevel enum value or an integer.)pydoc"))
         .def("set_compression_method",
              &bit7z::BitAbstractArchiveCreator::setCompressionMethod,
              py::arg("method"),
@@ -1190,7 +1308,7 @@ The bytes object is referenced directly (no copy); it must outlive the item.)pbd
                  return ArchiveHolder<bit7z::BitInputItem>(new bit7z::BitInputItem(path, policy));
              }),
              py::arg("path"),
-             py::arg("symlink_policy") = bit7z::SymlinkPolicy::Follow,
+             py::arg_v("symlink_policy", bit7z::SymlinkPolicy::Follow, "SymlinkPolicy.Follow"),
              py::doc(R"pbdoc(Constructs a BitInputItem from a filesystem path.)pbdoc"))
         .def(
             py::init([](const std::string &path, const std::string &in_archive_path, bit7z::SymlinkPolicy policy) {
@@ -1198,7 +1316,7 @@ The bytes object is referenced directly (no copy); it must outlive the item.)pbd
             }),
             py::arg("path"),
             py::arg("in_archive_path"),
-            py::arg("symlink_policy") = bit7z::SymlinkPolicy::Follow,
+            py::arg_v("symlink_policy", bit7z::SymlinkPolicy::Follow, "SymlinkPolicy.Follow"),
             py::doc(
                 R"pbdoc(Constructs a BitInputItem from a filesystem path, with a custom path to be used inside the archive.)pbdoc"))
         .def("is_dir", &bit7z::BitInputItem::isDir, py::doc(R"pbdoc(true if the item represents a directory.)pbdoc"))

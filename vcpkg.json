@@ -13,6 +13,8 @@
       ]
     },
     "7zip",
+    "7zip-zstd-codecs",
+    "7zip-compression-zoo-codecs",
     "cmake-modules",
     "robotology-cmake-ycm"
   ],

@@ -23,11 +23,13 @@ from pybit7z._core import (
     BitArchiveItemOffset,
     BitArchiveReader,
     BitArchiveWriter,
+    BitCodecInfo,
     BitCompressionLevel,
     BitCompressionMethod,
     BitException,
     BitFileCompressor,
     BitFileExtractor,
+    BitFormatInfo,
     BitGenericItem,
     BitInFormat,
     BitInOutFormat,
@@ -50,7 +52,7 @@ from pybit7z._core import (
     FormatBZip2,
     FormatCab,
     FormatChm,
-    FormatCoff,
+    FormatCOFF,
     FormatCompound,
     FormatCpio,
     FormatCramFS,
@@ -61,7 +63,7 @@ from pybit7z._core import (
     FormatFat,
     FormatFeatures,
     FormatFlv,
-    FormatGpt,
+    FormatGPT,
     FormatGZip,
     FormatHfs,
     FormatHxs,
@@ -92,10 +94,10 @@ from pybit7z._core import (
     FormatUdf,
     FormatUEFIc,
     FormatUEFIs,
-    FormatVdi,
+    FormatVDI,
     FormatVhd,
     FormatVhdx,
-    FormatVmdk,
+    FormatVMDK,
     FormatWim,
     FormatXar,
     FormatXz,
@@ -120,11 +122,13 @@ __all__ = [
     "BitArchiveItemOffset",
     "BitArchiveReader",
     "BitArchiveWriter",
+    "BitCodecInfo",
     "BitCompressionLevel",
     "BitCompressionMethod",
     "BitException",
     "BitFileCompressor",
     "BitFileExtractor",
+    "BitFormatInfo",
     "BitGenericItem",
     "BitInFormat",
     "BitInOutFormat",
@@ -145,9 +149,9 @@ __all__ = [
     "FormatArj",
     "FormatAuto",
     "FormatBZip2",
+    "FormatCOFF",
     "FormatCab",
     "FormatChm",
-    "FormatCoff",
     "FormatCompound",
     "FormatCpio",
     "FormatCramFS",
@@ -158,8 +162,8 @@ __all__ = [
     "FormatFat",
     "FormatFeatures",
     "FormatFlv",
+    "FormatGPT",
     "FormatGZip",
-    "FormatGpt",
     "FormatHfs",
     "FormatHxs",
     "FormatIHex",
@@ -189,10 +193,10 @@ __all__ = [
     "FormatUEFIc",
     "FormatUEFIs",
     "FormatUdf",
-    "FormatVdi",
+    "FormatVDI",
+    "FormatVMDK",
     "FormatVhd",
     "FormatVhdx",
-    "FormatVmdk",
     "FormatWim",
     "FormatXar",
     "FormatXz",
@@ -202,6 +206,8 @@ __all__ = [
     "SymlinkPolicy",
     "UpdateMode",
     "__version__",
+    "default_codecs_dir",
+    "default_formats_dir",
     "default_lib7zip",
     "lib7zip_context",
 ]
@@ -217,6 +223,26 @@ def default_lib7zip() -> str:
     return str(
         distribution(__package__).locate_file(__package__) / platform_lib7zip_name()
     )
+
+
+def default_codecs_dir() -> str:
+    """
+    Get the default external codecs directory under the package directory.
+
+    Returns:
+        The default codecs directory path.
+    """
+    return str(distribution(__package__).locate_file(__package__) / "Codecs")
+
+
+def default_formats_dir() -> str:
+    """
+    Get the default external archive format handlers directory under the package directory.
+
+    Returns:
+        The default formats directory path.
+    """
+    return str(distribution(__package__).locate_file(__package__) / "Formats")
 
 
 @contextmanager

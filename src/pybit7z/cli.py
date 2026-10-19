@@ -14,9 +14,10 @@ from . import (
     BitArchiveEditor,
     BitArchiveReader,
     BitArchiveWriter,
+    BitCodecInfo,
     BitCompressionLevel,
     BitCompressionMethod,
-    BitInFormat,
+    BitFormatInfo,
     BitInOutFormat,
     BitPropVariant,
     DeletePolicy,
@@ -34,6 +35,8 @@ from . import (
     OverwriteMode,
     UpdateMode,
     _core,
+    default_codecs_dir,
+    default_formats_dir,
     lib7zip_context,
 )
 
@@ -106,7 +109,7 @@ def build_parser() -> argparse.ArgumentParser:
             "test",
             "info",
             "update",
-            "formats",
+            "info",
         ],
         help="Operation to perform",
     )
@@ -153,8 +156,8 @@ def build_parser() -> argparse.ArgumentParser:
         "-m",
         "--method",
         type=str,
-        choices=METHOD_NAMES,
-        help="Compression method (%(choices)s). Default is format's default.",
+        default=None,
+        help="Compression method (e.g. Lzma, Deflate, brotli, zstd). Default is format's default.",
     )
     parser.add_argument(
         "--overwrite",
@@ -258,6 +261,14 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Show compression ratio during progress",
     )
+    parser.add_argument(
+        "--codecs-dir",
+        action="append",
+        default=None,
+        metavar="DIR",
+        help="Additional directory containing external codec DLLs to load. "
+        "Can be repeated. Bundled codecs are always loaded automatically.",
+    )
 
     # Extract-specific options
     extract_group = parser.add_argument_group("extract options")
@@ -331,6 +342,18 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _load_codecs(lib: Bit7zLibrary, extra_dirs: Optional[list[str]] = None) -> None:
+    """Load bundled external codecs and format handlers plus any user-specified directories."""
+    codecs_dir = default_codecs_dir()
+    formats_dir = default_formats_dir()
+    if Path(codecs_dir).is_dir() or Path(formats_dir).is_dir():
+        lib.load_plugins(codecs_dir, formats_dir)
+    if extra_dirs:
+        for d in extra_dirs:
+            if Path(d).is_dir():
+                lib.load_plugins(d, d)
+
+
 def main() -> None:
     """Entry point for the CLI application.
 
@@ -339,9 +362,11 @@ def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
 
-    # 'formats' does not need an archive or input paths.
-    if args.action == "formats":
-        show_formats()
+    # 'info' without an archive path shows library info.
+    if args.action == "info" and not args.paths:
+        with lib7zip_context() as lib:
+            _load_codecs(lib, args.codecs_dir)
+            show_library_info(lib)
         return
 
     # Compression requires output; stdin mode allows no input paths.
@@ -363,6 +388,8 @@ def main() -> None:
 
     try:
         with lib7zip_context() as lib:
+            _load_codecs(lib, args.codecs_dir)
+
             if args.action == "compress":
                 compress(lib, args)
             elif args.action in ("decompress", "extract"):
@@ -479,53 +506,63 @@ def _apply_progress(
     helper.attach(handler)
 
 
-def show_formats() -> None:
-    """List all supported archive formats with their extensions and features."""
-
-    writable: list[tuple[str, BitInOutFormat]] = []
-    readable: list[tuple[str, BitInFormat]] = []
+def _bit7z_defined_extensions() -> set[str]:
+    """Collect names of all formats predefined by bit7z."""
+    result: set[str] = set()
     for name in dir(_core):
         if not name.startswith("Format"):
+            continue
+        if name in ("FormatFeatures", "FormatAuto"):
             continue
         obj = getattr(_core, name)
         if isinstance(obj, type):
             continue
-        if isinstance(obj, BitInOutFormat):
-            writable.append((name, obj))
-        elif isinstance(obj, BitInFormat):
-            readable.append((name, obj))
-
-    sys.stdout.write("Writable formats:\n")
-    header = f"  {'Name':<16} {'Extension':<10} {'Features'}\n"
-    sys.stdout.write(header)
-    sys.stdout.write("  " + "-" * 50 + "\n")
-    for name, fmt in sorted(writable, key=lambda x: x[0]):
-        features = _format_features_str(fmt)
-        sys.stdout.write(f"  {name:<16} {fmt.extension():<10} {features}\n")
-
-    sys.stdout.write("\nRead-only formats:\n")
-    sys.stdout.write(header)
-    sys.stdout.write("  " + "-" * 50 + "\n")
-    for name, fmt in sorted(readable, key=lambda x: x[0]):  # type: ignore[assignment]
-        sys.stdout.write(f"  {name:<16} {'-':<10} id={fmt.value():#04X}\n")
+        fmt_name = name[6:].lower()
+        if fmt_name == "sevenzip":
+            fmt_name = "7z"
+        result.add(fmt_name)
+    return result
 
 
-def _format_features_str(fmt: BitInOutFormat) -> str:
-    """Return a comma-separated string describing format features."""
-    feats = []
-    if fmt.has_feature(FormatFeatures.MultipleFiles):
-        feats.append("multi-file")
-    if fmt.has_feature(FormatFeatures.SolidArchive):
-        feats.append("solid")
-    if fmt.has_feature(FormatFeatures.CompressionLevel):
-        feats.append("levels")
-    if fmt.has_feature(FormatFeatures.Encryption):
-        feats.append("encrypt")
-    if fmt.has_feature(FormatFeatures.HeaderEncryption):
-        feats.append("hdr-enc")
-    if fmt.has_feature(FormatFeatures.MultipleMethods):
-        feats.append("methods")
-    return ",".join(feats) if feats else "-"
+def show_library_info(lib: Bit7zLibrary) -> None:
+    """Print supported formats, codecs, and hashers (similar to ``7z i``)."""
+    formats: list[BitFormatInfo] = lib.get_formats()
+    codecs: list[BitCodecInfo] = lib.get_codecs()
+    codec_paths: list[str] = lib.get_codec_paths()
+    bit7z_names = _bit7z_defined_extensions()
+
+    sys.stdout.write("Libs:\n")
+    if codec_paths:
+        for i, p in enumerate(codec_paths):
+            sys.stdout.write(f"  {i:>2} : {p}\n")
+    else:
+        sys.stdout.write("  (no external codecs loaded)\n")
+
+    sys.stdout.write("\nFormats:\n")
+    sys.stdout.write(
+        f"  {'#':>3} {'bit7z':>5} {'Name':<16} {'Ext':<10} {'Update':>6} {'Signature'}\n"
+    )
+    sys.stdout.write("  " + "-" * 68 + "\n")
+    for i, f in enumerate(formats):
+        sig = f.signature.hex() if f.signature else ""
+        update = "Y" if f.update else "-"
+        defined = "Y" if f.name.lower() in bit7z_names else "-"
+        sys.stdout.write(
+            f"  {i:>3} {defined:>5} {f.name:<16} {f.extension:<10} {update:>6} {sig}\n"
+        )
+
+    sys.stdout.write("\nCodecs:\n")
+    sys.stdout.write(
+        f"  {'#':>3} {'Ext':>3} {'ID':<18} {'Name':<16} {'Enc':>3} {'Dec':>3} {'Desc'}\n"
+    )
+    sys.stdout.write("  " + "-" * 72 + "\n")
+    for i, c in enumerate(codecs):
+        enc = "Y" if c.encoder else "-"
+        dec = "Y" if c.decoder else "-"
+        ext = "Y" if c.is_external else "-"
+        sys.stdout.write(
+            f"  {i:>3} {ext:>3} {c.id:<#018x} {c.name:<16} {enc:>3} {dec:>3} {c.description}\n"
+        )
 
 
 def _add_files_from_directory(
@@ -587,7 +624,27 @@ def compress(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
     writer.set_overwrite_mode(getattr(OverwriteMode, args.overwrite))
 
     if args.method:
-        writer.set_compression_method(getattr(BitCompressionMethod, args.method))
+        external_codecs = {
+            c.name for c in lib.get_codecs() if c.is_external and c.encoder
+        }
+        method_lower = args.method.lower()
+        external_lower = {name.lower(): name for name in external_codecs}
+        if method_lower in external_lower:
+            # External codecs (brotli, zstd, lz4, ...) are used via the Copy
+            # method plus a format property that selects the codec by name.
+            writer.set_compression_method(BitCompressionMethod.Copy)
+            writer.set_format_property(
+                "0", BitPropVariant(external_lower[method_lower])
+            )
+        elif hasattr(BitCompressionMethod, args.method):
+            writer.set_compression_method(getattr(BitCompressionMethod, args.method))
+        else:
+            available = METHOD_NAMES + sorted(external_codecs)
+            msg = (
+                f"Unknown compression method '{args.method}'. "
+                f"Available methods: {', '.join(available)}"
+            )
+            raise ValueError(msg)
     if args.dictionary_size is not None:
         writer.set_dictionary_size(args.dictionary_size)
     if args.word_size is not None:

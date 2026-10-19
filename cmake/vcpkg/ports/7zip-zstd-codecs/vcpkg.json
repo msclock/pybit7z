@@ -1,0 +1,15 @@
+{
+  "name": "7zip-zstd-codecs",
+  "version-string": "26.02-v1.5.7-R2",
+  "description": "External codec DLLs (zstd, brotli, lz4, lz5, lizard, flzma2) from 7-Zip-zstd for the 7zip external codecs mechanism.",
+  "homepage": "https://github.com/mcmilk/7-Zip-zstd",
+  "license": "LGPL-2.1-or-later",
+  "supports": "!uwp & !xbox",
+  "dependencies": [
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    },
+    "7zip"
+  ]
+}

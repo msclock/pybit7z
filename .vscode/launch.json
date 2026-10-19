@@ -10,7 +10,7 @@
       "request": "launch",
       "module": "pybit7z.cli",
       "args": [
-        "formats"
+        "info"
       ],
       "justMyCode": false
     },
