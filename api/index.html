@@ -9,6 +9,7 @@
         <title>pybit7z package - pybit7z documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx_autodoc_typehints.css?v=057ac668" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/fontawesome.min.css" />
@@ -249,6 +250,87 @@
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_object</span></code></p>
 <p>The Bit7zLibrary class allows accessing the basic functionalities provided by the 7z DLLs.</p>
 <dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.Bit7zLibrary.get_codec_paths">
+<span class="sig-name descname"><span class="pre">get_codec_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.Bit7zLibrary" title="pybit7z._core.Bit7zLibrary"><span class="pre">pybit7z._core.Bit7zLibrary</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#pybit7z.Bit7zLibrary.get_codec_paths" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the file paths of all external codec DLLs currently loaded.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A list of strings with the paths of the loaded codec DLLs.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.Bit7zLibrary.get_codecs">
+<span class="sig-name descname"><span class="pre">get_codecs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.Bit7zLibrary" title="pybit7z._core.Bit7zLibrary"><span class="pre">pybit7z._core.Bit7zLibrary</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#pybit7z.BitCodecInfo" title="pybit7z._core.BitCodecInfo"><span class="pre">pybit7z._core.BitCodecInfo</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#pybit7z.Bit7zLibrary.get_codecs" title="Link to this definition">¶</a></dt>
+<dd><p>Enumerates all compression codecs (methods) supported by the loaded 7-zip library.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A list of BitCodecInfo describing each supported codec.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.Bit7zLibrary.get_external_in_format">
+<span class="sig-name descname"><span class="pre">get_external_in_format</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.Bit7zLibrary" title="pybit7z._core.Bit7zLibrary"><span class="pre">pybit7z._core.Bit7zLibrary</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><span class="pre">object</span></a></span></span><a class="headerlink" href="#pybit7z.Bit7zLibrary.get_external_in_format" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the read-only archive format (BitInFormat) for the given external format name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> – the name of the external format (as returned by get_formats).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A BitInFormat instance, or None if the format was not found.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.Bit7zLibrary.get_external_in_out_format">
+<span class="sig-name descname"><span class="pre">get_external_in_out_format</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.Bit7zLibrary" title="pybit7z._core.Bit7zLibrary"><span class="pre">pybit7z._core.Bit7zLibrary</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><span class="pre">object</span></a></span></span><a class="headerlink" href="#pybit7z.Bit7zLibrary.get_external_in_out_format" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the read-write archive format (BitInOutFormat) for the given external format name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> – the name of the external format (as returned by get_formats).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A BitInOutFormat instance, or None if the format was not found.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.Bit7zLibrary.get_formats">
+<span class="sig-name descname"><span class="pre">get_formats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.Bit7zLibrary" title="pybit7z._core.Bit7zLibrary"><span class="pre">pybit7z._core.Bit7zLibrary</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#pybit7z.BitFormatInfo" title="pybit7z._core.BitFormatInfo"><span class="pre">pybit7z._core.BitFormatInfo</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#pybit7z.Bit7zLibrary.get_formats" title="Link to this definition">¶</a></dt>
+<dd><p>Enumerates all archive formats supported by the loaded 7-zip library.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A list of BitFormatInfo describing each supported format.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.Bit7zLibrary.load_plugins">
+<span class="sig-name descname"><span class="pre">load_plugins</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.Bit7zLibrary" title="pybit7z._core.Bit7zLibrary"><span class="pre">pybit7z._core.Bit7zLibrary</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">codecs_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">formats_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span></span><a class="headerlink" href="#pybit7z.Bit7zLibrary.load_plugins" title="Link to this definition">¶</a></dt>
+<dd><p>Loads external codec and format DLLs from the given folders and registers them with the 7-zip library.</p>
+<p>Follows the official 7-Zip LoadCodecs.cpp flow: the Codecs folder is scanned first, then the Formats folder.
+Every DLL is inspected for both codec exports and format-handler exports, so a single DLL can supply both
+codecs and archive handlers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>codecs_path</strong> – the path to the folder containing the external codec DLLs.</p></li>
+<li><p><strong>formats_path</strong> – the path to the folder containing the external format handler DLLs.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if at least one codec or format was successfully loaded, False otherwise.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="pybit7z.Bit7zLibrary.use_large_pages">
 <span class="sig-name descname"><span class="pre">use_large_pages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.Bit7zLibrary" title="pybit7z._core.Bit7zLibrary"><span class="pre">pybit7z._core.Bit7zLibrary</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#pybit7z.Bit7zLibrary.use_large_pages" title="Link to this definition">¶</a></dt>
 <dd><p>Enable large page mode for 7zip library. This can improve performance on some systems.</p>
@@ -287,11 +369,11 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pybit7z.BitAbstractArchiveCreator.set_compression_level">
-<span class="sig-name descname"><span class="pre">set_compression_level</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitAbstractArchiveCreator" title="pybit7z._core.BitAbstractArchiveCreator"><span class="pre">pybit7z._core.BitAbstractArchiveCreator</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitCompressionLevel" title="pybit7z._core.BitCompressionLevel"><span class="pre">pybit7z._core.BitCompressionLevel</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#pybit7z.BitAbstractArchiveCreator.set_compression_level" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">set_compression_level</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitAbstractArchiveCreator" title="pybit7z._core.BitAbstractArchiveCreator"><span class="pre">pybit7z._core.BitAbstractArchiveCreator</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><span class="pre">object</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#pybit7z.BitAbstractArchiveCreator.set_compression_level" title="Link to this definition">¶</a></dt>
 <dd><p>Sets the compression level to be used when creating/updating an archive.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>level</strong> – the compression level desired.</p>
+<dd class="field-odd"><p><strong>level</strong> – the compression level desired. Can be a BitCompressionLevel enum value or an integer.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1145,6 +1227,58 @@ Generally, archives may contain multiple items with the same paths. If this is t
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="pybit7z.BitCodecInfo">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pybit7z.</span></span><span class="sig-name descname"><span class="pre">BitCodecInfo</span></span><a class="headerlink" href="#pybit7z.BitCodecInfo" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_object</span></code></p>
+<p>Information about a compression codec (method) supported by the 7-zip library.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="pybit7z.BitCodecInfo.decoder">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">decoder</span></span><a class="headerlink" href="#pybit7z.BitCodecInfo.decoder" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pybit7z.BitCodecInfo.description">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">description</span></span><a class="headerlink" href="#pybit7z.BitCodecInfo.description" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pybit7z.BitCodecInfo.encoder">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">encoder</span></span><a class="headerlink" href="#pybit7z.BitCodecInfo.encoder" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pybit7z.BitCodecInfo.id">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">id</span></span><a class="headerlink" href="#pybit7z.BitCodecInfo.id" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pybit7z.BitCodecInfo.is_external">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">is_external</span></span><a class="headerlink" href="#pybit7z.BitCodecInfo.is_external" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pybit7z.BitCodecInfo.is_filter">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">is_filter</span></span><a class="headerlink" href="#pybit7z.BitCodecInfo.is_filter" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pybit7z.BitCodecInfo.name">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#pybit7z.BitCodecInfo.name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pybit7z.BitCodecInfo.pack_streams">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">pack_streams</span></span><a class="headerlink" href="#pybit7z.BitCodecInfo.pack_streams" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pybit7z.BitCodecInfo.unpack_streams">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">unpack_streams</span></span><a class="headerlink" href="#pybit7z.BitCodecInfo.unpack_streams" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="pybit7z.BitCompressionLevel">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pybit7z.</span></span><span class="sig-name descname"><span class="pre">BitCompressionLevel</span></span><a class="headerlink" href="#pybit7z.BitCompressionLevel" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_object</span></code></p>
@@ -1384,6 +1518,48 @@ Generally, archives may contain multiple items with the same paths. If this is t
 <dt class="sig sig-object py" id="pybit7z.BitFileExtractor">
 <span class="sig-prename descclassname"><span class="pre">pybit7z.</span></span><span class="sig-name descname"><span class="pre">BitFileExtractor</span></span><a class="headerlink" href="#pybit7z.BitFileExtractor" title="Link to this definition">¶</a></dt>
 <dd><p>alias of <a class="reference internal" href="#pybit7z.BitStringExtractor" title="pybit7z._core.BitStringExtractor"><code class="xref py py-class docutils literal notranslate"><span class="pre">BitStringExtractor</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pybit7z.BitFormatInfo">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pybit7z.</span></span><span class="sig-name descname"><span class="pre">BitFormatInfo</span></span><a class="headerlink" href="#pybit7z.BitFormatInfo" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_object</span></code></p>
+<p>Information about an archive format supported by the 7-zip library.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="pybit7z.BitFormatInfo.add_extension">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">add_extension</span></span><a class="headerlink" href="#pybit7z.BitFormatInfo.add_extension" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pybit7z.BitFormatInfo.extension">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">extension</span></span><a class="headerlink" href="#pybit7z.BitFormatInfo.extension" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pybit7z.BitFormatInfo.flags">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">flags</span></span><a class="headerlink" href="#pybit7z.BitFormatInfo.flags" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pybit7z.BitFormatInfo.name">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#pybit7z.BitFormatInfo.name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pybit7z.BitFormatInfo.signature">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">signature</span></span><a class="headerlink" href="#pybit7z.BitFormatInfo.signature" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pybit7z.BitFormatInfo.signature_offset">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">signature_offset</span></span><a class="headerlink" href="#pybit7z.BitFormatInfo.signature_offset" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pybit7z.BitFormatInfo.update">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">update</span></span><a class="headerlink" href="#pybit7z.BitFormatInfo.update" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -3339,6 +3515,34 @@ name: (optional) user-defined path to be used inside the output archive.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="pybit7z.default_codecs_dir">
+<span class="sig-prename descclassname"><span class="pre">pybit7z.</span></span><span class="sig-name descname"><span class="pre">default_codecs_dir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pybit7z.html#default_codecs_dir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pybit7z.default_codecs_dir" title="Link to this definition">¶</a></dt>
+<dd><p>Get the default external codecs directory under the package directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The default codecs directory path.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pybit7z.default_formats_dir">
+<span class="sig-prename descclassname"><span class="pre">pybit7z.</span></span><span class="sig-name descname"><span class="pre">default_formats_dir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pybit7z.html#default_formats_dir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pybit7z.default_formats_dir" title="Link to this definition">¶</a></dt>
+<dd><p>Get the default external archive format handlers directory under the package directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The default formats directory path.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="pybit7z.default_lib7zip">
 <span class="sig-prename descclassname"><span class="pre">pybit7z.</span></span><span class="sig-name descname"><span class="pre">default_lib7zip</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pybit7z.html#default_lib7zip"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pybit7z.default_lib7zip" title="Link to this definition">¶</a></dt>
 <dd><p>Get the default lib7zip library path under the package directory.</p>
@@ -3364,7 +3568,7 @@ name: (optional) user-defined path to be used inside the output archive.</p>
 </ul>
 </dd>
 <dt class="field-even">Yields<span class="colon">:</span></dt>
-<dd class="field-even"><p>A Bit7zLibrary instance.</p>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#pybit7z.Bit7zLibrary" title="pybit7z._core.Bit7zLibrary"><code class="xref py py-class docutils literal notranslate"><span class="pre">Bit7zLibrary</span></code></a></span> – A Bit7zLibrary instance.</p>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#FileNotFoundError" title="(in Python v3.15)"><strong>FileNotFoundError</strong></a> – If the lib7zip library is not found.</p>
@@ -3426,6 +3630,12 @@ name: (optional) user-defined path to be used inside the output archive.</p>
             <ul>
 <li><a class="reference internal" href="#">pybit7z package</a><ul>
 <li><a class="reference internal" href="#pybit7z.Bit7zLibrary"><code class="docutils literal notranslate"><span class="pre">Bit7zLibrary</span></code></a><ul>
+<li><a class="reference internal" href="#pybit7z.Bit7zLibrary.get_codec_paths"><code class="docutils literal notranslate"><span class="pre">Bit7zLibrary.get_codec_paths()</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.Bit7zLibrary.get_codecs"><code class="docutils literal notranslate"><span class="pre">Bit7zLibrary.get_codecs()</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.Bit7zLibrary.get_external_in_format"><code class="docutils literal notranslate"><span class="pre">Bit7zLibrary.get_external_in_format()</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.Bit7zLibrary.get_external_in_out_format"><code class="docutils literal notranslate"><span class="pre">Bit7zLibrary.get_external_in_out_format()</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.Bit7zLibrary.get_formats"><code class="docutils literal notranslate"><span class="pre">Bit7zLibrary.get_formats()</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.Bit7zLibrary.load_plugins"><code class="docutils literal notranslate"><span class="pre">Bit7zLibrary.load_plugins()</span></code></a></li>
 <li><a class="reference internal" href="#pybit7z.Bit7zLibrary.use_large_pages"><code class="docutils literal notranslate"><span class="pre">Bit7zLibrary.use_large_pages()</span></code></a></li>
 </ul>
 </li>
@@ -3533,6 +3743,18 @@ name: (optional) user-defined path to be used inside the output archive.</p>
 </ul>
 </li>
 <li><a class="reference internal" href="#pybit7z.BitArchiveWriter"><code class="docutils literal notranslate"><span class="pre">BitArchiveWriter</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitCodecInfo"><code class="docutils literal notranslate"><span class="pre">BitCodecInfo</span></code></a><ul>
+<li><a class="reference internal" href="#pybit7z.BitCodecInfo.decoder"><code class="docutils literal notranslate"><span class="pre">BitCodecInfo.decoder</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitCodecInfo.description"><code class="docutils literal notranslate"><span class="pre">BitCodecInfo.description</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitCodecInfo.encoder"><code class="docutils literal notranslate"><span class="pre">BitCodecInfo.encoder</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitCodecInfo.id"><code class="docutils literal notranslate"><span class="pre">BitCodecInfo.id</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitCodecInfo.is_external"><code class="docutils literal notranslate"><span class="pre">BitCodecInfo.is_external</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitCodecInfo.is_filter"><code class="docutils literal notranslate"><span class="pre">BitCodecInfo.is_filter</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitCodecInfo.name"><code class="docutils literal notranslate"><span class="pre">BitCodecInfo.name</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitCodecInfo.pack_streams"><code class="docutils literal notranslate"><span class="pre">BitCodecInfo.pack_streams</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitCodecInfo.unpack_streams"><code class="docutils literal notranslate"><span class="pre">BitCodecInfo.unpack_streams</span></code></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#pybit7z.BitCompressionLevel"><code class="docutils literal notranslate"><span class="pre">BitCompressionLevel</span></code></a><ul>
 <li><a class="reference internal" href="#pybit7z.BitCompressionLevel.Fast"><code class="docutils literal notranslate"><span class="pre">BitCompressionLevel.Fast</span></code></a></li>
 <li><a class="reference internal" href="#pybit7z.BitCompressionLevel.Fastest"><code class="docutils literal notranslate"><span class="pre">BitCompressionLevel.Fastest</span></code></a></li>
@@ -3563,6 +3785,16 @@ name: (optional) user-defined path to be used inside the output archive.</p>
 </ul>
 </li>
 <li><a class="reference internal" href="#pybit7z.BitFileExtractor"><code class="docutils literal notranslate"><span class="pre">BitFileExtractor</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitFormatInfo"><code class="docutils literal notranslate"><span class="pre">BitFormatInfo</span></code></a><ul>
+<li><a class="reference internal" href="#pybit7z.BitFormatInfo.add_extension"><code class="docutils literal notranslate"><span class="pre">BitFormatInfo.add_extension</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitFormatInfo.extension"><code class="docutils literal notranslate"><span class="pre">BitFormatInfo.extension</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitFormatInfo.flags"><code class="docutils literal notranslate"><span class="pre">BitFormatInfo.flags</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitFormatInfo.name"><code class="docutils literal notranslate"><span class="pre">BitFormatInfo.name</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitFormatInfo.signature"><code class="docutils literal notranslate"><span class="pre">BitFormatInfo.signature</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitFormatInfo.signature_offset"><code class="docutils literal notranslate"><span class="pre">BitFormatInfo.signature_offset</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitFormatInfo.update"><code class="docutils literal notranslate"><span class="pre">BitFormatInfo.update</span></code></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#pybit7z.BitGenericItem"><code class="docutils literal notranslate"><span class="pre">BitGenericItem</span></code></a><ul>
 <li><a class="reference internal" href="#pybit7z.BitGenericItem.attributes"><code class="docutils literal notranslate"><span class="pre">BitGenericItem.attributes()</span></code></a></li>
 <li><a class="reference internal" href="#pybit7z.BitGenericItem.is_dir"><code class="docutils literal notranslate"><span class="pre">BitGenericItem.is_dir()</span></code></a></li>
@@ -3834,6 +4066,8 @@ name: (optional) user-defined path to be used inside the output archive.</p>
 <li><a class="reference internal" href="#pybit7z.UpdateMode.value"><code class="docutils literal notranslate"><span class="pre">UpdateMode.value</span></code></a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#pybit7z.default_codecs_dir"><code class="docutils literal notranslate"><span class="pre">default_codecs_dir()</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.default_formats_dir"><code class="docutils literal notranslate"><span class="pre">default_formats_dir()</span></code></a></li>
 <li><a class="reference internal" href="#pybit7z.default_lib7zip"><code class="docutils literal notranslate"><span class="pre">default_lib7zip()</span></code></a></li>
 <li><a class="reference internal" href="#pybit7z.lib7zip_context"><code class="docutils literal notranslate"><span class="pre">lib7zip_context()</span></code></a></li>
 </ul>
