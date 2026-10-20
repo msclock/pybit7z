@@ -206,9 +206,8 @@ __all__ = [
     "SymlinkPolicy",
     "UpdateMode",
     "__version__",
-    "default_codecs_dir",
-    "default_formats_dir",
     "default_lib7zip",
+    "default_plugin_dir",
     "lib7zip_context",
 ]
 
@@ -225,24 +224,15 @@ def default_lib7zip() -> str:
     )
 
 
-def default_codecs_dir() -> str:
+def default_plugin_dir() -> str:
     """
-    Get the default external codecs directory under the package directory.
+    Get the default directory containing the external Codecs/ and Formats/
+    plugin subdirectories under the package directory.
 
     Returns:
-        The default codecs directory path.
+        The default plugin directory path.
     """
-    return str(distribution(__package__).locate_file(__package__) / "Codecs")
-
-
-def default_formats_dir() -> str:
-    """
-    Get the default external archive format handlers directory under the package directory.
-
-    Returns:
-        The default formats directory path.
-    """
-    return str(distribution(__package__).locate_file(__package__) / "Formats")
+    return str(distribution(__package__).locate_file(__package__))
 
 
 @contextmanager

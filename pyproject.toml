@@ -80,7 +80,7 @@ write_to = "src/pybit7z/_version.py"
 [tool.cibuildwheel]
 archs = ["auto64", "auto32"]
 build-verbosity = 1
-test-command = "pytest {project}/tests"
+test-command = "pytest {project}/tests -n auto"
 test-extras = ["test"]
 test-skip = [
     "*-win_arm64",

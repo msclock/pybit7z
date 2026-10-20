@@ -141,18 +141,18 @@ PYBIND11_MODULE(_core, m, py::mod_gil_not_used()) {
         .def(
             "load_plugins",
             &bit7z::Bit7zLibrary::loadPlugins,
-            py::arg("codecs_path"),
-            py::arg("formats_path"),
+            py::arg("plugin_paths"),
             py::doc(
                 R"pbdoc(Loads external codec and format DLLs from the given folders and registers them with the 7-zip library.
 
-Follows the official 7-Zip LoadCodecs.cpp flow: the Codecs folder is scanned first, then the Formats folder.
-Every DLL is inspected for both codec exports and format-handler exports, so a single DLL can supply both
-codecs and archive handlers.
+Follows the official 7-Zip LoadCodecs.cpp flow: for each supplied folder the Codecs subfolder is scanned
+first, then the Formats subfolder. Every DLL is inspected for both codec exports and format-handler exports,
+so a single DLL can supply both codecs and archive handlers.
+
+Multiple folders can be supplied; they are scanned in order and the results are accumulated.
 
 Args:
-    codecs_path: the path to the folder containing the external codec DLLs.
-    formats_path: the path to the folder containing the external format handler DLLs.
+    plugin_paths: a list of paths to the folders containing the Codecs/ and Formats/ subfolders.
 
 Returns:
     True if at least one codec or format was successfully loaded, False otherwise.)pbdoc"))

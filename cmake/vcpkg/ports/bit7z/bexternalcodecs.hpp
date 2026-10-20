@@ -51,13 +51,17 @@ public:
     auto operator=(const CExternalCodecsInfo&) -> CExternalCodecsInfo& = delete;
     auto operator=(CExternalCodecsInfo&&) -> CExternalCodecsInfo& = delete;
 
-    // Follows the official 7-Zip LoadCodecs.cpp flow: scans the Codecs
-    // folder first, then the Formats folder.  Every DLL is inspected for
-    // both codec exports (GetNumberOfMethods / GetMethodProperty /
-    // CreateDecoder / CreateEncoder) and format-handler exports
-    // (CreateObject / GetNumberOfFormats / GetHandlerProperty2), so a
-    // single DLL can supply both codecs and archive handlers.
-    bool loadPlugins(const tstring& codecsPath, const tstring& formatsPath);
+    // Follows the official 7-Zip LoadCodecs.cpp flow: for each supplied
+    // folder the Codecs subfolder is scanned first, then the Formats
+    // subfolder.  Every DLL is inspected for both codec exports
+    // (GetNumberOfMethods / GetMethodProperty / CreateDecoder /
+    // CreateEncoder) and format-handler exports (CreateObject /
+    // GetNumberOfFormats / GetHandlerProperty2), so a single DLL can supply
+    // both codecs and archive handlers.
+    //
+    // Multiple folders can be supplied; they are scanned in order and the
+    // results are accumulated (append mode).
+    bool loadPlugins(const std::vector<tstring>& pluginPaths);
 
     std::vector<std::string> getCodecPaths() const;
     std::vector<BitFormatInfo> getFormats() const;
@@ -117,7 +121,7 @@ private:
     std::list<CInOutFormatEntry> m_inOutFormats;
 
     bool findCodec(UInt32 index, CPluginDll*& dll, UInt32& localIndex) const;
-    bool loadDllsFromFolder(const tstring& folderPath);
+    bool loadDllsFromFolder(const std::string& folderPath);
 };
 
 } // namespace bit7z

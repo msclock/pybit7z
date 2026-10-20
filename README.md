@@ -46,13 +46,28 @@ pip install pybit7z
 
 ## Quick Start
 
-All operations require a `Bit7zLibrary` instance. Use the `lib7zip_context()` context manager, which locates the bundled `lib7zip` and external plugins automatically:
+All operations require a `Bit7zLibrary` instance. Use the `lib7zip_context()` context manager, which locates the bundled `lib7zip` automatically:
 
 ```python
 import pybit7z
 
 with pybit7z.lib7zip_context() as lib:
     ...
+```
+
+### Loading External Plugins
+
+The bundled external codecs and format handlers (zstd, brotli, lz4, ...) are **not** loaded automatically by `lib7zip_context()`. Call `load_plugins()` with the plugin directory to register them. For each supplied path the library scans the `Codecs/` subfolder first, then the `Formats/` subfolder.
+
+```python
+import pybit7z
+
+with pybit7z.lib7zip_context() as lib:
+    # Load the plugins bundled with the package
+    lib.load_plugins([pybit7z.default_plugin_dir()])
+
+    # Multiple directories can be supplied; results are accumulated
+    # lib.load_plugins([pybit7z.default_plugin_dir(), "/path/to/more/plugins"])
 ```
 
 ### Extract Files from an Archive
@@ -167,38 +182,25 @@ try:
         # Printing archive metadata
         print(
             "Archive properties:",
-            "\n  Items count: ",
-            arc.items_count(),
-            "\n  Folders count: ",
-            arc.folders_count(),
-            "\n  Files count: ",
-            arc.files_count(),
-            "\n  Size: ",
-            arc.size(),
-            "\n  Packed size: ",
-            arc.pack_size(),
+            "\n  Items count: ", arc.items_count(),
+            "\n  Folders count: ", arc.folders_count(),
+            "\n  Files count: ", arc.files_count(),
+            "\n  Size: ", arc.size(),
+            "\n  Packed size: ", arc.pack_size(),
         )
 
         # Printing the metadata of the archived items
         print("Archived items")
         for item in arc:
             print(
-                "    Item index: ",
-                item.index(),
-                "\n    Name: ",
-                item.name(),
-                "\n    Extension: ",
-                item.extension(),
-                "\n    Path: ",
-                item.path(),
-                "\n    IsDir: ",
-                item.is_dir(),
-                "\n    Size: ",
-                item.size(),
-                "\n    Packed size: ",
-                item.pack_size(),
-                "\n    CRC: ",
-                item.crc(),
+                "    Item index: ", item.index(),
+                "\n    Name: ", item.name(),
+                "\n    Extension: ", item.extension(),
+                "\n    Path: ", item.path(),
+                "\n    IsDir: ", item.is_dir(),
+                "\n    Size: ", item.size(),
+                "\n    Packed size: ", item.pack_size(),
+                "\n    CRC: ", item.crc(),
             )
 except pybit7z.BitException as e:
     ...  # handle the exception
@@ -225,6 +227,15 @@ pybit7z test archive.7z
 
 # Show supported formats and codecs
 pybit7z info
+```
+
+The bundled external codecs and formats are loaded automatically. To load
+additional plugins from custom directories, use the `--plugin-dir` option
+(can be repeated). Each directory is scanned for `Codecs/` and `Formats/`
+subfolders:
+
+```bash
+pybit7z compress file.txt -o out.zst --plugin-dir /path/to/plugins
 ```
 
 Run `pybit7z --help` for the full option list (passwords, compression method, threads, volumes, filtering, stdin/stdout piping, and more).
@@ -255,7 +266,9 @@ Run `pybit7z info` to see the exact list available in your build.
 | **bsc** | codec | BSC (libbsc) compression |
 | **zpaq** | codec | ZPAQ compression |
 
-These are packaged inside the wheel and loaded automatically; no extra installation is required.
+These are packaged inside the wheel under the package's `Codecs/` and
+`Formats/` subdirectories. Call `lib.load_plugins([pybit7z.default_plugin_dir()])`
+to load them (the CLI does this automatically); no extra installation is required.
 
 ## Building from Source
 
