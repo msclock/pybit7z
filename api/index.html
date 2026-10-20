@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="prev" title="Welcome to pybit7z’s documentation" href="../index.html">
 
-    <link rel="shortcut icon" href="https://img.shields.io/badge/P-blue"><!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+    <link rel="shortcut icon" href="https://img.shields.io/badge/P-blue"><!-- Generated with Sphinx 9.1.1 and Furo 2025.12.19 -->
         <title>pybit7z package - pybit7z documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -312,17 +312,15 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pybit7z.Bit7zLibrary.load_plugins">
-<span class="sig-name descname"><span class="pre">load_plugins</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.Bit7zLibrary" title="pybit7z._core.Bit7zLibrary"><span class="pre">pybit7z._core.Bit7zLibrary</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">codecs_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">formats_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span></span><a class="headerlink" href="#pybit7z.Bit7zLibrary.load_plugins" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">load_plugins</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.Bit7zLibrary" title="pybit7z._core.Bit7zLibrary"><span class="pre">pybit7z._core.Bit7zLibrary</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">plugin_paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span></span><a class="headerlink" href="#pybit7z.Bit7zLibrary.load_plugins" title="Link to this definition">¶</a></dt>
 <dd><p>Loads external codec and format DLLs from the given folders and registers them with the 7-zip library.</p>
-<p>Follows the official 7-Zip LoadCodecs.cpp flow: the Codecs folder is scanned first, then the Formats folder.
-Every DLL is inspected for both codec exports and format-handler exports, so a single DLL can supply both
-codecs and archive handlers.</p>
+<p>Follows the official 7-Zip LoadCodecs.cpp flow: for each supplied folder the Codecs subfolder is scanned
+first, then the Formats subfolder. Every DLL is inspected for both codec exports and format-handler exports,
+so a single DLL can supply both codecs and archive handlers.</p>
+<p>Multiple folders can be supplied; they are scanned in order and the results are accumulated.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>codecs_path</strong> – the path to the folder containing the external codec DLLs.</p></li>
-<li><p><strong>formats_path</strong> – the path to the folder containing the external format handler DLLs.</p></li>
-</ul>
+<dd class="field-odd"><p><strong>plugin_paths</strong> – a list of paths to the folders containing the Codecs/ and Formats/ subfolders.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>True if at least one codec or format was successfully loaded, False otherwise.</p>
@@ -3515,34 +3513,6 @@ name: (optional) user-defined path to be used inside the output archive.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="pybit7z.default_codecs_dir">
-<span class="sig-prename descclassname"><span class="pre">pybit7z.</span></span><span class="sig-name descname"><span class="pre">default_codecs_dir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pybit7z.html#default_codecs_dir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pybit7z.default_codecs_dir" title="Link to this definition">¶</a></dt>
-<dd><p>Get the default external codecs directory under the package directory.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The default codecs directory path.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="pybit7z.default_formats_dir">
-<span class="sig-prename descclassname"><span class="pre">pybit7z.</span></span><span class="sig-name descname"><span class="pre">default_formats_dir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pybit7z.html#default_formats_dir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pybit7z.default_formats_dir" title="Link to this definition">¶</a></dt>
-<dd><p>Get the default external archive format handlers directory under the package directory.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The default formats directory path.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="pybit7z.default_lib7zip">
 <span class="sig-prename descclassname"><span class="pre">pybit7z.</span></span><span class="sig-name descname"><span class="pre">default_lib7zip</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pybit7z.html#default_lib7zip"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pybit7z.default_lib7zip" title="Link to this definition">¶</a></dt>
 <dd><p>Get the default lib7zip library path under the package directory.</p>
@@ -3552,6 +3522,21 @@ name: (optional) user-defined path to be used inside the output archive.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The default lib7zip library path.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pybit7z.default_plugin_dir">
+<span class="sig-prename descclassname"><span class="pre">pybit7z.</span></span><span class="sig-name descname"><span class="pre">default_plugin_dir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pybit7z.html#default_plugin_dir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pybit7z.default_plugin_dir" title="Link to this definition">¶</a></dt>
+<dd><p>Get the default directory containing the external Codecs/ and Formats/
+plugin subdirectories under the package directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The default plugin directory path.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -4066,9 +4051,8 @@ name: (optional) user-defined path to be used inside the output archive.</p>
 <li><a class="reference internal" href="#pybit7z.UpdateMode.value"><code class="docutils literal notranslate"><span class="pre">UpdateMode.value</span></code></a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#pybit7z.default_codecs_dir"><code class="docutils literal notranslate"><span class="pre">default_codecs_dir()</span></code></a></li>
-<li><a class="reference internal" href="#pybit7z.default_formats_dir"><code class="docutils literal notranslate"><span class="pre">default_formats_dir()</span></code></a></li>
 <li><a class="reference internal" href="#pybit7z.default_lib7zip"><code class="docutils literal notranslate"><span class="pre">default_lib7zip()</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.default_plugin_dir"><code class="docutils literal notranslate"><span class="pre">default_plugin_dir()</span></code></a></li>
 <li><a class="reference internal" href="#pybit7z.lib7zip_context"><code class="docutils literal notranslate"><span class="pre">lib7zip_context()</span></code></a></li>
 </ul>
 </li>

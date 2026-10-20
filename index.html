@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="next" title="pybit7z package" href="api/index.html">
 
-    <link rel="shortcut icon" href="https://img.shields.io/badge/P-blue"><!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+    <link rel="shortcut icon" href="https://img.shields.io/badge/P-blue"><!-- Generated with Sphinx 9.1.1 and Furo 2025.12.19 -->
         <title>pybit7z documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
@@ -283,13 +283,27 @@
 </section>
 <section id="quick-start">
 <h2>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading">¶</a></h2>
-<p>All operations require a <code class="docutils literal notranslate"><span class="pre">Bit7zLibrary</span></code> instance. Use the <code class="docutils literal notranslate"><span class="pre">lib7zip_context()</span></code> context manager, which locates the bundled <code class="docutils literal notranslate"><span class="pre">lib7zip</span></code> and external plugins automatically:</p>
+<p>All operations require a <code class="docutils literal notranslate"><span class="pre">Bit7zLibrary</span></code> instance. Use the <code class="docutils literal notranslate"><span class="pre">lib7zip_context()</span></code> context manager, which locates the bundled <code class="docutils literal notranslate"><span class="pre">lib7zip</span></code> automatically:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pybit7z</span>
 
 <span class="k">with</span> <span class="n">pybit7z</span><span class="o">.</span><span class="n">lib7zip_context</span><span class="p">()</span> <span class="k">as</span> <span class="n">lib</span><span class="p">:</span>
     <span class="o">...</span>
 </pre></div>
 </div>
+<section id="loading-external-plugins">
+<h3>Loading External Plugins<a class="headerlink" href="#loading-external-plugins" title="Link to this heading">¶</a></h3>
+<p>The bundled external codecs and format handlers (zstd, brotli, lz4, …) are <strong>not</strong> loaded automatically by <code class="docutils literal notranslate"><span class="pre">lib7zip_context()</span></code>. Call <code class="docutils literal notranslate"><span class="pre">load_plugins()</span></code> with the plugin directory to register them. For each supplied path the library scans the <code class="docutils literal notranslate"><span class="pre">Codecs/</span></code> subfolder first, then the <code class="docutils literal notranslate"><span class="pre">Formats/</span></code> subfolder.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pybit7z</span>
+
+<span class="k">with</span> <span class="n">pybit7z</span><span class="o">.</span><span class="n">lib7zip_context</span><span class="p">()</span> <span class="k">as</span> <span class="n">lib</span><span class="p">:</span>
+    <span class="c1"># Load the plugins bundled with the package</span>
+    <span class="n">lib</span><span class="o">.</span><span class="n">load_plugins</span><span class="p">([</span><span class="n">pybit7z</span><span class="o">.</span><span class="n">default_plugin_dir</span><span class="p">()])</span>
+
+    <span class="c1"># Multiple directories can be supplied; results are accumulated</span>
+    <span class="c1"># lib.load_plugins([pybit7z.default_plugin_dir(), "/path/to/more/plugins"])</span>
+</pre></div>
+</div>
+</section>
 <section id="extract-files-from-an-archive">
 <h3>Extract Files from an Archive<a class="headerlink" href="#extract-files-from-an-archive" title="Link to this heading">¶</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pybit7z</span>
@@ -397,38 +411,25 @@
         <span class="c1"># Printing archive metadata</span>
         <span class="nb">print</span><span class="p">(</span>
             <span class="s2">"Archive properties:"</span><span class="p">,</span>
-            <span class="s2">"</span><span class="se">\n</span><span class="s2">  Items count: "</span><span class="p">,</span>
-            <span class="n">arc</span><span class="o">.</span><span class="n">items_count</span><span class="p">(),</span>
-            <span class="s2">"</span><span class="se">\n</span><span class="s2">  Folders count: "</span><span class="p">,</span>
-            <span class="n">arc</span><span class="o">.</span><span class="n">folders_count</span><span class="p">(),</span>
-            <span class="s2">"</span><span class="se">\n</span><span class="s2">  Files count: "</span><span class="p">,</span>
-            <span class="n">arc</span><span class="o">.</span><span class="n">files_count</span><span class="p">(),</span>
-            <span class="s2">"</span><span class="se">\n</span><span class="s2">  Size: "</span><span class="p">,</span>
-            <span class="n">arc</span><span class="o">.</span><span class="n">size</span><span class="p">(),</span>
-            <span class="s2">"</span><span class="se">\n</span><span class="s2">  Packed size: "</span><span class="p">,</span>
-            <span class="n">arc</span><span class="o">.</span><span class="n">pack_size</span><span class="p">(),</span>
+            <span class="s2">"</span><span class="se">\n</span><span class="s2">  Items count: "</span><span class="p">,</span> <span class="n">arc</span><span class="o">.</span><span class="n">items_count</span><span class="p">(),</span>
+            <span class="s2">"</span><span class="se">\n</span><span class="s2">  Folders count: "</span><span class="p">,</span> <span class="n">arc</span><span class="o">.</span><span class="n">folders_count</span><span class="p">(),</span>
+            <span class="s2">"</span><span class="se">\n</span><span class="s2">  Files count: "</span><span class="p">,</span> <span class="n">arc</span><span class="o">.</span><span class="n">files_count</span><span class="p">(),</span>
+            <span class="s2">"</span><span class="se">\n</span><span class="s2">  Size: "</span><span class="p">,</span> <span class="n">arc</span><span class="o">.</span><span class="n">size</span><span class="p">(),</span>
+            <span class="s2">"</span><span class="se">\n</span><span class="s2">  Packed size: "</span><span class="p">,</span> <span class="n">arc</span><span class="o">.</span><span class="n">pack_size</span><span class="p">(),</span>
         <span class="p">)</span>
 
         <span class="c1"># Printing the metadata of the archived items</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">"Archived items"</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">arc</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span>
-                <span class="s2">"    Item index: "</span><span class="p">,</span>
-                <span class="n">item</span><span class="o">.</span><span class="n">index</span><span class="p">(),</span>
-                <span class="s2">"</span><span class="se">\n</span><span class="s2">    Name: "</span><span class="p">,</span>
-                <span class="n">item</span><span class="o">.</span><span class="n">name</span><span class="p">(),</span>
-                <span class="s2">"</span><span class="se">\n</span><span class="s2">    Extension: "</span><span class="p">,</span>
-                <span class="n">item</span><span class="o">.</span><span class="n">extension</span><span class="p">(),</span>
-                <span class="s2">"</span><span class="se">\n</span><span class="s2">    Path: "</span><span class="p">,</span>
-                <span class="n">item</span><span class="o">.</span><span class="n">path</span><span class="p">(),</span>
-                <span class="s2">"</span><span class="se">\n</span><span class="s2">    IsDir: "</span><span class="p">,</span>
-                <span class="n">item</span><span class="o">.</span><span class="n">is_dir</span><span class="p">(),</span>
-                <span class="s2">"</span><span class="se">\n</span><span class="s2">    Size: "</span><span class="p">,</span>
-                <span class="n">item</span><span class="o">.</span><span class="n">size</span><span class="p">(),</span>
-                <span class="s2">"</span><span class="se">\n</span><span class="s2">    Packed size: "</span><span class="p">,</span>
-                <span class="n">item</span><span class="o">.</span><span class="n">pack_size</span><span class="p">(),</span>
-                <span class="s2">"</span><span class="se">\n</span><span class="s2">    CRC: "</span><span class="p">,</span>
-                <span class="n">item</span><span class="o">.</span><span class="n">crc</span><span class="p">(),</span>
+                <span class="s2">"    Item index: "</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">index</span><span class="p">(),</span>
+                <span class="s2">"</span><span class="se">\n</span><span class="s2">    Name: "</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">name</span><span class="p">(),</span>
+                <span class="s2">"</span><span class="se">\n</span><span class="s2">    Extension: "</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">extension</span><span class="p">(),</span>
+                <span class="s2">"</span><span class="se">\n</span><span class="s2">    Path: "</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">path</span><span class="p">(),</span>
+                <span class="s2">"</span><span class="se">\n</span><span class="s2">    IsDir: "</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">is_dir</span><span class="p">(),</span>
+                <span class="s2">"</span><span class="se">\n</span><span class="s2">    Size: "</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">size</span><span class="p">(),</span>
+                <span class="s2">"</span><span class="se">\n</span><span class="s2">    Packed size: "</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">pack_size</span><span class="p">(),</span>
+                <span class="s2">"</span><span class="se">\n</span><span class="s2">    CRC: "</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">crc</span><span class="p">(),</span>
             <span class="p">)</span>
 <span class="k">except</span> <span class="n">pybit7z</span><span class="o">.</span><span class="n">BitException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
     <span class="o">...</span>  <span class="c1"># handle the exception</span>
@@ -454,6 +455,13 @@ pybit7z<span class="w"> </span><span class="nb">test</span><span class="w"> </sp
 
 <span class="c1"># Show supported formats and codecs</span>
 pybit7z<span class="w"> </span>info
+</pre></div>
+</div>
+<p>The bundled external codecs and formats are loaded automatically. To load
+additional plugins from custom directories, use the <code class="docutils literal notranslate"><span class="pre">--plugin-dir</span></code> option
+(can be repeated). Each directory is scanned for <code class="docutils literal notranslate"><span class="pre">Codecs/</span></code> and <code class="docutils literal notranslate"><span class="pre">Formats/</span></code>
+subfolders:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pybit7z<span class="w"> </span>compress<span class="w"> </span>file.txt<span class="w"> </span>-o<span class="w"> </span>out.zst<span class="w"> </span>--plugin-dir<span class="w"> </span>/path/to/plugins
 </pre></div>
 </div>
 <p>Run <code class="docutils literal notranslate"><span class="pre">pybit7z</span> <span class="pre">--help</span></code> for the full option list (passwords, compression method, threads, volumes, filtering, stdin/stdout piping, and more).</p>
@@ -516,7 +524,9 @@ Run <code class="docutils literal notranslate"><span class="pre">pybit7z</span> 
 </tbody>
 </table>
 </div>
-<p>These are packaged inside the wheel and loaded automatically; no extra installation is required.</p>
+<p>These are packaged inside the wheel under the package’s <code class="docutils literal notranslate"><span class="pre">Codecs/</span></code> and
+<code class="docutils literal notranslate"><span class="pre">Formats/</span></code> subdirectories. Call <code class="docutils literal notranslate"><span class="pre">lib.load_plugins([pybit7z.default_plugin_dir()])</span></code>
+to load them (the CLI does this automatically); no extra installation is required.</p>
 </section>
 </section>
 <section id="building-from-source">
@@ -638,6 +648,7 @@ pre-commit<span class="w"> </span>run<span class="w"> </span>-a
 <li><a class="reference internal" href="#features">Features</a></li>
 <li><a class="reference internal" href="#installation">Installation</a></li>
 <li><a class="reference internal" href="#quick-start">Quick Start</a><ul>
+<li><a class="reference internal" href="#loading-external-plugins">Loading External Plugins</a></li>
 <li><a class="reference internal" href="#extract-files-from-an-archive">Extract Files from an Archive</a></li>
 <li><a class="reference internal" href="#compress-files-into-an-archive">Compress Files into an Archive</a></li>
 <li><a class="reference internal" href="#read-archive-metadata">Read Archive Metadata</a></li>
