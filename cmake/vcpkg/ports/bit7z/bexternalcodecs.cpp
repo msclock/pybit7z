@@ -29,21 +29,25 @@ namespace bit7z {
 
 CExternalCodecsInfo::~CExternalCodecsInfo() = default;
 
-bool CExternalCodecsInfo::loadPlugins(const tstring& codecsPath, const tstring& formatsPath) {
+bool CExternalCodecsInfo::loadPlugins(const std::vector<tstring>& pluginPaths) {
     m_pluginDlls.clear();
     m_formats.clear();
     m_inFormats.clear();
     m_inOutFormats.clear();
     m_totalMethods = 0;
 
-    // Follow the official 7-Zip LoadCodecs.cpp order: Codecs first, Formats second.
-    loadDllsFromFolder(codecsPath);
-    loadDllsFromFolder(formatsPath);
+    // Follow the official 7-Zip LoadCodecs.cpp order: for each supplied
+    // folder, scan the Codecs subfolder first, then the Formats subfolder.
+    for (const auto& basePath : pluginPaths) {
+        const fs::path base(basePath);
+        loadDllsFromFolder((base / "Codecs").string());
+        loadDllsFromFolder((base / "Formats").string());
+    }
 
     return m_totalMethods > 0 || !m_formats.empty();
 }
 
-bool CExternalCodecsInfo::loadDllsFromFolder(const tstring& folderPath) {
+bool CExternalCodecsInfo::loadDllsFromFolder(const std::string& folderPath) {
     fs::path dir(folderPath);
     if (!fs::exists(dir) || !fs::is_directory(dir)) {
         return false;

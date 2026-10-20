@@ -17,19 +17,17 @@ file(COPY "${CMAKE_CURRENT_LIST_DIR}/bitformatinfo.hpp" DESTINATION "${SOURCE_PA
 
 # Register new source files in CMakeLists.txt
 vcpkg_replace_string("${SOURCE_PATH}/CMakeLists.txt"
-    "        src/internal/failuresourcecategory.cpp"
-    "        src/internal/failuresourcecategory.cpp\n        src/internal/bexternalcodecs.cpp"
+    [[src/internal/failuresourcecategory.cpp]]
+    [[src/internal/failuresourcecategory.cpp
+        src/internal/bexternalcodecs.cpp
+        src/internal/bexternalcodecs.hpp]]
 )
 
 # Register the public header in PUBLIC_HEADERS list so it gets installed
 vcpkg_replace_string("${SOURCE_PATH}/CMakeLists.txt"
-    "        include/bit7z/bit7z.hpp"
-    "        include/bit7z/bit7z.hpp\n        include/bit7z/bitformatinfo.hpp"
-)
-vcpkg_replace_string("${SOURCE_PATH}/CMakeLists.txt"
-    "        src/internal/bufferutil.hpp"
-    "        src/internal/bufferutil.hpp
-        src/internal/bexternalcodecs.hpp"
+    [[include/bit7z/bit7z.hpp]]
+    [[include/bit7z/bit7z.hpp
+        include/bit7z/bitformatinfo.hpp]]
 )
 
 # Add loadPlugins / getFormats / getCodecs / ... methods to Bit7zLibrary public API
@@ -40,18 +38,19 @@ vcpkg_replace_string("${SOURCE_PATH}/include/bit7z/bit7zlibrary.hpp"
          * @brief Loads external codec and format DLLs from the given folders and
          *        registers them with the 7-zip library.
          *
-         * Follows the official 7-Zip LoadCodecs.cpp flow: the Codecs folder is
-         * scanned first, then the Formats folder.  Every DLL is inspected for
-         * both codec exports (GetNumberOfMethods / GetMethodProperty /
-         * CreateDecoder / CreateEncoder) and format-handler exports
-         * (CreateObject / GetNumberOfFormats / GetHandlerProperty2), so a
-         * single DLL can supply both codecs and archive handlers.
+         * Follows the official 7-Zip LoadCodecs.cpp flow: for each supplied
+         * folder the Codecs subfolder is scanned first, then the Formats
+         * subfolder.  Every DLL is inspected for both codec exports
+         * (GetNumberOfMethods / GetMethodProperty / CreateDecoder /
+         * CreateEncoder) and format-handler exports (CreateObject /
+         * GetNumberOfFormats / GetHandlerProperty2), so a single DLL can
+         * supply both codecs and archive handlers.
          *
-         * @param codecsPath   the path to the folder containing codec DLLs.
-         * @param formatsPath  the path to the folder containing format handler DLLs.
+         * @param pluginPaths  the paths to the folders containing the Codecs/
+         *                     and Formats/ subfolders.
          * @return true if at least one codec or format was successfully loaded.
          */
-        bool loadPlugins( const tstring& codecsPath, const tstring& formatsPath );
+        bool loadPlugins( const std::vector< tstring >& pluginPaths );
 
         /**
          * @brief Enumerates all archive formats supported by the loaded 7-zip library.
@@ -107,9 +106,9 @@ vcpkg_replace_string("${SOURCE_PATH}/include/bit7z/bit7zlibrary.hpp"
 
 # Add include and implementation in bit7zlibrary.cpp
 vcpkg_replace_string("${SOURCE_PATH}/src/bit7zlibrary.cpp"
-    "#include \"bit7zlibrary.hpp\""
-    "#include \"bit7zlibrary.hpp\"
-#include \"internal/bexternalcodecs.hpp\""
+    [[#include "bit7zlibrary.hpp"]]
+    [[#include "bit7zlibrary.hpp"
+#include "internal/bexternalcodecs.hpp"]]
 )
 vcpkg_replace_string("${SOURCE_PATH}/src/bit7zlibrary.cpp"
     "using CreateObjectFunc = HRESULT (WINAPI*)( const GUID* clsID"
@@ -141,7 +140,7 @@ Bit7zLibrary::~Bit7zLibrary() {
     releaseExternalCodecs();
 }
 
-bool Bit7zLibrary::loadPlugins( const tstring& codecsPath, const tstring& formatsPath ) {
+bool Bit7zLibrary::loadPlugins( const std::vector< tstring >& pluginPaths ) {
     using SetCodecsFunc = HRESULT ( WINAPI* )( ICompressCodecsInfo* );
     SetCodecsFunc pSetCodecs = nullptr;
     try {
@@ -154,7 +153,7 @@ bool Bit7zLibrary::loadPlugins( const tstring& codecsPath, const tstring& format
         mExternalCodecs = new CExternalCodecsInfo();
     }
 
-    if ( !mExternalCodecs->loadPlugins( codecsPath, formatsPath ) ) {
+    if ( !mExternalCodecs->loadPlugins( pluginPaths ) ) {
         return false;
     }
 
@@ -255,8 +254,8 @@ vcpkg_replace_string("${SOURCE_PATH}/include/bit7z/bitabstractarchivecreator.hpp
 # cleanup ordering during Python process shutdown otherwise triggers
 # use-after-free / heap corruption in dlclose.
 vcpkg_replace_string("${SOURCE_PATH}/src/bitsharedlibrary.cpp"
-    "dlopen( (lib_name), RTLD_LAZY )"
-    "dlopen( (lib_name), RTLD_LAZY | RTLD_LOCAL | RTLD_NODELETE )"
+    [[dlopen( (lib_name), RTLD_LAZY )]]
+    [[dlopen( (lib_name), RTLD_LAZY | RTLD_LOCAL | RTLD_NODELETE )]]
 )
 vcpkg_check_features(
     OUT_FEATURE_OPTIONS FEATURE_OPTIONS
@@ -266,6 +265,9 @@ vcpkg_check_features(
 
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
+    MAYBE_UNUSED_VARIABLES
+        BIT7Z_USE_SYSTEM_CODEPAGE
+        BIT7Z_AUTO_PREFIX_LONG_PATHS
     OPTIONS
         -DCMAKE_POSITION_INDEPENDENT_CODE=ON
         -DBIT7Z_USE_SYSTEM_DEPENDENCIES=ON

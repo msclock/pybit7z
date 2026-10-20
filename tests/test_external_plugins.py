@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import tempfile
-from importlib.metadata import distribution
 from pathlib import Path
 
 import pytest
@@ -28,19 +27,14 @@ _FORMAT_BUNDLED_CODEC_NAMES = ("zstd", "brotli", "lz4", "lz5", "lizard")
 EXPECTED_CODEC_FILES = {f"{name.lower()}" for name in _CODEC_ONLY_NAMES}
 
 
-def _codecs_dir() -> Path:
-    package_dir = Path(str(distribution("pybit7z").locate_file("pybit7z")))
-    return package_dir / "Codecs"
-
-
-def _formats_dir() -> Path:
-    package_dir = Path(str(distribution("pybit7z").locate_file("pybit7z")))
-    return package_dir / "Formats"
+@pytest.fixture
+def plugin_dir() -> Path:
+    return Path(pybit7z.default_plugin_dir())
 
 
 @pytest.fixture
-def codecs_dir() -> Path:
-    return _codecs_dir()
+def codecs_dir(plugin_dir: Path) -> Path:
+    return plugin_dir / "Codecs"
 
 
 @pytest.fixture
@@ -58,14 +52,14 @@ def sample_binary_file(tmp_path: Path) -> Path:
 
 
 @pytest.fixture
-def formats_dir() -> Path:
-    return _formats_dir()
+def formats_dir(plugin_dir: Path) -> Path:
+    return plugin_dir / "Formats"
 
 
 @pytest.fixture
-def lib_with_codecs(codecs_dir: Path, formats_dir: Path):
+def lib_with_codecs(plugin_dir: Path):
     with pybit7z.lib7zip_context() as lib:
-        lib.load_plugins(str(codecs_dir), str(formats_dir))
+        lib.load_plugins([str(plugin_dir)])
         yield lib
 
 
@@ -91,26 +85,25 @@ def test_codecs_directory_exists(codecs_dir: Path):
     assert not missing, f"Missing codec libraries: {sorted(missing)}"
 
 
-def test_load_plugins_codecs_valid_path(codecs_dir: Path, formats_dir: Path):
+def test_load_plugins_codecs_valid_path(plugin_dir: Path):
     """Loading external codecs from the valid Codecs folder returns True."""
     with pybit7z.lib7zip_context() as lib:
-        result = lib.load_plugins(str(codecs_dir), str(formats_dir))
+        result = lib.load_plugins([str(plugin_dir)])
         assert result is True
 
 
-def test_load_plugins_codecs_nonexistent_path(codecs_dir: Path, formats_dir: Path):
+def test_load_plugins_codecs_nonexistent_path(plugin_dir: Path):
     """Loading from non-existent folders returns False."""
-    bad_codecs = codecs_dir.parent / "does_not_exist_codecs"
-    bad_formats = formats_dir.parent / "does_not_exist_formats"
+    bad_dir = plugin_dir / "does_not_exist_plugins"
     with pybit7z.lib7zip_context() as lib:
-        result = lib.load_plugins(str(bad_codecs), str(bad_formats))
+        result = lib.load_plugins([str(bad_dir)])
         assert result is False
 
 
 def test_load_plugins_codecs_empty_directory():
     """Loading from an empty directory returns False."""
     with tempfile.TemporaryDirectory() as empty_dir, pybit7z.lib7zip_context() as lib:
-        result = lib.load_plugins(empty_dir, empty_dir)
+        result = lib.load_plugins([empty_dir])
         assert result is False
 
 
@@ -119,7 +112,7 @@ def test_load_plugins_codecs_path_is_file(tmp_path: Path):
     a_file = tmp_path / "not_a_dir.txt"
     a_file.write_text("hello")
     with pybit7z.lib7zip_context() as lib:
-        result = lib.load_plugins(str(a_file), str(a_file))
+        result = lib.load_plugins([str(a_file)])
         assert result is False
 
 
@@ -127,16 +120,14 @@ def test_load_plugins_codecs_directory_without_dlls(tmp_path: Path):
     """Loading from a directory that has files but no codec libraries returns False."""
     (tmp_path / "readme.txt").write_text("no codecs here")
     with pybit7z.lib7zip_context() as lib:
-        result = lib.load_plugins(str(tmp_path), str(tmp_path))
+        result = lib.load_plugins([str(tmp_path)])
         assert result is False
 
 
-def test_load_plugins_multiple_times(
-    lib_with_codecs, codecs_dir: Path, formats_dir: Path
-):
+def test_load_plugins_multiple_times(lib_with_codecs, plugin_dir: Path):
     """Calling load_plugins multiple times on the same library must not crash."""
-    first = lib_with_codecs.load_plugins(str(codecs_dir), str(formats_dir))
-    second = lib_with_codecs.load_plugins(str(codecs_dir), str(formats_dir))
+    first = lib_with_codecs.load_plugins([str(plugin_dir)])
+    second = lib_with_codecs.load_plugins([str(plugin_dir)])
     assert first is True
     assert second is True
 
@@ -357,9 +348,9 @@ _EXTERNAL_FORMAT_NAMES = ("zstd", "brotli", "lz4", "lz5", "lizard")
 
 
 @pytest.fixture
-def lib_with_formats(codecs_dir: Path, formats_dir: Path):
+def lib_with_formats(plugin_dir: Path):
     with pybit7z.lib7zip_context() as lib:
-        lib.load_plugins(str(codecs_dir), str(formats_dir))
+        lib.load_plugins([str(plugin_dir)])
         yield lib
 
 
@@ -372,26 +363,25 @@ def test_formats_directory_exists(formats_dir: Path):
     assert not missing, f"Missing format handler libraries: {sorted(missing)}"
 
 
-def test_load_plugins_valid_path(codecs_dir: Path, formats_dir: Path):
+def test_load_plugins_valid_path(plugin_dir: Path):
     """Loading external plugins from the valid Codecs/Formats folders returns True."""
     with pybit7z.lib7zip_context() as lib:
-        result = lib.load_plugins(str(codecs_dir), str(formats_dir))
+        result = lib.load_plugins([str(plugin_dir)])
         assert result is True
 
 
-def test_load_plugins_nonexistent_path(codecs_dir: Path, formats_dir: Path):
+def test_load_plugins_nonexistent_path(plugin_dir: Path):
     """Loading from non-existent folders returns False."""
-    bad_codecs = codecs_dir.parent / "does_not_exist_codecs"
-    bad_formats = formats_dir.parent / "does_not_exist_formats"
+    bad_dir = plugin_dir / "does_not_exist_plugins"
     with pybit7z.lib7zip_context() as lib:
-        result = lib.load_plugins(str(bad_codecs), str(bad_formats))
+        result = lib.load_plugins([str(bad_dir)])
         assert result is False
 
 
 def test_load_plugins_empty_directory():
     """Loading from empty directories returns False."""
     with tempfile.TemporaryDirectory() as empty_dir, pybit7z.lib7zip_context() as lib:
-        result = lib.load_plugins(empty_dir, empty_dir)
+        result = lib.load_plugins([empty_dir])
         assert result is False
 
 

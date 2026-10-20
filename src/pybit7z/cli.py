@@ -35,8 +35,7 @@ from . import (
     OverwriteMode,
     UpdateMode,
     _core,
-    default_codecs_dir,
-    default_formats_dir,
+    default_plugin_dir,
     lib7zip_context,
 )
 
@@ -121,10 +120,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "-f",
         "--format",
-        choices=list(WRITABLE_FORMATS.keys()) + list(READABLE_FORMATS.keys()),
         default="auto",
         help="Archive format (auto-detect for read operations). "
-        f"Writable: {', '.join(WRITABLE_FORMATS)}.",
+        f"Built-in writable: {', '.join(WRITABLE_FORMATS)}. "
+        "External formats loaded from plugins are also supported "
+        "(run 'info' to list all available formats).",
     )
     output_group = parser.add_mutually_exclusive_group()
     output_group.add_argument(
@@ -262,12 +262,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="Show compression ratio during progress",
     )
     parser.add_argument(
-        "--codecs-dir",
+        "--plugin-dir",
         action="append",
         default=None,
         metavar="DIR",
-        help="Additional directory containing external codec DLLs to load. "
-        "Can be repeated. Bundled codecs are always loaded automatically.",
+        help="Additional directory containing external codec/format plugins to load. "
+        "Can be repeated. For each directory the Codecs/ and Formats/ subfolders "
+        "are scanned. Bundled plugins are always loaded automatically.",
     )
 
     # Extract-specific options
@@ -343,15 +344,25 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def _load_codecs(lib: Bit7zLibrary, extra_dirs: Optional[list[str]] = None) -> None:
-    """Load bundled external codecs and format handlers plus any user-specified directories."""
-    codecs_dir = default_codecs_dir()
-    formats_dir = default_formats_dir()
-    if Path(codecs_dir).is_dir() or Path(formats_dir).is_dir():
-        lib.load_plugins(codecs_dir, formats_dir)
+    """Load bundled external codecs and format handlers plus any user-specified directories.
+
+    All directories are passed to :meth:`Bit7zLibrary.load_plugins` in a single
+    call. For each directory the library scans the ``Codecs/`` subfolder first,
+    then the ``Formats/`` subfolder, accumulating the results.
+    """
+    plugin_paths: list[str] = []
+
+    plugin_dir = Path(default_plugin_dir())
+    if plugin_dir.is_dir():
+        plugin_paths.append(str(plugin_dir))
+
     if extra_dirs:
         for d in extra_dirs:
             if Path(d).is_dir():
-                lib.load_plugins(d, d)
+                plugin_paths.append(d)
+
+    if plugin_paths:
+        lib.load_plugins(plugin_paths)
 
 
 def main(argv: Optional[list[str]] = None) -> None:
@@ -371,7 +382,7 @@ def main(argv: Optional[list[str]] = None) -> None:
     # 'info' without an archive path shows library info.
     if args.action == "info" and not args.paths:
         with lib7zip_context() as lib:
-            _load_codecs(lib, args.codecs_dir)
+            _load_codecs(lib, args.plugin_dir)
             show_library_info(lib)
         return
 
@@ -394,7 +405,8 @@ def main(argv: Optional[list[str]] = None) -> None:
 
     try:
         with lib7zip_context() as lib:
-            _load_codecs(lib, args.codecs_dir)
+            _load_codecs(lib, args.plugin_dir)
+            _validate_format(parser, lib, args)
 
             if args.action == "compress":
                 compress(lib, args)
@@ -413,11 +425,121 @@ def main(argv: Optional[list[str]] = None) -> None:
         sys.exit(1)
 
 
-def _resolve_read_format(args: argparse.Namespace) -> Any:
-    """Resolve the read format: 'auto' -> FormatAuto, else the writable format."""
-    if args.format in READABLE_FORMATS:
-        return READABLE_FORMATS[args.format]
-    return WRITABLE_FORMATS[args.format]
+def _validate_format(
+    parser: argparse.ArgumentParser, lib: Bit7zLibrary, args: argparse.Namespace
+) -> None:
+    """Validate that ``args.format`` is a known (built-in or loaded external) format.
+
+    External formats are discovered at runtime after loading plugin DLLs, so
+    this check cannot be performed by argparse's static ``choices`` and must
+    happen here. Invalid values produce an argparse-style error.
+    """
+    if args.format == "auto":
+        return
+    valid = _available_format_names(lib)
+    if args.format not in valid:
+        parser.error(
+            f"argument -f/--format: invalid choice: '{args.format}' "
+            f"(choose from {', '.join(valid)})"
+        )
+
+
+def _available_format_names(lib: Bit7zLibrary) -> list[str]:
+    """Return all available format names: built-in writable + externally loaded.
+
+    External formats are discovered at runtime from the loaded 7-zip format
+    DLLs (see :func:`Bit7zLibrary.get_formats`). Only formats that support
+    update (``update=True``) are included, as they are the writable ones.
+    """
+    names: set[str] = set(WRITABLE_FORMATS.keys())
+    names.update(READABLE_FORMATS.keys())
+    for f in lib.get_formats():
+        if f.update:
+            names.add(f.name.lower())
+    return sorted(names)
+
+
+def _resolve_writable_format(lib: Bit7zLibrary, name: str) -> BitInOutFormat:
+    """Resolve a format name to a ``BitInOutFormat``.
+
+    Built-in formats are looked up in :data:`WRITABLE_FORMATS`; otherwise the
+    external format registry of the loaded 7-zip library is consulted.
+    """
+    fmt = WRITABLE_FORMATS.get(name)
+    if fmt is not None:
+        return fmt
+    external: Optional[BitInOutFormat] = lib.get_external_in_out_format(name)
+    if external is not None:
+        return external
+    available = _available_format_names(lib)
+    msg = f"Unsupported format '{name}'. Available formats: {', '.join(available)}"
+    raise ValueError(msg)
+
+
+def _resolve_format_from_extension(lib: Bit7zLibrary, ext: str) -> Optional[str]:
+    """Resolve a file extension to a format name.
+
+    Built-in extensions are looked up in :data:`EXTENSION_MAP`; otherwise the
+    formats loaded from external format DLLs are scanned for a matching
+    extension. Each format's ``extension`` field may contain multiple
+    space-separated extensions (e.g. ``"br brotli tbr"``).
+    """
+    if ext in EXTENSION_MAP:
+        return EXTENSION_MAP[ext]
+    ext_clean = ext.lstrip(".").lower()
+    for f in lib.get_formats():
+        if not f.update:
+            continue
+        for token in f.extension.lower().split():
+            if token == ext_clean:
+                return f.name.lower()
+        for token in f.add_extension.lower().split():
+            if token == ext_clean and token != "*":
+                return f.name.lower()
+    return None
+
+
+def _is_external_format(name: str) -> bool:
+    """Return True if the format name is not a built-in writable format.
+
+    External formats are loaded dynamically from format DLLs, so any name not
+    present in :data:`WRITABLE_FORMATS` is treated as external.
+    """
+    return name not in WRITABLE_FORMATS
+
+
+def _resolve_read_format(lib: Bit7zLibrary, args: argparse.Namespace) -> Any:
+    """Resolve the read format for an archive path.
+
+    ``auto`` first attempts extension-based detection (needed for formats
+    without a magic-number signature such as brotli/lz4), then falls back to
+    ``FormatAuto`` for signature-based detection.
+    """
+    if args.format not in READABLE_FORMATS:
+        if args.format in WRITABLE_FORMATS:
+            return WRITABLE_FORMATS[args.format]
+        external = lib.get_external_in_out_format(args.format)
+        if external is not None:
+            return external
+        in_fmt = lib.get_external_in_format(args.format)
+        if in_fmt is not None:
+            return in_fmt
+        return FormatAuto
+
+    # 'auto' mode: try extension-based detection first, then signature-based.
+    if args.paths:
+        ext = Path(args.paths[0]).suffix.lower()
+        fmt_name = _resolve_format_from_extension(lib, ext)
+        if fmt_name is not None:
+            if fmt_name in WRITABLE_FORMATS:
+                return WRITABLE_FORMATS[fmt_name]
+            external = lib.get_external_in_out_format(fmt_name)
+            if external is not None:
+                return external
+            in_fmt = lib.get_external_in_format(fmt_name)
+            if in_fmt is not None:
+                return in_fmt
+    return FormatAuto
 
 
 class _ProgressHelper:
@@ -609,14 +731,13 @@ def compress(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
     if fmt_name == "auto":
         if args.output and args.output != "-":
             ext = Path(args.output).suffix.lower()
-            fmt_name = EXTENSION_MAP.get(ext, "7z")
+            resolved = _resolve_format_from_extension(lib, ext)
+            fmt_name = resolved if resolved else "7z"
         else:
             fmt_name = "7z"
 
-    fmt = WRITABLE_FORMATS[fmt_name]
-    assert isinstance(fmt, BitInOutFormat), (
-        f"Format {fmt_name} is not supported for compression"
-    )
+    fmt = _resolve_writable_format(lib, fmt_name)
+    is_external = _is_external_format(fmt_name)
 
     writer = BitArchiveWriter(lib, fmt)
 
@@ -630,27 +751,35 @@ def compress(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
     writer.set_overwrite_mode(getattr(OverwriteMode, args.overwrite))
 
     if args.method:
-        external_codecs = {
-            c.name for c in lib.get_codecs() if c.is_external and c.encoder
-        }
-        method_lower = args.method.lower()
-        external_lower = {name.lower(): name for name in external_codecs}
-        if method_lower in external_lower:
-            # External codecs (brotli, zstd, lz4, ...) are used via the Copy
-            # method plus a format property that selects the codec by name.
-            writer.set_compression_method(BitCompressionMethod.Copy)
-            writer.set_format_property(
-                "0", BitPropVariant(external_lower[method_lower])
-            )
-        elif hasattr(BitCompressionMethod, args.method):
-            writer.set_compression_method(getattr(BitCompressionMethod, args.method))
+        if is_external:
+            # Standalone external formats (e.g. brotli, zstd) use a fixed
+            # compression algorithm; --method only applies to container
+            # formats such as 7z/zip.
+            sys.stderr.write(f"Warning: ignoring --method for {fmt_name} format\n")
         else:
-            available = METHOD_NAMES + sorted(external_codecs)
-            msg = (
-                f"Unknown compression method '{args.method}'. "
-                f"Available methods: {', '.join(available)}"
-            )
-            raise ValueError(msg)
+            external_codecs = {
+                c.name for c in lib.get_codecs() if c.is_external and c.encoder
+            }
+            method_lower = args.method.lower()
+            external_lower = {name.lower(): name for name in external_codecs}
+            if method_lower in external_lower:
+                # External codecs (brotli, zstd, lz4, ...) are used via the Copy
+                # method plus a format property that selects the codec by name.
+                writer.set_compression_method(BitCompressionMethod.Copy)
+                writer.set_format_property(
+                    "0", BitPropVariant(external_lower[method_lower])
+                )
+            elif hasattr(BitCompressionMethod, args.method):
+                writer.set_compression_method(
+                    getattr(BitCompressionMethod, args.method)
+                )
+            else:
+                available = METHOD_NAMES + sorted(external_codecs)
+                msg = (
+                    f"Unknown compression method '{args.method}'. "
+                    f"Available methods: {', '.join(available)}"
+                )
+                raise ValueError(msg)
     if args.dictionary_size is not None:
         writer.set_dictionary_size(args.dictionary_size)
     if args.word_size is not None:
@@ -745,7 +874,7 @@ def compress(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
 
 def extract(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
     """Extract files from an archive to the given destination or stdout."""
-    fmt = _resolve_read_format(args)
+    fmt = _resolve_read_format(lib, args)
     password = args.password or ""
     reader = BitArchiveReader(lib, args.paths[0], fmt, password)
 
@@ -805,7 +934,7 @@ def extract(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
 
 def list_archive(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
     """Print a listing of archive contents and basic archive metadata."""
-    fmt = _resolve_read_format(args)
+    fmt = _resolve_read_format(lib, args)
     password = args.password or ""
     reader = BitArchiveReader(lib, args.paths[0], fmt, password)
 
@@ -845,7 +974,7 @@ def list_archive(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
 
 def test_archive(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
     """Run integrity test(s) on the archive items specified."""
-    fmt = _resolve_read_format(args)
+    fmt = _resolve_read_format(lib, args)
     password = args.password or ""
     reader = BitArchiveReader(lib, args.paths[0], fmt, password)
 
@@ -863,12 +992,22 @@ def test_archive(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
 
 def info_archive(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
     """Print detailed archive information (format, sizes, flags, properties)."""
-    fmt = _resolve_read_format(args)
+    fmt = _resolve_read_format(lib, args)
     password = args.password or ""
     reader = BitArchiveReader(lib, args.paths[0], fmt, password)
 
     detected = reader.detected_format()
-    fmt_name = FORMAT_NAMES.get(detected, f"id={detected.value()}")
+    fmt_name = FORMAT_NAMES.get(detected)
+    if fmt_name is None:
+        # External formats are not in FORMAT_NAMES; look them up by value.
+        detected_value = detected.value()
+        for f in lib.get_formats():
+            fmt_obj = lib.get_external_in_out_format(f.name)
+            if fmt_obj is not None and fmt_obj.value() == detected_value:
+                fmt_name = f.name
+                break
+        if fmt_name is None:
+            fmt_name = f"id={detected_value}"
     uncompressed = reader.size()
     compressed = reader.pack_size()
     ratio = f"{100.0 * compressed / uncompressed:.1f}%" if uncompressed else "N/A"
@@ -919,7 +1058,7 @@ def update_archive(lib: Bit7zLibrary, args: argparse.Namespace) -> None:
             "Update requires an explicit writable format (use -f 7z, zip, ...)"
         )
 
-    fmt = WRITABLE_FORMATS[args.format]
+    fmt = _resolve_writable_format(lib, args.format)
     password = args.password or ""
     editor = BitArchiveEditor(lib, args.paths[0], fmt, password)
 
