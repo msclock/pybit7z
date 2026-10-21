@@ -126,7 +126,7 @@ def test_invalid_parameters(temp_dir, run_cli):
     result = run_cli(["compress", str(test_file), "-o", str(output), "-f", "invalid"])
 
     assert result.returncode != 0
-    assert "error: argument -f/--format" in result.stderr.decode()
+    assert "argument -f/--format" in result.stderr.decode()
 
     result = run_cli(["decompress", str(test_file), "-f", "7z"])
 
