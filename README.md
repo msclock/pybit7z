@@ -30,7 +30,9 @@ A Python wrapper around [bit7z](https://github.com/rikyoz/bit7z) for creating an
 - **Compression & extraction** of 7z, zip, tar, gzip, bzip2, xz, wim archives (writing); reading support for 60+ formats (rar, iso, cab, chm, nsis, vmdk, vhdx, squashfs, and more).
 - **Bundled external plugins** — zstd, brotli, lz4, lz5, lizard, flzma2, bsc, and zpaq codecs/formats are packaged with the wheel and loaded automatically.
 - **In-memory operations** — compress/extract directly to/from `bytes` buffers and strings.
-- **Archive metadata** — inspect items count, sizes, CRC, and per-item properties.
+- **Archive metadata** — inspect items count, sizes, CRC, per-item properties, wildcard item matching (`items_matching`), common root folder (`root_folder`), and property availability (`item_has_property`).
+- **Nested archive reading** — `BitNestedArchiveReader` opens an archive embedded inside another (e.g. tar inside tar.gz).
+- **Lazy library loading** — `Bit7zLibraryLoader` for explicit load/try-load/unload control, plus a `loader_context()` manager that auto-unloads on exit.
 - **Encryption** — password-protected archives with optional header encryption (7z).
 - **Solid archives, multi-volume splitting, compression levels & methods**, custom dictionary/word sizes, multi-threading.
 - **Command-line interface** — `pybit7z` CLI for compress / decompress / extract / list / test / info / update.
@@ -53,6 +55,21 @@ import pybit7z
 
 with pybit7z.lib7zip_context() as lib:
     ...
+```
+
+For more control over the library lifecycle — e.g. probing whether 7-zip is available without raising, loading a custom build, or deferring the load — use `loader_context()`. It yields a fresh `Bit7zLibraryLoader`; call `load()` or `try_load()` yourself, and the manager unloads automatically on exit:
+
+```python
+import pybit7z
+
+with pybit7z.loader_context() as loader:
+    # Safe probe — never raises if the library is missing
+    if loader.try_load(pybit7z.default_lib7zip()):
+        lib = loader.library()
+        ...
+    else:
+        print("lib7zip unavailable, skipping")
+# loader.unload() called automatically on exit (if loaded)
 ```
 
 ### Loading External Plugins
@@ -202,6 +219,21 @@ try:
                 "\n    Packed size: ", item.pack_size(),
                 "\n    CRC: ", item.crc(),
             )
+
+        # Wildcard-match items by pattern
+        txt_files = list(arc.items_matching("*.txt"))
+
+        # Common root folder of all items (empty string if none)
+        print("Root folder:", arc.root_folder())
+
+        # Check whether an item exposes a given property
+        if arc.item_has_property(0, pybit7z.BitProperty.Size):
+            size = arc.item_at(0).item_property(pybit7z.BitProperty.Size)
+
+        # Item native/raw name accessors
+        item = arc.item_at(0)
+        print("Native name:", item.native_name())
+        print("Raw path:", item.raw_path())
 except pybit7z.BitException as e:
     ...  # handle the exception
 ```

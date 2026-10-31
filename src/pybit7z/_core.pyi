@@ -15,10 +15,12 @@ __all__: list[str] = [
     "ATime",
     "AbortOperation",
     "AltStreamsSize",
+    "ArchiveStartOffset",
     "Attrib",
     "BZip2",
     "BigEndian",
     "Bit7zLibrary",
+    "Bit7zLibraryLoader",
     "Bit64",
     "BitAbstractArchiveCreator",
     "BitAbstractArchiveHandler",
@@ -43,6 +45,7 @@ __all__: list[str] = [
     "BitInputItem",
     "BitMemCompressor",
     "BitMemExtractor",
+    "BitNestedArchiveReader",
     "BitOutputArchive",
     "BitPropVariant",
     "BitPropVariantType",
@@ -79,6 +82,7 @@ __all__: list[str] = [
     "Extension",
     "Fast",
     "Fastest",
+    "FileStart",
     "FileSystem",
     "FileTime",
     "FilterPolicy",
@@ -181,6 +185,7 @@ __all__: list[str] = [
     "Method",
     "Name",
     "NoProperty",
+    "NoneOffset",
     "Normal",
     "Nothing",
     "NtReparse",
@@ -349,6 +354,68 @@ class Bit7zLibrary:
     def use_large_pages(self) -> None:
         """
         Enable large page mode for 7zip library. This can improve performance on some systems.
+        """
+
+class Bit7zLibraryLoader:
+    """
+    The Bit7zLibraryLoader class provides deferred and optional loading of the 7-zip shared library.
+
+    Unlike Bit7zLibrary which loads the shared library in its constructor,
+    Bit7zLibraryLoader allows constructing an empty loader and loading the library
+    at a later time. It also supports unloading and reloading the library as well
+    as non-throwing error handling.
+    """
+    @typing.overload
+    def __init__(self) -> None:
+        """
+        Constructs an empty Bit7zLibraryLoader without loading any library.
+        """
+    @typing.overload
+    def __init__(self, library_path: str) -> None:
+        """
+        Constructs a Bit7zLibraryLoader and immediately loads the specified 7-zip shared library.
+
+        Args:
+            library_path: the path to the 7-zip shared library to be loaded.
+        """
+    def is_loaded(self) -> bool:
+        """
+        Whether a 7-zip shared library is currently loaded.
+        """
+    def library(self) -> Bit7zLibrary:
+        """
+        Returns a reference to the loaded Bit7zLibrary.
+
+        Returns:
+            a const reference to the underlying Bit7zLibrary.
+
+        Raises:
+            BitException: if no library is currently loaded.
+        """
+    def load(self, library_path: str) -> None:
+        """
+        Loads the specified 7-zip shared library.
+
+        If a library is already loaded it is unloaded first.
+
+        Args:
+            library_path: the path to the 7-zip shared library to be loaded.
+        """
+    def try_load(self, library_path: str) -> bool:
+        """
+        Loads the specified 7-zip shared library without throwing on failure.
+
+        If a library is already loaded it is unloaded first.
+
+        Args:
+            library_path: the path to the 7-zip shared library to be loaded.
+
+        Returns:
+            True if the loading succeeded, False otherwise.
+        """
+    def unload(self) -> None:
+        """
+        Unloads the currently loaded library if any.
         """
 
 class BitException(Exception):
@@ -1009,6 +1076,10 @@ class BitArchiveItem(BitGenericItem):
         """
     def last_access_time(self) -> datetime.datetime: ...
     def last_write_time(self) -> datetime.datetime: ...
+    def native_name(self) -> str:
+        """
+        Same as name() but returning a native string (i.e. std::wstring on Windows, std::string elsewhere).
+        """
     def native_path(self) -> str:
         """
         the path of the item in the archive, if available or inferable from the name, or an empty string otherwise.
@@ -1016,6 +1087,10 @@ class BitArchiveItem(BitGenericItem):
     def pack_size(self) -> int:
         """
         the compressed size of the item.
+        """
+    def raw_path(self) -> str:
+        """
+        Same as path() but returning the internal string type used by 7-Zip on all OSes (wide string).
         """
 
 class BitArchiveItemOffset(BitArchiveItem):
@@ -1567,7 +1642,40 @@ class FilterResult:
     @property
     def value(self) -> int: ...
 
+class ArchiveStartOffset:
+    """
+    Offset from where the archive starts within the input file.
+
+    Members:
+
+      NoneOffset : Don't specify an archive start offset. For some formats like Zip archives this means that the whole input file will be searched for the archive's start.
+
+      FileStart : Check only the file start for the archive's start.
+    """
+
+    FileStart: typing.ClassVar[ArchiveStartOffset]
+    NoneOffset: typing.ClassVar[ArchiveStartOffset]
+    __members__: typing.ClassVar[dict[str, ArchiveStartOffset]]
+    def __eq__(self, other: typing.Any) -> bool: ...
+    def __getstate__(self) -> int: ...
+    def __hash__(self) -> int: ...
+    def __index__(self) -> int: ...
+    def __init__(self, value: int) -> None: ...
+    def __int__(self) -> int: ...
+    def __ne__(self, other: typing.Any) -> bool: ...
+    def __repr__(self) -> str: ...
+    def __setstate__(self, state: int) -> None: ...
+    def __str__(self) -> str: ...
+    @property
+    def name(self) -> str: ...
+    @property
+    def value(self) -> int: ...
+
 class BitInputArchive:
+    def archive_has_path(self) -> bool:
+        """
+        Whether the archive has a path (i.e. filesystem archive) or not (e.g. buffer archive).
+        """
     def archive_path(self) -> str:
         """
         the path to the archive (the empty string for buffer/stream archives).
@@ -1720,6 +1828,17 @@ class BitInputArchive:
         Returns:
             the item at the given index within the archive.
         """
+    def item_has_property(self, index: int, property: BitProperty) -> bool:
+        """
+        Checks whether the item at the given index has the specified property.
+
+        Args:
+            index: the index (in the archive) of the item.
+            property: the property to be checked for existence.
+
+        Returns:
+            true if the item has the property, false otherwise.
+        """
     def item_property(self, index: int, property: BitProperty) -> BitPropVariant:
         """
         Gets the specified item property.
@@ -1734,6 +1853,19 @@ class BitInputArchive:
     def items_count(self) -> int:
         """
         the number of items in the archive.
+        """
+    def root_folder(self) -> str:
+        """
+        Returns the single top-level folder that contains all of the archive's items.
+
+        The archive is considered to have a root folder only when every item is contained
+        within the same top-level folder. There is no common root folder if the items belong
+        to different top-level folders, if the archive contains a file at its root, or if the
+        archive is empty.
+
+        Returns:
+            the name of the archive's root folder, or an empty string if the archive does
+            not have a single common root folder.
         """
     def test(self, indices: list[int] = []) -> None:
         """
@@ -2093,6 +2225,16 @@ class BitArchiveReader(BitAbstractArchiveOpener, BitInputArchive):
         """
         the list of all the archive items as BitArchiveItem objects.
         """
+    def items_matching(self, pattern: str) -> list[BitArchiveItemInfo]:
+        """
+        Gets the items whose paths match the given wildcard pattern.
+
+        Args:
+            pattern: a wildcard pattern used for matching the paths of items inside the archive.
+
+        Returns:
+            the items whose paths match the given wildcard pattern.
+        """
     def pack_size(self) -> int:
         """
         the total compressed size of the archive content.
@@ -2104,6 +2246,122 @@ class BitArchiveReader(BitAbstractArchiveOpener, BitInputArchive):
     def volumes_count(self) -> int:
         """
         the number of volumes in the archive.
+        """
+
+class BitNestedArchiveReader(BitAbstractArchiveOpener):
+    """
+    The BitNestedArchiveReader class allows reading and extracting nested archives
+    (e.g. the tarball inside a .tar.gz archive).
+    """
+    @typing.overload
+    def __init__(
+        self,
+        lib: Bit7zLibrary,
+        parent_archive: BitInputArchive,
+        index: int,
+        format: BitInFormat,
+        password: str = "",
+    ) -> None:
+        """
+        Constructs a BitNestedArchiveReader for a specific item in the parent archive.
+
+        Note:
+            The constructor doesn't open the archive; it will be opened only when needed.
+
+        Args:
+            lib: the 7z library used.
+            parent_archive: the parent archive containing the nested archive.
+            index: the index of the nested archive within the parent archive.
+            format: the format of the nested archive (must not be FormatAuto).
+            password: (optional) the password needed for opening the nested archive.
+
+        Raises:
+            BitException: if the format is FormatAuto (automatic detection of nested archives is not supported).
+        """
+    @typing.overload
+    def __init__(
+        self,
+        lib: Bit7zLibrary,
+        parent_archive: BitInputArchive,
+        format: BitInFormat,
+        password: str = "",
+    ) -> None:
+        """
+        Constructs a BitNestedArchiveReader for the first item in the parent archive.
+
+        Note:
+            The constructor doesn't open the archive; it will be opened only when needed.
+
+        Args:
+            lib: the 7z library used.
+            parent_archive: the parent archive containing the nested archive.
+            format: the format of the nested archive (must not be FormatAuto).
+            password: (optional) the password needed for opening the nested archive.
+
+        Raises:
+            BitException: if the format is FormatAuto (automatic detection of nested archives is not supported).
+        """
+    def archive_property(self, arg0: BitProperty) -> BitPropVariant:
+        """
+        Gets the specified archive property.
+
+        Args:
+            property: the property to be retrieved.
+
+        Returns:
+            the current value of the archive property or an empty BitPropVariant if no value is specified.
+        """
+    def detected_format(self) -> BitInFormat:
+        """
+        the detected format of the nested archive.
+        """
+    def extract_to(self, out_dir: str) -> None:
+        """
+        Extracts the archive to the chosen directory.
+
+        Args:
+            out_dir: the output directory where the extracted files will be put.
+        """
+    def item_property(self, index: int, property: BitProperty) -> BitPropVariant:
+        """
+        Gets the specified property of an item in the archive.
+
+        Args:
+            index: the index of the item.
+            property: the property to be retrieved.
+
+        Returns:
+            the current value of the item property or an empty BitPropVariant if the item has no value.
+        """
+    def items(self) -> list[BitArchiveItemInfo]:
+        """
+        all the archive items as BitArchiveItemInfo objects.
+        """
+    def items_count(self) -> int:
+        """
+        the number of items contained in the nested archive.
+        """
+    def max_memory_usage(self) -> int:
+        """
+        the max memory usage limit applied while extracting the parent archive.
+        """
+    def open_count(self) -> int:
+        """
+        the number of times the parent archive was extracted and the nested archive was opened.
+        """
+    def set_max_memory_usage(self, value: int) -> None:
+        """
+        Sets the max memory usage limit to be used while extracting the parent archive.
+
+        Args:
+            value: the max memory limit to be used (in bytes).
+        """
+    def test(self) -> None:
+        """
+        Tests the archive without extracting its content.
+
+        Raises:
+            BitException: if the archive is not valid.
         """
 
 class BitArchiveWriter(BitAbstractArchiveCreator, BitOutputArchive):
@@ -2613,6 +2871,7 @@ Exclude: FilterPolicy
 Extension: BitProperty
 Fast: BitCompressionLevel
 Fastest: BitCompressionLevel
+FileStart: ArchiveStartOffset
 FileSystem: BitProperty
 FileTime: BitPropVariantType
 FormatAPFS: BitInFormat
@@ -2711,6 +2970,7 @@ Max: BitCompressionLevel
 Method: BitProperty
 Name: BitProperty
 NoProperty: BitProperty
+NoneOffset: ArchiveStartOffset
 Normal: BitCompressionLevel
 Nothing: OverwriteMode
 NtReparse: BitProperty
