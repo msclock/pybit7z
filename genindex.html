@@ -257,15 +257,23 @@
 </li>
         <li><a href="api/index.html#pybit7z.UpdateMode.Append">Append (pybit7z.UpdateMode attribute)</a>
 </li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="api/index.html#pybit7z.BitArchiveEditor.apply_changes">apply_changes() (pybit7z.BitArchiveEditor method)</a>
 </li>
+        <li><a href="api/index.html#pybit7z.BitInputArchive.archive_has_path">archive_has_path() (pybit7z.BitInputArchive method)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="api/index.html#pybit7z.BitInputArchive.archive_path">archive_path() (pybit7z.BitInputArchive method)</a>
 </li>
         <li><a href="api/index.html#pybit7z.BitArchiveReader.archive_properties">archive_properties() (pybit7z.BitArchiveReader method)</a>
 </li>
         <li><a href="api/index.html#pybit7z.BitInputArchive.archive_property">archive_property() (pybit7z.BitInputArchive method)</a>
+
+        <ul>
+          <li><a href="api/index.html#pybit7z.BitNestedArchiveReader.archive_property">(pybit7z.BitNestedArchiveReader method)</a>
+</li>
+        </ul></li>
+        <li><a href="api/index.html#pybit7z.ArchiveStartOffset">ArchiveStartOffset (class in pybit7z)</a>
 </li>
         <li><a href="api/index.html#pybit7z.BitProperty.ATime">ATime (pybit7z.BitProperty attribute)</a>
 </li>
@@ -292,6 +300,8 @@
         <li><a href="api/index.html#pybit7z.BitProperty.Bit64">Bit64 (pybit7z.BitProperty attribute)</a>
 </li>
         <li><a href="api/index.html#pybit7z.Bit7zLibrary">Bit7zLibrary (class in pybit7z)</a>
+</li>
+        <li><a href="api/index.html#pybit7z.Bit7zLibraryLoader">Bit7zLibraryLoader (class in pybit7z)</a>
 </li>
         <li><a href="api/index.html#pybit7z.BitAbstractArchiveCreator">BitAbstractArchiveCreator (class in pybit7z)</a>
 </li>
@@ -340,6 +350,8 @@
         <li><a href="api/index.html#pybit7z.BitMemCompressor">BitMemCompressor (class in pybit7z)</a>
 </li>
         <li><a href="api/index.html#pybit7z.BitMemExtractor">BitMemExtractor (class in pybit7z)</a>
+</li>
+        <li><a href="api/index.html#pybit7z.BitNestedArchiveReader">BitNestedArchiveReader (class in pybit7z)</a>
 </li>
         <li><a href="api/index.html#pybit7z.BitOutputArchive">BitOutputArchive (class in pybit7z)</a>
 </li>
@@ -449,10 +461,10 @@
 </li>
         <li><a href="api/index.html#pybit7z.BitCompressionMethod.Deflate">Deflate (pybit7z.BitCompressionMethod attribute)</a>
 </li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="api/index.html#pybit7z.BitCompressionMethod.Deflate64">Deflate64 (pybit7z.BitCompressionMethod attribute)</a>
 </li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="api/index.html#pybit7z.BitArchiveEditor.delete_item">delete_item() (pybit7z.BitArchiveEditor method)</a>
 </li>
         <li><a href="api/index.html#pybit7z.DeletePolicy">DeletePolicy (class in pybit7z)</a>
@@ -460,7 +472,11 @@
         <li><a href="api/index.html#pybit7z.BitCodecInfo.description">description (pybit7z.BitCodecInfo property)</a>
 </li>
         <li><a href="api/index.html#pybit7z.BitInputArchive.detected_format">detected_format() (pybit7z.BitInputArchive method)</a>
+
+        <ul>
+          <li><a href="api/index.html#pybit7z.BitNestedArchiveReader.detected_format">(pybit7z.BitNestedArchiveReader method)</a>
 </li>
+        </ul></li>
         <li><a href="api/index.html#pybit7z.BitAbstractArchiveCreator.dictionary_size">dictionary_size() (pybit7z.BitAbstractArchiveCreator method)</a>
 </li>
         <li><a href="api/index.html#pybit7z.BitProperty.DictionarySize">DictionarySize (pybit7z.BitProperty attribute)</a>
@@ -538,7 +554,11 @@
         <li><a href="api/index.html#pybit7z.BitInputArchive.extract_root_folder_content_to">extract_root_folder_content_to() (pybit7z.BitInputArchive method)</a>
 </li>
         <li><a href="api/index.html#pybit7z.BitInputArchive.extract_to">extract_to() (pybit7z.BitInputArchive method)</a>
+
+        <ul>
+          <li><a href="api/index.html#pybit7z.BitNestedArchiveReader.extract_to">(pybit7z.BitNestedArchiveReader method)</a>
 </li>
+        </ul></li>
         <li><a href="api/index.html#pybit7z.BitAbstractArchiveOpener.extraction_format">extraction_format() (pybit7z.BitAbstractArchiveOpener method)</a>
 </li>
     </ul></td>
@@ -559,12 +579,14 @@
 </li>
         <li><a href="api/index.html#pybit7z.BitArchiveReader.files_count">files_count() (pybit7z.BitArchiveReader method)</a>
 </li>
-        <li><a href="api/index.html#pybit7z.BitProperty.FileSystem">FileSystem (pybit7z.BitProperty attribute)</a>
+        <li><a href="api/index.html#pybit7z.ArchiveStartOffset.FileStart">FileStart (pybit7z.ArchiveStartOffset attribute)</a>
 </li>
-        <li><a href="api/index.html#pybit7z.BitPropVariantType.FileTime">FileTime (pybit7z.BitPropVariantType attribute)</a>
+        <li><a href="api/index.html#pybit7z.BitProperty.FileSystem">FileSystem (pybit7z.BitProperty attribute)</a>
 </li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="api/index.html#pybit7z.BitPropVariantType.FileTime">FileTime (pybit7z.BitPropVariantType attribute)</a>
+</li>
         <li><a href="api/index.html#pybit7z.FilterPolicy">FilterPolicy (class in pybit7z)</a>
 </li>
         <li><a href="api/index.html#pybit7z.BitFormatInfo.flags">flags (pybit7z.BitFormatInfo property)</a>
@@ -701,14 +723,16 @@
 </li>
         <li><a href="api/index.html#pybit7z.BitInputArchive.is_item_folder">is_item_folder() (pybit7z.BitInputArchive method)</a>
 </li>
+        <li><a href="api/index.html#pybit7z.Bit7zLibraryLoader.is_loaded">is_loaded() (pybit7z.Bit7zLibraryLoader method)</a>
+</li>
         <li><a href="api/index.html#pybit7z.BitArchiveReader.is_multi_volume">is_multi_volume() (pybit7z.BitArchiveReader method)</a>
 </li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="api/index.html#pybit7z.BitAbstractArchiveHandler.is_password_defined">is_password_defined() (pybit7z.BitAbstractArchiveHandler method)</a>
 </li>
         <li><a href="api/index.html#pybit7z.BitArchiveReader.is_solid">is_solid() (pybit7z.BitArchiveReader method)</a>
 </li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="api/index.html#pybit7z.BitPropVariant.is_string">is_string() (pybit7z.BitPropVariant method)</a>
 </li>
         <li><a href="api/index.html#pybit7z.BitInputItem.is_sym_link">is_sym_link() (pybit7z.BitInputItem method)</a>
@@ -739,6 +763,8 @@
 </li>
         <li><a href="api/index.html#pybit7z.BitInputArchive.item_at">item_at() (pybit7z.BitInputArchive method)</a>
 </li>
+        <li><a href="api/index.html#pybit7z.BitInputArchive.item_has_property">item_has_property() (pybit7z.BitInputArchive method)</a>
+</li>
         <li><a href="api/index.html#pybit7z.BitArchiveItemInfo.item_properties">item_properties() (pybit7z.BitArchiveItemInfo method)</a>
 </li>
         <li><a href="api/index.html#pybit7z.BitArchiveItemInfo.item_property">item_property() (pybit7z.BitArchiveItemInfo method)</a>
@@ -750,17 +776,27 @@
 </li>
           <li><a href="api/index.html#pybit7z.BitInputItem.item_property">(pybit7z.BitInputItem method)</a>
 </li>
+          <li><a href="api/index.html#pybit7z.BitNestedArchiveReader.item_property">(pybit7z.BitNestedArchiveReader method)</a>
+</li>
         </ul></li>
         <li><a href="api/index.html#pybit7z.DeletePolicy.ItemOnly">ItemOnly (pybit7z.DeletePolicy attribute)</a>
 </li>
         <li><a href="api/index.html#pybit7z.BitArchiveReader.items">items() (pybit7z.BitArchiveReader method)</a>
+
+        <ul>
+          <li><a href="api/index.html#pybit7z.BitNestedArchiveReader.items">(pybit7z.BitNestedArchiveReader method)</a>
 </li>
+        </ul></li>
         <li><a href="api/index.html#pybit7z.BitInputArchive.items_count">items_count() (pybit7z.BitInputArchive method)</a>
 
         <ul>
+          <li><a href="api/index.html#pybit7z.BitNestedArchiveReader.items_count">(pybit7z.BitNestedArchiveReader method)</a>
+</li>
           <li><a href="api/index.html#pybit7z.BitOutputArchive.items_count">(pybit7z.BitOutputArchive method)</a>
 </li>
         </ul></li>
+        <li><a href="api/index.html#pybit7z.BitArchiveReader.items_matching">items_matching() (pybit7z.BitArchiveReader method)</a>
+</li>
     </ul></td>
   </tr></table>
 </section>
@@ -775,11 +811,17 @@
 </li>
         <li><a href="api/index.html#pybit7z.lib7zip_context">lib7zip_context() (in module pybit7z)</a>
 </li>
+        <li><a href="api/index.html#pybit7z.Bit7zLibraryLoader.library">library() (pybit7z.Bit7zLibraryLoader method)</a>
+</li>
         <li><a href="api/index.html#pybit7z.BitProperty.Links">Links (pybit7z.BitProperty attribute)</a>
 </li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="api/index.html#pybit7z.Bit7zLibraryLoader.load">load() (pybit7z.Bit7zLibraryLoader method)</a>
+</li>
         <li><a href="api/index.html#pybit7z.Bit7zLibrary.load_plugins">load_plugins() (pybit7z.Bit7zLibrary method)</a>
+</li>
+        <li><a href="api/index.html#pybit7z.loader_context">loader_context() (in module pybit7z)</a>
 </li>
         <li><a href="api/index.html#pybit7z.BitProperty.LocalName">LocalName (pybit7z.BitProperty attribute)</a>
 </li>
@@ -799,8 +841,12 @@
 </li>
         <li><a href="api/index.html#pybit7z.BitCompressionLevel.Max">Max (pybit7z.BitCompressionLevel attribute)</a>
 </li>
+        <li><a href="api/index.html#pybit7z.BitNestedArchiveReader.max_memory_usage">max_memory_usage() (pybit7z.BitNestedArchiveReader method)</a>
+</li>
         <li><a href="api/index.html#pybit7z.BitProperty.Method">Method (pybit7z.BitProperty attribute)</a>
 </li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
         <li>
     module
 
@@ -808,8 +854,6 @@
           <li><a href="api/index.html#module-pybit7z">pybit7z</a>
 </li>
         </ul></li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="api/index.html#pybit7z.BitProperty.MTime">MTime (pybit7z.BitProperty attribute)</a>
 </li>
         <li><a href="api/index.html#pybit7z.FormatFeatures.MultipleFiles">MultipleFiles (pybit7z.FormatFeatures attribute)</a>
@@ -834,7 +878,11 @@
 </li>
         <li><a href="api/index.html#pybit7z.BitGenericItem.name">name() (pybit7z.BitGenericItem method)</a>
 </li>
+        <li><a href="api/index.html#pybit7z.BitArchiveItem.native_name">native_name() (pybit7z.BitArchiveItem method)</a>
+</li>
         <li><a href="api/index.html#pybit7z.BitArchiveItem.native_path">native_path() (pybit7z.BitArchiveItem method)</a>
+</li>
+        <li><a href="api/index.html#pybit7z.ArchiveStartOffset.NoneOffset">NoneOffset (pybit7z.ArchiveStartOffset attribute)</a>
 </li>
         <li><a href="api/index.html#pybit7z.BitProperty.NoProperty">NoProperty (pybit7z.BitProperty attribute)</a>
 </li>
@@ -877,6 +925,8 @@
   <table style="width: 100%" class="indextable genindextable"><tr>
     <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="api/index.html#pybit7z.BitProperty.Offset">Offset (pybit7z.BitProperty attribute)</a>
+</li>
+        <li><a href="api/index.html#pybit7z.BitNestedArchiveReader.open_count">open_count() (pybit7z.BitNestedArchiveReader method)</a>
 </li>
         <li><a href="api/index.html#pybit7z.BitProperty.OutName">OutName (pybit7z.BitProperty attribute)</a>
 </li>
@@ -953,6 +1003,8 @@
     <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="api/index.html#pybit7z.BitAbstractArchiveHandler.ratio_callback">ratio_callback() (pybit7z.BitAbstractArchiveHandler method)</a>
 </li>
+        <li><a href="api/index.html#pybit7z.BitArchiveItem.raw_path">raw_path() (pybit7z.BitArchiveItem method)</a>
+</li>
         <li><a href="api/index.html#pybit7z.BitProperty.ReadOnly">ReadOnly (pybit7z.BitProperty attribute)</a>
 </li>
     </ul></td>
@@ -962,6 +1014,8 @@
         <li><a href="api/index.html#pybit7z.BitArchiveEditor.rename_item">rename_item() (pybit7z.BitArchiveEditor method)</a>
 </li>
         <li><a href="api/index.html#pybit7z.BitAbstractArchiveHandler.retainDirectories">retainDirectories() (pybit7z.BitAbstractArchiveHandler method)</a>
+</li>
+        <li><a href="api/index.html#pybit7z.BitInputArchive.root_folder">root_folder() (pybit7z.BitInputArchive method)</a>
 </li>
     </ul></td>
   </tr></table>
@@ -988,6 +1042,8 @@
         <li><a href="api/index.html#pybit7z.BitInputItem.set_last_access_time">set_last_access_time() (pybit7z.BitInputItem method)</a>
 </li>
         <li><a href="api/index.html#pybit7z.BitInputItem.set_last_write_time">set_last_write_time() (pybit7z.BitInputItem method)</a>
+</li>
+        <li><a href="api/index.html#pybit7z.BitNestedArchiveReader.set_max_memory_usage">set_max_memory_usage() (pybit7z.BitNestedArchiveReader method)</a>
 </li>
         <li><a href="api/index.html#pybit7z.BitAbstractArchiveHandler.set_overwrite_mode">set_overwrite_mode() (pybit7z.BitAbstractArchiveHandler method)</a>
 </li>
@@ -1027,10 +1083,10 @@
           <li><a href="api/index.html#pybit7z.BitArchiveEditor.set_update_mode">(pybit7z.BitArchiveEditor method)</a>
 </li>
         </ul></li>
-        <li><a href="api/index.html#pybit7z.BitAbstractArchiveCreator.set_volume_size">set_volume_size() (pybit7z.BitAbstractArchiveCreator method)</a>
-</li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="api/index.html#pybit7z.BitAbstractArchiveCreator.set_volume_size">set_volume_size() (pybit7z.BitAbstractArchiveCreator method)</a>
+</li>
         <li><a href="api/index.html#pybit7z.BitAbstractArchiveCreator.set_word_size">set_word_size() (pybit7z.BitAbstractArchiveCreator method)</a>
 </li>
         <li><a href="api/index.html#pybit7z.BitProperty.Sha1">Sha1 (pybit7z.BitProperty attribute)</a>
@@ -1102,6 +1158,8 @@
         <ul>
           <li><a href="api/index.html#pybit7z.BitMemExtractor.test">(pybit7z.BitMemExtractor method)</a>
 </li>
+          <li><a href="api/index.html#pybit7z.BitNestedArchiveReader.test">(pybit7z.BitNestedArchiveReader method)</a>
+</li>
         </ul></li>
         <li><a href="api/index.html#pybit7z.BitInputArchive.test_item">test_item() (pybit7z.BitInputArchive method)</a>
 </li>
@@ -1116,6 +1174,8 @@
         <li><a href="api/index.html#pybit7z.BitProperty.TotalPhySize">TotalPhySize (pybit7z.BitProperty attribute)</a>
 </li>
         <li><a href="api/index.html#pybit7z.BitProperty.TotalSize">TotalSize (pybit7z.BitProperty attribute)</a>
+</li>
+        <li><a href="api/index.html#pybit7z.Bit7zLibraryLoader.try_load">try_load() (pybit7z.Bit7zLibraryLoader method)</a>
 </li>
         <li><a href="api/index.html#pybit7z.BitProperty.Type">Type (pybit7z.BitProperty attribute)</a>
 </li>
@@ -1139,14 +1199,16 @@
 </li>
         <li><a href="api/index.html#pybit7z.BitCompressionLevel.Ultra">Ultra (pybit7z.BitCompressionLevel attribute)</a>
 </li>
+        <li><a href="api/index.html#pybit7z.Bit7zLibraryLoader.unload">unload() (pybit7z.Bit7zLibraryLoader method)</a>
+</li>
         <li><a href="api/index.html#pybit7z.BitCodecInfo.unpack_streams">unpack_streams (pybit7z.BitCodecInfo property)</a>
 </li>
         <li><a href="api/index.html#pybit7z.BitProperty.UnpackSize">UnpackSize (pybit7z.BitProperty attribute)</a>
 </li>
-        <li><a href="api/index.html#pybit7z.BitProperty.UnpackVer">UnpackVer (pybit7z.BitProperty attribute)</a>
-</li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="api/index.html#pybit7z.BitProperty.UnpackVer">UnpackVer (pybit7z.BitProperty attribute)</a>
+</li>
         <li><a href="api/index.html#pybit7z.BitFormatInfo.update">update (pybit7z.BitFormatInfo property)</a>
 </li>
         <li><a href="api/index.html#pybit7z.UpdateMode.Update">Update (pybit7z.UpdateMode attribute)</a>
@@ -1173,9 +1235,11 @@
     <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="api/index.html#pybit7z.BitProperty.Va">Va (pybit7z.BitProperty attribute)</a>
 </li>
-        <li><a href="api/index.html#pybit7z.BitCompressionLevel.value">value (pybit7z.BitCompressionLevel property)</a>
+        <li><a href="api/index.html#pybit7z.ArchiveStartOffset.value">value (pybit7z.ArchiveStartOffset property)</a>
 
         <ul>
+          <li><a href="api/index.html#pybit7z.BitCompressionLevel.value">(pybit7z.BitCompressionLevel property)</a>
+</li>
           <li><a href="api/index.html#pybit7z.BitCompressionMethod.value">(pybit7z.BitCompressionMethod property)</a>
 </li>
           <li><a href="api/index.html#pybit7z.BitProperty.value">(pybit7z.BitProperty property)</a>

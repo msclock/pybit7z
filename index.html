@@ -267,7 +267,9 @@
 <li><p><strong>Compression &amp; extraction</strong> of 7z, zip, tar, gzip, bzip2, xz, wim archives (writing); reading support for 60+ formats (rar, iso, cab, chm, nsis, vmdk, vhdx, squashfs, and more).</p></li>
 <li><p><strong>Bundled external plugins</strong> — zstd, brotli, lz4, lz5, lizard, flzma2, bsc, and zpaq codecs/formats are packaged with the wheel and loaded automatically.</p></li>
 <li><p><strong>In-memory operations</strong> — compress/extract directly to/from <code class="docutils literal notranslate"><span class="pre">bytes</span></code> buffers and strings.</p></li>
-<li><p><strong>Archive metadata</strong> — inspect items count, sizes, CRC, and per-item properties.</p></li>
+<li><p><strong>Archive metadata</strong> — inspect items count, sizes, CRC, per-item properties, wildcard item matching (<code class="docutils literal notranslate"><span class="pre">items_matching</span></code>), common root folder (<code class="docutils literal notranslate"><span class="pre">root_folder</span></code>), and property availability (<code class="docutils literal notranslate"><span class="pre">item_has_property</span></code>).</p></li>
+<li><p><strong>Nested archive reading</strong> — <code class="docutils literal notranslate"><span class="pre">BitNestedArchiveReader</span></code> opens an archive embedded inside another (e.g. tar inside tar.gz).</p></li>
+<li><p><strong>Lazy library loading</strong> — <code class="docutils literal notranslate"><span class="pre">Bit7zLibraryLoader</span></code> for explicit load/try-load/unload control, plus a <code class="docutils literal notranslate"><span class="pre">loader_context()</span></code> manager that auto-unloads on exit.</p></li>
 <li><p><strong>Encryption</strong> — password-protected archives with optional header encryption (7z).</p></li>
 <li><p><strong>Solid archives, multi-volume splitting, compression levels &amp; methods</strong>, custom dictionary/word sizes, multi-threading.</p></li>
 <li><p><strong>Command-line interface</strong> — <code class="docutils literal notranslate"><span class="pre">pybit7z</span></code> CLI for compress / decompress / extract / list / test / info / update.</p></li>
@@ -288,6 +290,19 @@
 
 <span class="k">with</span> <span class="n">pybit7z</span><span class="o">.</span><span class="n">lib7zip_context</span><span class="p">()</span> <span class="k">as</span> <span class="n">lib</span><span class="p">:</span>
     <span class="o">...</span>
+</pre></div>
+</div>
+<p>For more control over the library lifecycle — e.g. probing whether 7-zip is available without raising, loading a custom build, or deferring the load — use <code class="docutils literal notranslate"><span class="pre">loader_context()</span></code>. It yields a fresh <code class="docutils literal notranslate"><span class="pre">Bit7zLibraryLoader</span></code>; call <code class="docutils literal notranslate"><span class="pre">load()</span></code> or <code class="docutils literal notranslate"><span class="pre">try_load()</span></code> yourself, and the manager unloads automatically on exit:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pybit7z</span>
+
+<span class="k">with</span> <span class="n">pybit7z</span><span class="o">.</span><span class="n">loader_context</span><span class="p">()</span> <span class="k">as</span> <span class="n">loader</span><span class="p">:</span>
+    <span class="c1"># Safe probe — never raises if the library is missing</span>
+    <span class="k">if</span> <span class="n">loader</span><span class="o">.</span><span class="n">try_load</span><span class="p">(</span><span class="n">pybit7z</span><span class="o">.</span><span class="n">default_lib7zip</span><span class="p">()):</span>
+        <span class="n">lib</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">library</span><span class="p">()</span>
+        <span class="o">...</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"lib7zip unavailable, skipping"</span><span class="p">)</span>
+<span class="c1"># loader.unload() called automatically on exit (if loaded)</span>
 </pre></div>
 </div>
 <section id="loading-external-plugins">
@@ -431,6 +446,21 @@
                 <span class="s2">"</span><span class="se">\n</span><span class="s2">    Packed size: "</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">pack_size</span><span class="p">(),</span>
                 <span class="s2">"</span><span class="se">\n</span><span class="s2">    CRC: "</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">crc</span><span class="p">(),</span>
             <span class="p">)</span>
+
+        <span class="c1"># Wildcard-match items by pattern</span>
+        <span class="n">txt_files</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">arc</span><span class="o">.</span><span class="n">items_matching</span><span class="p">(</span><span class="s2">"*.txt"</span><span class="p">))</span>
+
+        <span class="c1"># Common root folder of all items (empty string if none)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"Root folder:"</span><span class="p">,</span> <span class="n">arc</span><span class="o">.</span><span class="n">root_folder</span><span class="p">())</span>
+
+        <span class="c1"># Check whether an item exposes a given property</span>
+        <span class="k">if</span> <span class="n">arc</span><span class="o">.</span><span class="n">item_has_property</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">pybit7z</span><span class="o">.</span><span class="n">BitProperty</span><span class="o">.</span><span class="n">Size</span><span class="p">):</span>
+            <span class="n">size</span> <span class="o">=</span> <span class="n">arc</span><span class="o">.</span><span class="n">item_at</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">item_property</span><span class="p">(</span><span class="n">pybit7z</span><span class="o">.</span><span class="n">BitProperty</span><span class="o">.</span><span class="n">Size</span><span class="p">)</span>
+
+        <span class="c1"># Item native/raw name accessors</span>
+        <span class="n">item</span> <span class="o">=</span> <span class="n">arc</span><span class="o">.</span><span class="n">item_at</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"Native name:"</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">native_name</span><span class="p">())</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"Raw path:"</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">raw_path</span><span class="p">())</span>
 <span class="k">except</span> <span class="n">pybit7z</span><span class="o">.</span><span class="n">BitException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
     <span class="o">...</span>  <span class="c1"># handle the exception</span>
 </pre></div>

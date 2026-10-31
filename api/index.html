@@ -245,6 +245,38 @@
 <p>Copyright (c) 2024 l.feng. All rights reserved.</p>
 <p>pybit7z: A wrapper based on bit7z.</p>
 <dl class="py class">
+<dt class="sig sig-object py" id="pybit7z.ArchiveStartOffset">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pybit7z.</span></span><span class="sig-name descname"><span class="pre">ArchiveStartOffset</span></span><a class="headerlink" href="#pybit7z.ArchiveStartOffset" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_object</span></code></p>
+<p>Offset from where the archive starts within the input file.</p>
+<p>Members:</p>
+<blockquote>
+<div><p>NoneOffset : Don’t specify an archive start offset. For some formats like Zip archives this means that the whole input file will be searched for the archive’s start.</p>
+<p>FileStart : Check only the file start for the archive’s start.</p>
+</div></blockquote>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pybit7z.ArchiveStartOffset.FileStart">
+<span class="sig-name descname"><span class="pre">FileStart</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;ArchiveStartOffset.FileStart:</span> <span class="pre">1&gt;</span></span><a class="headerlink" href="#pybit7z.ArchiveStartOffset.FileStart" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pybit7z.ArchiveStartOffset.NoneOffset">
+<span class="sig-name descname"><span class="pre">NoneOffset</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;ArchiveStartOffset.NoneOffset:</span> <span class="pre">0&gt;</span></span><a class="headerlink" href="#pybit7z.ArchiveStartOffset.NoneOffset" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">ArchiveStartOffset.name</span> <span class="pre">-&gt;</span> <span class="pre">str</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pybit7z.ArchiveStartOffset.value">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#pybit7z.ArchiveStartOffset.value" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="pybit7z.Bit7zLibrary">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pybit7z.</span></span><span class="sig-name descname"><span class="pre">Bit7zLibrary</span></span><a class="headerlink" href="#pybit7z.Bit7zLibrary" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_object</span></code></p>
@@ -332,6 +364,70 @@ so a single DLL can supply both codecs and archive handlers.</p>
 <dt class="sig sig-object py" id="pybit7z.Bit7zLibrary.use_large_pages">
 <span class="sig-name descname"><span class="pre">use_large_pages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.Bit7zLibrary" title="pybit7z._core.Bit7zLibrary"><span class="pre">pybit7z._core.Bit7zLibrary</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#pybit7z.Bit7zLibrary.use_large_pages" title="Link to this definition">¶</a></dt>
 <dd><p>Enable large page mode for 7zip library. This can improve performance on some systems.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pybit7z.Bit7zLibraryLoader">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pybit7z.</span></span><span class="sig-name descname"><span class="pre">Bit7zLibraryLoader</span></span><a class="headerlink" href="#pybit7z.Bit7zLibraryLoader" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_object</span></code></p>
+<p>The Bit7zLibraryLoader class provides deferred and optional loading of the 7-zip shared library.</p>
+<p>Unlike Bit7zLibrary which loads the shared library in its constructor,
+Bit7zLibraryLoader allows constructing an empty loader and loading the library
+at a later time. It also supports unloading and reloading the library as well
+as non-throwing error handling.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.Bit7zLibraryLoader.is_loaded">
+<span class="sig-name descname"><span class="pre">is_loaded</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.Bit7zLibraryLoader" title="pybit7z._core.Bit7zLibraryLoader"><span class="pre">pybit7z._core.Bit7zLibraryLoader</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span></span><a class="headerlink" href="#pybit7z.Bit7zLibraryLoader.is_loaded" title="Link to this definition">¶</a></dt>
+<dd><p>Whether a 7-zip shared library is currently loaded.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.Bit7zLibraryLoader.library">
+<span class="sig-name descname"><span class="pre">library</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.Bit7zLibraryLoader" title="pybit7z._core.Bit7zLibraryLoader"><span class="pre">pybit7z._core.Bit7zLibraryLoader</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pybit7z.Bit7zLibrary" title="pybit7z._core.Bit7zLibrary"><span class="pre">pybit7z._core.Bit7zLibrary</span></a></span></span><a class="headerlink" href="#pybit7z.Bit7zLibraryLoader.library" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a reference to the loaded Bit7zLibrary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>a const reference to the underlying Bit7zLibrary.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#pybit7z.BitException" title="pybit7z.BitException"><strong>BitException</strong></a> – if no library is currently loaded.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.Bit7zLibraryLoader.load">
+<span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.Bit7zLibraryLoader" title="pybit7z._core.Bit7zLibraryLoader"><span class="pre">pybit7z._core.Bit7zLibraryLoader</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">library_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#pybit7z.Bit7zLibraryLoader.load" title="Link to this definition">¶</a></dt>
+<dd><p>Loads the specified 7-zip shared library.</p>
+<p>If a library is already loaded it is unloaded first.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>library_path</strong> – the path to the 7-zip shared library to be loaded.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.Bit7zLibraryLoader.try_load">
+<span class="sig-name descname"><span class="pre">try_load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.Bit7zLibraryLoader" title="pybit7z._core.Bit7zLibraryLoader"><span class="pre">pybit7z._core.Bit7zLibraryLoader</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">library_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span></span><a class="headerlink" href="#pybit7z.Bit7zLibraryLoader.try_load" title="Link to this definition">¶</a></dt>
+<dd><p>Loads the specified 7-zip shared library without throwing on failure.</p>
+<p>If a library is already loaded it is unloaded first.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>library_path</strong> – the path to the 7-zip shared library to be loaded.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if the loading succeeded, False otherwise.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.Bit7zLibraryLoader.unload">
+<span class="sig-name descname"><span class="pre">unload</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.Bit7zLibraryLoader" title="pybit7z._core.Bit7zLibraryLoader"><span class="pre">pybit7z._core.Bit7zLibraryLoader</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#pybit7z.Bit7zLibraryLoader.unload" title="Link to this definition">¶</a></dt>
+<dd><p>Unloads the currently loaded library if any.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1047,6 +1143,12 @@ Generally, archives may contain multiple items with the same paths. If this is t
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.BitArchiveItem.native_name">
+<span class="sig-name descname"><span class="pre">native_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitArchiveItem" title="pybit7z._core.BitArchiveItem"><span class="pre">pybit7z._core.BitArchiveItem</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></span><a class="headerlink" href="#pybit7z.BitArchiveItem.native_name" title="Link to this definition">¶</a></dt>
+<dd><p>Same as name() but returning a native string (i.e. std::wstring on Windows, std::string elsewhere).</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="pybit7z.BitArchiveItem.native_path">
 <span class="sig-name descname"><span class="pre">native_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitArchiveItem" title="pybit7z._core.BitArchiveItem"><span class="pre">pybit7z._core.BitArchiveItem</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></span><a class="headerlink" href="#pybit7z.BitArchiveItem.native_path" title="Link to this definition">¶</a></dt>
 <dd><p>the path of the item in the archive, if available or inferable from the name, or an empty string otherwise.</p>
@@ -1056,6 +1158,12 @@ Generally, archives may contain multiple items with the same paths. If this is t
 <dt class="sig sig-object py" id="pybit7z.BitArchiveItem.pack_size">
 <span class="sig-name descname"><span class="pre">pack_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitArchiveItem" title="pybit7z._core.BitArchiveItem"><span class="pre">pybit7z._core.BitArchiveItem</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span></span><a class="headerlink" href="#pybit7z.BitArchiveItem.pack_size" title="Link to this definition">¶</a></dt>
 <dd><p>the compressed size of the item.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.BitArchiveItem.raw_path">
+<span class="sig-name descname"><span class="pre">raw_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitArchiveItem" title="pybit7z._core.BitArchiveItem"><span class="pre">pybit7z._core.BitArchiveItem</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></span><a class="headerlink" href="#pybit7z.BitArchiveItem.raw_path" title="Link to this definition">¶</a></dt>
+<dd><p>Same as path() but returning the internal string type used by 7-Zip on all OSes (wide string).</p>
 </dd></dl>
 
 </dd></dl>
@@ -1196,6 +1304,20 @@ Generally, archives may contain multiple items with the same paths. If this is t
 <dt class="sig sig-object py" id="pybit7z.BitArchiveReader.items">
 <span class="sig-name descname"><span class="pre">items</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitArchiveReader" title="pybit7z._core.BitArchiveReader"><span class="pre">pybit7z._core.BitArchiveReader</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#pybit7z.BitArchiveItemInfo" title="pybit7z._core.BitArchiveItemInfo"><span class="pre">pybit7z._core.BitArchiveItemInfo</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#pybit7z.BitArchiveReader.items" title="Link to this definition">¶</a></dt>
 <dd><p>the list of all the archive items as BitArchiveItem objects.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.BitArchiveReader.items_matching">
+<span class="sig-name descname"><span class="pre">items_matching</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitArchiveReader" title="pybit7z._core.BitArchiveReader"><span class="pre">pybit7z._core.BitArchiveReader</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">pattern</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#pybit7z.BitArchiveItemInfo" title="pybit7z._core.BitArchiveItemInfo"><span class="pre">pybit7z._core.BitArchiveItemInfo</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#pybit7z.BitArchiveReader.items_matching" title="Link to this definition">¶</a></dt>
+<dd><p>Gets the items whose paths match the given wildcard pattern.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pattern</strong> – a wildcard pattern used for matching the paths of items inside the archive.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the items whose paths match the given wildcard pattern.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -1656,6 +1778,12 @@ Generally, archives may contain multiple items with the same paths. If this is t
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pybit7z.</span></span><span class="sig-name descname"><span class="pre">BitInputArchive</span></span><a class="headerlink" href="#pybit7z.BitInputArchive" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_object</span></code></p>
 <dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.BitInputArchive.archive_has_path">
+<span class="sig-name descname"><span class="pre">archive_has_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitInputArchive" title="pybit7z._core.BitInputArchive"><span class="pre">pybit7z._core.BitInputArchive</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span></span><a class="headerlink" href="#pybit7z.BitInputArchive.archive_has_path" title="Link to this definition">¶</a></dt>
+<dd><p>Whether the archive has a path (i.e. filesystem archive) or not (e.g. buffer archive).</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="pybit7z.BitInputArchive.archive_path">
 <span class="sig-name descname"><span class="pre">archive_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitInputArchive" title="pybit7z._core.BitInputArchive"><span class="pre">pybit7z._core.BitInputArchive</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></span><a class="headerlink" href="#pybit7z.BitInputArchive.archive_path" title="Link to this definition">¶</a></dt>
 <dd><p>the path to the archive (the empty string for buffer/stream archives).</p>
@@ -1860,6 +1988,23 @@ Generally, archives may contain multiple items with the same paths. If this is t
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.BitInputArchive.item_has_property">
+<span class="sig-name descname"><span class="pre">item_has_property</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitInputArchive" title="pybit7z._core.BitInputArchive"><span class="pre">pybit7z._core.BitInputArchive</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">property</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitProperty" title="pybit7z._core.BitProperty"><span class="pre">pybit7z._core.BitProperty</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span></span><a class="headerlink" href="#pybit7z.BitInputArchive.item_has_property" title="Link to this definition">¶</a></dt>
+<dd><p>Checks whether the item at the given index has the specified property.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>index</strong> – the index (in the archive) of the item.</p></li>
+<li><p><strong>property</strong> – the property to be checked for existence.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>true if the item has the property, false otherwise.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="pybit7z.BitInputArchive.item_property">
 <span class="sig-name descname"><span class="pre">item_property</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitInputArchive" title="pybit7z._core.BitInputArchive"><span class="pre">pybit7z._core.BitInputArchive</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">property</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitProperty" title="pybit7z._core.BitProperty"><span class="pre">pybit7z._core.BitProperty</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pybit7z.BitPropVariant" title="pybit7z._core.BitPropVariant"><span class="pre">pybit7z._core.BitPropVariant</span></a></span></span><a class="headerlink" href="#pybit7z.BitInputArchive.item_property" title="Link to this definition">¶</a></dt>
 <dd><p>Gets the specified item property.</p>
@@ -1880,6 +2025,22 @@ Generally, archives may contain multiple items with the same paths. If this is t
 <dt class="sig sig-object py" id="pybit7z.BitInputArchive.items_count">
 <span class="sig-name descname"><span class="pre">items_count</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitInputArchive" title="pybit7z._core.BitInputArchive"><span class="pre">pybit7z._core.BitInputArchive</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span></span><a class="headerlink" href="#pybit7z.BitInputArchive.items_count" title="Link to this definition">¶</a></dt>
 <dd><p>the number of items in the archive.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.BitInputArchive.root_folder">
+<span class="sig-name descname"><span class="pre">root_folder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitInputArchive" title="pybit7z._core.BitInputArchive"><span class="pre">pybit7z._core.BitInputArchive</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></span><a class="headerlink" href="#pybit7z.BitInputArchive.root_folder" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the single top-level folder that contains all of the archive’s items.</p>
+<p>The archive is considered to have a root folder only when every item is contained
+within the same top-level folder. There is no common root folder if the items belong
+to different top-level folders, if the archive contains a file at its root, or if the
+archive is empty.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the name of the archive’s root folder, or an empty string if the archive does
+not have a single common root folder.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -2133,6 +2294,108 @@ Generally, archives may contain multiple items with the same paths. If this is t
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>in_archive</strong> – the input archive to be tested.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pybit7z.BitNestedArchiveReader">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pybit7z.</span></span><span class="sig-name descname"><span class="pre">BitNestedArchiveReader</span></span><a class="headerlink" href="#pybit7z.BitNestedArchiveReader" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pybit7z.BitAbstractArchiveOpener" title="pybit7z._core.BitAbstractArchiveOpener"><code class="xref py py-class docutils literal notranslate"><span class="pre">BitAbstractArchiveOpener</span></code></a></p>
+<p>The BitNestedArchiveReader class allows reading and extracting nested archives
+(e.g. the tarball inside a .tar.gz archive).</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.BitNestedArchiveReader.archive_property">
+<span class="sig-name descname"><span class="pre">archive_property</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitNestedArchiveReader" title="pybit7z._core.BitNestedArchiveReader"><span class="pre">pybit7z._core.BitNestedArchiveReader</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">arg0</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitProperty" title="pybit7z._core.BitProperty"><span class="pre">pybit7z._core.BitProperty</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pybit7z.BitPropVariant" title="pybit7z._core.BitPropVariant"><span class="pre">pybit7z._core.BitPropVariant</span></a></span></span><a class="headerlink" href="#pybit7z.BitNestedArchiveReader.archive_property" title="Link to this definition">¶</a></dt>
+<dd><p>Gets the specified archive property.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>property</strong> – the property to be retrieved.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the current value of the archive property or an empty BitPropVariant if no value is specified.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.BitNestedArchiveReader.detected_format">
+<span class="sig-name descname"><span class="pre">detected_format</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitNestedArchiveReader" title="pybit7z._core.BitNestedArchiveReader"><span class="pre">pybit7z._core.BitNestedArchiveReader</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pybit7z.BitInFormat" title="pybit7z._core.BitInFormat"><span class="pre">pybit7z._core.BitInFormat</span></a></span></span><a class="headerlink" href="#pybit7z.BitNestedArchiveReader.detected_format" title="Link to this definition">¶</a></dt>
+<dd><p>the detected format of the nested archive.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.BitNestedArchiveReader.extract_to">
+<span class="sig-name descname"><span class="pre">extract_to</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitNestedArchiveReader" title="pybit7z._core.BitNestedArchiveReader"><span class="pre">pybit7z._core.BitNestedArchiveReader</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#pybit7z.BitNestedArchiveReader.extract_to" title="Link to this definition">¶</a></dt>
+<dd><p>Extracts the archive to the chosen directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>out_dir</strong> – the output directory where the extracted files will be put.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.BitNestedArchiveReader.item_property">
+<span class="sig-name descname"><span class="pre">item_property</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitNestedArchiveReader" title="pybit7z._core.BitNestedArchiveReader"><span class="pre">pybit7z._core.BitNestedArchiveReader</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">property</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitProperty" title="pybit7z._core.BitProperty"><span class="pre">pybit7z._core.BitProperty</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pybit7z.BitPropVariant" title="pybit7z._core.BitPropVariant"><span class="pre">pybit7z._core.BitPropVariant</span></a></span></span><a class="headerlink" href="#pybit7z.BitNestedArchiveReader.item_property" title="Link to this definition">¶</a></dt>
+<dd><p>Gets the specified property of an item in the archive.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>index</strong> – the index of the item.</p></li>
+<li><p><strong>property</strong> – the property to be retrieved.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the current value of the item property or an empty BitPropVariant if the item has no value.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.BitNestedArchiveReader.items">
+<span class="sig-name descname"><span class="pre">items</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitNestedArchiveReader" title="pybit7z._core.BitNestedArchiveReader"><span class="pre">pybit7z._core.BitNestedArchiveReader</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#pybit7z.BitArchiveItemInfo" title="pybit7z._core.BitArchiveItemInfo"><span class="pre">pybit7z._core.BitArchiveItemInfo</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#pybit7z.BitNestedArchiveReader.items" title="Link to this definition">¶</a></dt>
+<dd><p>all the archive items as BitArchiveItemInfo objects.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.BitNestedArchiveReader.items_count">
+<span class="sig-name descname"><span class="pre">items_count</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitNestedArchiveReader" title="pybit7z._core.BitNestedArchiveReader"><span class="pre">pybit7z._core.BitNestedArchiveReader</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span></span><a class="headerlink" href="#pybit7z.BitNestedArchiveReader.items_count" title="Link to this definition">¶</a></dt>
+<dd><p>the number of items contained in the nested archive.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.BitNestedArchiveReader.max_memory_usage">
+<span class="sig-name descname"><span class="pre">max_memory_usage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitNestedArchiveReader" title="pybit7z._core.BitNestedArchiveReader"><span class="pre">pybit7z._core.BitNestedArchiveReader</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span></span><a class="headerlink" href="#pybit7z.BitNestedArchiveReader.max_memory_usage" title="Link to this definition">¶</a></dt>
+<dd><p>the max memory usage limit applied while extracting the parent archive.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.BitNestedArchiveReader.open_count">
+<span class="sig-name descname"><span class="pre">open_count</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitNestedArchiveReader" title="pybit7z._core.BitNestedArchiveReader"><span class="pre">pybit7z._core.BitNestedArchiveReader</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span></span><a class="headerlink" href="#pybit7z.BitNestedArchiveReader.open_count" title="Link to this definition">¶</a></dt>
+<dd><p>the number of times the parent archive was extracted and the nested archive was opened.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.BitNestedArchiveReader.set_max_memory_usage">
+<span class="sig-name descname"><span class="pre">set_max_memory_usage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitNestedArchiveReader" title="pybit7z._core.BitNestedArchiveReader"><span class="pre">pybit7z._core.BitNestedArchiveReader</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#pybit7z.BitNestedArchiveReader.set_max_memory_usage" title="Link to this definition">¶</a></dt>
+<dd><p>Sets the max memory usage limit to be used while extracting the parent archive.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>value</strong> – the max memory limit to be used (in bytes).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pybit7z.BitNestedArchiveReader.test">
+<span class="sig-name descname"><span class="pre">test</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pybit7z.BitNestedArchiveReader" title="pybit7z._core.BitNestedArchiveReader"><span class="pre">pybit7z._core.BitNestedArchiveReader</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#pybit7z.BitNestedArchiveReader.test" title="Link to this definition">¶</a></dt>
+<dd><p>Tests the archive without extracting its content.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#pybit7z.BitException" title="pybit7z.BitException"><strong>BitException</strong></a> – if the archive is not valid.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -3561,6 +3824,29 @@ plugin subdirectories under the package directory.</p>
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="pybit7z.loader_context">
+<span class="sig-prename descclassname"><span class="pre">pybit7z.</span></span><span class="sig-name descname"><span class="pre">loader_context</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pybit7z.html#loader_context"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pybit7z.loader_context" title="Link to this definition">¶</a></dt>
+<dd><p>A context manager that creates a <a class="reference internal" href="#pybit7z.Bit7zLibraryLoader" title="pybit7z.Bit7zLibraryLoader"><code class="xref py py-class docutils literal notranslate"><span class="pre">Bit7zLibraryLoader</span></code></a>, yields it to the
+caller for explicit <code class="docutils literal notranslate"><span class="pre">load()</span></code> / <code class="docutils literal notranslate"><span class="pre">try_load()</span></code>, and automatically unloads on exit
+if the loader is still loaded.</p>
+<p>The caller has full control over when and how to load the library:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">pybit7z</span><span class="o">.</span><span class="n">loader_context</span><span class="p">()</span> <span class="k">as</span> <span class="n">loader</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">loader</span><span class="o">.</span><span class="n">try_load</span><span class="p">(</span><span class="n">pybit7z</span><span class="o">.</span><span class="n">default_lib7zip</span><span class="p">()):</span>
+        <span class="n">lib</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">library</span><span class="p">()</span>
+        <span class="o">...</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"lib7zip unavailable"</span><span class="p">)</span>
+<span class="c1"># loader.unload() called automatically if loaded</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Yields<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#pybit7z.Bit7zLibraryLoader" title="pybit7z._core.Bit7zLibraryLoader"><code class="xref py py-class docutils literal notranslate"><span class="pre">Bit7zLibraryLoader</span></code></a></span> – A fresh, unloaded Bit7zLibraryLoader instance.</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
         </article>
@@ -3614,6 +3900,12 @@ plugin subdirectories under the package directory.</p>
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">pybit7z package</a><ul>
+<li><a class="reference internal" href="#pybit7z.ArchiveStartOffset"><code class="docutils literal notranslate"><span class="pre">ArchiveStartOffset</span></code></a><ul>
+<li><a class="reference internal" href="#pybit7z.ArchiveStartOffset.FileStart"><code class="docutils literal notranslate"><span class="pre">ArchiveStartOffset.FileStart</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.ArchiveStartOffset.NoneOffset"><code class="docutils literal notranslate"><span class="pre">ArchiveStartOffset.NoneOffset</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.ArchiveStartOffset.value"><code class="docutils literal notranslate"><span class="pre">ArchiveStartOffset.value</span></code></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#pybit7z.Bit7zLibrary"><code class="docutils literal notranslate"><span class="pre">Bit7zLibrary</span></code></a><ul>
 <li><a class="reference internal" href="#pybit7z.Bit7zLibrary.get_codec_paths"><code class="docutils literal notranslate"><span class="pre">Bit7zLibrary.get_codec_paths()</span></code></a></li>
 <li><a class="reference internal" href="#pybit7z.Bit7zLibrary.get_codecs"><code class="docutils literal notranslate"><span class="pre">Bit7zLibrary.get_codecs()</span></code></a></li>
@@ -3622,6 +3914,14 @@ plugin subdirectories under the package directory.</p>
 <li><a class="reference internal" href="#pybit7z.Bit7zLibrary.get_formats"><code class="docutils literal notranslate"><span class="pre">Bit7zLibrary.get_formats()</span></code></a></li>
 <li><a class="reference internal" href="#pybit7z.Bit7zLibrary.load_plugins"><code class="docutils literal notranslate"><span class="pre">Bit7zLibrary.load_plugins()</span></code></a></li>
 <li><a class="reference internal" href="#pybit7z.Bit7zLibrary.use_large_pages"><code class="docutils literal notranslate"><span class="pre">Bit7zLibrary.use_large_pages()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#pybit7z.Bit7zLibraryLoader"><code class="docutils literal notranslate"><span class="pre">Bit7zLibraryLoader</span></code></a><ul>
+<li><a class="reference internal" href="#pybit7z.Bit7zLibraryLoader.is_loaded"><code class="docutils literal notranslate"><span class="pre">Bit7zLibraryLoader.is_loaded()</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.Bit7zLibraryLoader.library"><code class="docutils literal notranslate"><span class="pre">Bit7zLibraryLoader.library()</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.Bit7zLibraryLoader.load"><code class="docutils literal notranslate"><span class="pre">Bit7zLibraryLoader.load()</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.Bit7zLibraryLoader.try_load"><code class="docutils literal notranslate"><span class="pre">Bit7zLibraryLoader.try_load()</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.Bit7zLibraryLoader.unload"><code class="docutils literal notranslate"><span class="pre">Bit7zLibraryLoader.unload()</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#pybit7z.BitAbstractArchiveCreator"><code class="docutils literal notranslate"><span class="pre">BitAbstractArchiveCreator</span></code></a><ul>
@@ -3699,8 +3999,10 @@ plugin subdirectories under the package directory.</p>
 <li><a class="reference internal" href="#pybit7z.BitArchiveItem.is_encrypted"><code class="docutils literal notranslate"><span class="pre">BitArchiveItem.is_encrypted()</span></code></a></li>
 <li><a class="reference internal" href="#pybit7z.BitArchiveItem.last_access_time"><code class="docutils literal notranslate"><span class="pre">BitArchiveItem.last_access_time()</span></code></a></li>
 <li><a class="reference internal" href="#pybit7z.BitArchiveItem.last_write_time"><code class="docutils literal notranslate"><span class="pre">BitArchiveItem.last_write_time()</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitArchiveItem.native_name"><code class="docutils literal notranslate"><span class="pre">BitArchiveItem.native_name()</span></code></a></li>
 <li><a class="reference internal" href="#pybit7z.BitArchiveItem.native_path"><code class="docutils literal notranslate"><span class="pre">BitArchiveItem.native_path()</span></code></a></li>
 <li><a class="reference internal" href="#pybit7z.BitArchiveItem.pack_size"><code class="docutils literal notranslate"><span class="pre">BitArchiveItem.pack_size()</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitArchiveItem.raw_path"><code class="docutils literal notranslate"><span class="pre">BitArchiveItem.raw_path()</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#pybit7z.BitArchiveItemInfo"><code class="docutils literal notranslate"><span class="pre">BitArchiveItemInfo</span></code></a><ul>
@@ -3722,6 +4024,7 @@ plugin subdirectories under the package directory.</p>
 <li><a class="reference internal" href="#pybit7z.BitArchiveReader.is_multi_volume"><code class="docutils literal notranslate"><span class="pre">BitArchiveReader.is_multi_volume()</span></code></a></li>
 <li><a class="reference internal" href="#pybit7z.BitArchiveReader.is_solid"><code class="docutils literal notranslate"><span class="pre">BitArchiveReader.is_solid()</span></code></a></li>
 <li><a class="reference internal" href="#pybit7z.BitArchiveReader.items"><code class="docutils literal notranslate"><span class="pre">BitArchiveReader.items()</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitArchiveReader.items_matching"><code class="docutils literal notranslate"><span class="pre">BitArchiveReader.items_matching()</span></code></a></li>
 <li><a class="reference internal" href="#pybit7z.BitArchiveReader.pack_size"><code class="docutils literal notranslate"><span class="pre">BitArchiveReader.pack_size()</span></code></a></li>
 <li><a class="reference internal" href="#pybit7z.BitArchiveReader.size"><code class="docutils literal notranslate"><span class="pre">BitArchiveReader.size()</span></code></a></li>
 <li><a class="reference internal" href="#pybit7z.BitArchiveReader.volumes_count"><code class="docutils literal notranslate"><span class="pre">BitArchiveReader.volumes_count()</span></code></a></li>
@@ -3800,6 +4103,7 @@ plugin subdirectories under the package directory.</p>
 </ul>
 </li>
 <li><a class="reference internal" href="#pybit7z.BitInputArchive"><code class="docutils literal notranslate"><span class="pre">BitInputArchive</span></code></a><ul>
+<li><a class="reference internal" href="#pybit7z.BitInputArchive.archive_has_path"><code class="docutils literal notranslate"><span class="pre">BitInputArchive.archive_has_path()</span></code></a></li>
 <li><a class="reference internal" href="#pybit7z.BitInputArchive.archive_path"><code class="docutils literal notranslate"><span class="pre">BitInputArchive.archive_path()</span></code></a></li>
 <li><a class="reference internal" href="#pybit7z.BitInputArchive.archive_property"><code class="docutils literal notranslate"><span class="pre">BitInputArchive.archive_property()</span></code></a></li>
 <li><a class="reference internal" href="#pybit7z.BitInputArchive.contains"><code class="docutils literal notranslate"><span class="pre">BitInputArchive.contains()</span></code></a></li>
@@ -3811,8 +4115,10 @@ plugin subdirectories under the package directory.</p>
 <li><a class="reference internal" href="#pybit7z.BitInputArchive.is_item_encrypted"><code class="docutils literal notranslate"><span class="pre">BitInputArchive.is_item_encrypted()</span></code></a></li>
 <li><a class="reference internal" href="#pybit7z.BitInputArchive.is_item_folder"><code class="docutils literal notranslate"><span class="pre">BitInputArchive.is_item_folder()</span></code></a></li>
 <li><a class="reference internal" href="#pybit7z.BitInputArchive.item_at"><code class="docutils literal notranslate"><span class="pre">BitInputArchive.item_at()</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitInputArchive.item_has_property"><code class="docutils literal notranslate"><span class="pre">BitInputArchive.item_has_property()</span></code></a></li>
 <li><a class="reference internal" href="#pybit7z.BitInputArchive.item_property"><code class="docutils literal notranslate"><span class="pre">BitInputArchive.item_property()</span></code></a></li>
 <li><a class="reference internal" href="#pybit7z.BitInputArchive.items_count"><code class="docutils literal notranslate"><span class="pre">BitInputArchive.items_count()</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitInputArchive.root_folder"><code class="docutils literal notranslate"><span class="pre">BitInputArchive.root_folder()</span></code></a></li>
 <li><a class="reference internal" href="#pybit7z.BitInputArchive.test"><code class="docutils literal notranslate"><span class="pre">BitInputArchive.test()</span></code></a></li>
 <li><a class="reference internal" href="#pybit7z.BitInputArchive.test_item"><code class="docutils literal notranslate"><span class="pre">BitInputArchive.test_item()</span></code></a></li>
 <li><a class="reference internal" href="#pybit7z.BitInputArchive.use_format_property"><code class="docutils literal notranslate"><span class="pre">BitInputArchive.use_format_property()</span></code></a></li>
@@ -3842,6 +4148,19 @@ plugin subdirectories under the package directory.</p>
 <li><a class="reference internal" href="#pybit7z.BitMemExtractor.extract_matching"><code class="docutils literal notranslate"><span class="pre">BitMemExtractor.extract_matching()</span></code></a></li>
 <li><a class="reference internal" href="#pybit7z.BitMemExtractor.extract_matching_regex"><code class="docutils literal notranslate"><span class="pre">BitMemExtractor.extract_matching_regex()</span></code></a></li>
 <li><a class="reference internal" href="#pybit7z.BitMemExtractor.test"><code class="docutils literal notranslate"><span class="pre">BitMemExtractor.test()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#pybit7z.BitNestedArchiveReader"><code class="docutils literal notranslate"><span class="pre">BitNestedArchiveReader</span></code></a><ul>
+<li><a class="reference internal" href="#pybit7z.BitNestedArchiveReader.archive_property"><code class="docutils literal notranslate"><span class="pre">BitNestedArchiveReader.archive_property()</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitNestedArchiveReader.detected_format"><code class="docutils literal notranslate"><span class="pre">BitNestedArchiveReader.detected_format()</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitNestedArchiveReader.extract_to"><code class="docutils literal notranslate"><span class="pre">BitNestedArchiveReader.extract_to()</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitNestedArchiveReader.item_property"><code class="docutils literal notranslate"><span class="pre">BitNestedArchiveReader.item_property()</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitNestedArchiveReader.items"><code class="docutils literal notranslate"><span class="pre">BitNestedArchiveReader.items()</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitNestedArchiveReader.items_count"><code class="docutils literal notranslate"><span class="pre">BitNestedArchiveReader.items_count()</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitNestedArchiveReader.max_memory_usage"><code class="docutils literal notranslate"><span class="pre">BitNestedArchiveReader.max_memory_usage()</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitNestedArchiveReader.open_count"><code class="docutils literal notranslate"><span class="pre">BitNestedArchiveReader.open_count()</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitNestedArchiveReader.set_max_memory_usage"><code class="docutils literal notranslate"><span class="pre">BitNestedArchiveReader.set_max_memory_usage()</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.BitNestedArchiveReader.test"><code class="docutils literal notranslate"><span class="pre">BitNestedArchiveReader.test()</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#pybit7z.BitOutputArchive"><code class="docutils literal notranslate"><span class="pre">BitOutputArchive</span></code></a><ul>
@@ -4054,6 +4373,7 @@ plugin subdirectories under the package directory.</p>
 <li><a class="reference internal" href="#pybit7z.default_lib7zip"><code class="docutils literal notranslate"><span class="pre">default_lib7zip()</span></code></a></li>
 <li><a class="reference internal" href="#pybit7z.default_plugin_dir"><code class="docutils literal notranslate"><span class="pre">default_plugin_dir()</span></code></a></li>
 <li><a class="reference internal" href="#pybit7z.lib7zip_context"><code class="docutils literal notranslate"><span class="pre">lib7zip_context()</span></code></a></li>
+<li><a class="reference internal" href="#pybit7z.loader_context"><code class="docutils literal notranslate"><span class="pre">loader_context()</span></code></a></li>
 </ul>
 </li>
 </ul>
