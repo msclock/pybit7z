@@ -1236,8 +1236,7 @@ class TestLoaderContext:
         with pybit7z.loader_context() as loader:
             loader_ref = loader
             loader.load(pybit7z.default_lib7zip())
-            with pytest.raises(RuntimeError):
-                raise RuntimeError("boom")
+            raise RuntimeError("fake")
         assert loader_ref is not None
         assert loader_ref.is_loaded() is False
 
