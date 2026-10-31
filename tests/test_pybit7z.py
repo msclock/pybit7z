@@ -1232,7 +1232,7 @@ class TestLoaderContext:
             assert isinstance(lib, Bit7zLibrary)
 
     def test_exception_inside_context_still_unloads(self):
-        loader_ref: Optional[Bit7zLibraryLoader] = None
+        loader_ref: Bit7zLibraryLoader | None = None
     
         def _raise_with_loaded_status() -> None:
             loaded = f"Load default lib7zip: {loader_ref.is_loaded()}"
