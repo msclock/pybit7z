@@ -1232,13 +1232,18 @@ class TestLoaderContext:
             assert isinstance(lib, Bit7zLibrary)
 
     def test_exception_inside_context_still_unloads(self):
-        loader_ref: Bit7zLibraryLoader | None = None
+        loader_ref: Optional[Bit7zLibraryLoader] = None
+    
+        def _raise_with_loaded_status() -> None:
+            loaded = f"Load default lib7zip: {loader_ref.is_loaded()}"
+            raise RuntimeError(loaded)
+    
         with pybit7z.loader_context() as loader:
             loader_ref = loader
             loader.load(pybit7z.default_lib7zip())
-            with pytest.raises(RuntimeError, match='Load default lib7zip'):
-                loaded = f"Load default lib7zip: {loader_ref.is_loaded()}"
-                raise RuntimeError(loaded)
+            with pytest.raises(RuntimeError, match="Load default lib7zip"):
+                _raise_with_loaded_status()
+    
         assert loader_ref is not None
         assert loader_ref.is_loaded() is False
 
