@@ -209,6 +209,67 @@ Args:
 Returns:
     A BitInOutFormat instance, or None if the format was not found.)pbdoc"));
 
+    // bit7z::Bit7zLibraryLoader class bindings
+    py::class_<bit7z::Bit7zLibraryLoader>(
+        m,
+        "Bit7zLibraryLoader",
+        R"pbdoc(The Bit7zLibraryLoader class provides deferred and optional loading of the 7-zip shared library.
+
+Unlike Bit7zLibrary which loads the shared library in its constructor,
+Bit7zLibraryLoader allows constructing an empty loader and loading the library
+at a later time. It also supports unloading and reloading the library as well
+as non-throwing error handling.)pbdoc")
+        .def(py::init<>(), R"pbdoc(Constructs an empty Bit7zLibraryLoader without loading any library.)pbdoc")
+        .def(py::init<const std::string &>(),
+             py::arg("library_path"),
+             py::doc(R"pbdoc(Constructs a Bit7zLibraryLoader and immediately loads the specified 7-zip shared library.
+
+Args:
+    library_path: the path to the 7-zip shared library to be loaded.)pbdoc"))
+        .def("load",
+             py::overload_cast<const bit7z::tstring &>(&bit7z::Bit7zLibraryLoader::load),
+             py::arg("library_path"),
+             py::doc(R"pbdoc(Loads the specified 7-zip shared library.
+
+If a library is already loaded it is unloaded first.
+
+Args:
+    library_path: the path to the 7-zip shared library to be loaded.)pbdoc"))
+        .def(
+            "try_load",
+            [](bit7z::Bit7zLibraryLoader &self, const std::string &library_path) {
+                std::error_code ec;
+                self.load(library_path, ec);
+                return ec.value() == 0;
+            },
+            py::arg("library_path"),
+            py::doc(R"pbdoc(Loads the specified 7-zip shared library without throwing on failure.
+
+If a library is already loaded it is unloaded first.
+
+Args:
+    library_path: the path to the 7-zip shared library to be loaded.
+
+Returns:
+    True if the loading succeeded, False otherwise.)pbdoc"))
+        .def("unload",
+             &bit7z::Bit7zLibraryLoader::unload,
+             py::doc(R"pbdoc(Unloads the currently loaded library if any.)pbdoc"))
+        .def("is_loaded",
+             &bit7z::Bit7zLibraryLoader::isLoaded,
+             py::doc(R"pbdoc(Whether a 7-zip shared library is currently loaded.)pbdoc"))
+        .def(
+            "library",
+            [](const bit7z::Bit7zLibraryLoader &self) -> const bit7z::Bit7zLibrary & { return self.library(); },
+            py::return_value_policy::reference_internal,
+            py::doc(R"pbdoc(Returns a reference to the loaded Bit7zLibrary.
+
+Returns:
+    a const reference to the underlying Bit7zLibrary.
+
+Raises:
+    BitException: if no library is currently loaded.)pbdoc"));
+
     // Exception handling
     py::register_exception<bit7z::BitException>(m, "BitException");
 
@@ -554,6 +615,16 @@ Returns:
             &bit7z::BitArchiveItem::nativePath,
             py::doc(
                 R"pbdoc(the path of the item in the archive, if available or inferable from the name, or an empty string otherwise.)pbdoc"))
+        .def(
+            "native_name",
+            [](const bit7z::BitArchiveItem &self) -> std::string { return bit7z::to_tstring(self.nativeName()); },
+            py::doc(
+                R"pbdoc(Same as name() but returning a native string (i.e. std::wstring on Windows, std::string elsewhere).)pbdoc"))
+        .def(
+            "raw_path",
+            [](const bit7z::BitArchiveItem &self) -> std::wstring { return self.rawPath(); },
+            py::doc(
+                R"pbdoc(Same as path() but returning the internal string type used by 7-Zip on all OSes (wide string).)pbdoc"))
         .def("creation_time", &bit7z::BitArchiveItem::creationTime)
         .def("last_access_time", &bit7z::BitArchiveItem::lastAccessTime)
         .def("last_write_time", &bit7z::BitArchiveItem::lastWriteTime)
@@ -1052,6 +1123,19 @@ Args:
         .value("AbortOperation", bit7z::FilterResult::AbortOperation, R"pydoc(Abort the whole operation.)pydoc")
         .export_values();
 
+    // bit7z::ArchiveStartOffset enum bindings
+    py::enum_<bit7z::ArchiveStartOffset>(m,
+                                         "ArchiveStartOffset",
+                                         R"pbdoc(Offset from where the archive starts within the input file.)pbdoc")
+        .value(
+            "NoneOffset",
+            bit7z::ArchiveStartOffset::None,
+            R"pbdoc(Don't specify an archive start offset. For some formats like Zip archives this means that the whole input file will be searched for the archive's start.)pbdoc")
+        .value("FileStart",
+               bit7z::ArchiveStartOffset::FileStart,
+               R"pbdoc(Check only the file start for the archive's start.)pbdoc")
+        .export_values();
+
     // bit7z::BitInputArchive
     py::class_<bit7z::BitInputArchive>(m, "BitInputArchive")
         .def("detected_format",
@@ -1104,6 +1188,34 @@ Returns:
         .def("archive_path",
              &bit7z::BitInputArchive::archivePath,
              py::doc(R"pydoc(the path to the archive (the empty string for buffer/stream archives).)pydoc"))
+        .def("archive_has_path",
+             &bit7z::BitInputArchive::archiveHasPath,
+             py::doc(
+                 R"pydoc(Whether the archive has a path (i.e. filesystem archive) or not (e.g. buffer archive).)pydoc"))
+        .def("root_folder",
+             &bit7z::BitInputArchive::rootFolder,
+             py::doc(R"pydoc(Returns the single top-level folder that contains all of the archive's items.
+
+The archive is considered to have a root folder only when every item is contained
+within the same top-level folder. There is no common root folder if the items belong
+to different top-level folders, if the archive contains a file at its root, or if the
+archive is empty.
+
+Returns:
+    the name of the archive's root folder, or an empty string if the archive does
+    not have a single common root folder.)pydoc"))
+        .def("item_has_property",
+             &bit7z::BitInputArchive::itemHasProperty,
+             py::arg("index"),
+             py::arg("property"),
+             py::doc(R"pydoc(Checks whether the item at the given index has the specified property.
+
+Args:
+    index: the index (in the archive) of the item.
+    property: the property to be checked for existence.
+
+Returns:
+    true if the item has the property, false otherwise.)pydoc"))
         .def(
             "use_format_property",
             [](bit7z::BitInputArchive &self, const std::wstring &name, const bit7z::BitPropVariant &property) {
@@ -1587,6 +1699,17 @@ Args:
              &bit7z::BitArchiveReader::items,
              py::doc(R"pydoc(the list of all the archive items as BitArchiveItem objects.)pydoc"))
         .def(
+            "items_matching",
+            [](const bit7z::BitArchiveReader &self, const std::string &pattern) { return self.itemsMatching(pattern); },
+            py::arg("pattern"),
+            py::doc(R"pydoc(Gets the items whose paths match the given wildcard pattern.
+
+Args:
+    pattern: a wildcard pattern used for matching the paths of items inside the archive.
+
+Returns:
+    the items whose paths match the given wildcard pattern.)pydoc"))
+        .def(
             "archive_properties",
             &bit7z::BitArchiveReader::archiveProperties,
             py::doc(
@@ -1650,6 +1773,124 @@ Args:
     library: the library used for decompression.
     in_archive: the path to the archive to be checked.
     format: the format of the input archive. Default is FormatAuto.)pydoc"));
+
+    // bit7z::BitNestedArchiveReader class bindings
+    py::class_<bit7z::BitNestedArchiveReader, bit7z::BitAbstractArchiveOpener>(
+        m,
+        "BitNestedArchiveReader",
+        R"pbdoc(The BitNestedArchiveReader class allows reading and extracting nested archives
+(e.g. the tarball inside a .tar.gz archive).)pbdoc")
+        .def(py::init([](const bit7z::Bit7zLibrary &lib,
+                         const bit7z::BitInputArchive &parent_archive,
+                         uint32_t index,
+                         const bit7z::BitInFormat &format,
+                         const std::string &password = "") {
+                 return std::make_unique<bit7z::BitNestedArchiveReader>(lib, parent_archive, index, format, password);
+             }),
+             py::arg("lib"),
+             py::arg("parent_archive"),
+             py::arg("index"),
+             py::arg("format"),
+             py::arg("password") = "",
+             py::keep_alive<1, 3>(),
+             py::doc(R"pbdoc(Constructs a BitNestedArchiveReader for a specific item in the parent archive.
+
+Note:
+    The constructor doesn't open the archive; it will be opened only when needed.
+
+Args:
+    lib: the 7z library used.
+    parent_archive: the parent archive containing the nested archive.
+    index: the index of the nested archive within the parent archive.
+    format: the format of the nested archive (must not be FormatAuto).
+    password: (optional) the password needed for opening the nested archive.
+
+Raises:
+    BitException: if the format is FormatAuto (automatic detection of nested archives is not supported).)pbdoc"))
+        .def(py::init([](const bit7z::Bit7zLibrary &lib,
+                         const bit7z::BitInputArchive &parent_archive,
+                         const bit7z::BitInFormat &format,
+                         const std::string &password = "") {
+                 return std::make_unique<bit7z::BitNestedArchiveReader>(lib, parent_archive, format, password);
+             }),
+             py::arg("lib"),
+             py::arg("parent_archive"),
+             py::arg("format"),
+             py::arg("password") = "",
+             py::keep_alive<1, 3>(),
+             py::doc(R"pbdoc(Constructs a BitNestedArchiveReader for the first item in the parent archive.
+
+Note:
+    The constructor doesn't open the archive; it will be opened only when needed.
+
+Args:
+    lib: the 7z library used.
+    parent_archive: the parent archive containing the nested archive.
+    format: the format of the nested archive (must not be FormatAuto).
+    password: (optional) the password needed for opening the nested archive.
+
+Raises:
+    BitException: if the format is FormatAuto (automatic detection of nested archives is not supported).)pbdoc"))
+        .def("detected_format",
+             &bit7z::BitNestedArchiveReader::detectedFormat,
+             py::return_value_policy::reference_internal,
+             py::doc(R"pbdoc(the detected format of the nested archive.)pbdoc"))
+        .def("archive_property",
+             &bit7z::BitNestedArchiveReader::archiveProperty,
+             py::doc(R"pbdoc(Gets the specified archive property.
+
+Args:
+    property: the property to be retrieved.
+
+Returns:
+    the current value of the archive property or an empty BitPropVariant if no value is specified.)pbdoc"))
+        .def("item_property",
+             &bit7z::BitNestedArchiveReader::itemProperty,
+             py::arg("index"),
+             py::arg("property"),
+             py::doc(R"pbdoc(Gets the specified property of an item in the archive.
+
+Args:
+    index: the index of the item.
+    property: the property to be retrieved.
+
+Returns:
+    the current value of the item property or an empty BitPropVariant if the item has no value.)pbdoc"))
+        .def("items_count",
+             &bit7z::BitNestedArchiveReader::itemsCount,
+             py::doc(R"pbdoc(the number of items contained in the nested archive.)pbdoc"))
+        .def("items",
+             &bit7z::BitNestedArchiveReader::items,
+             py::doc(R"pbdoc(all the archive items as BitArchiveItemInfo objects.)pbdoc"))
+        .def(
+            "extract_to",
+            [](const bit7z::BitNestedArchiveReader &self, const std::string &out_dir) { self.extractTo(out_dir); },
+            py::arg("out_dir"),
+            py::doc(R"pbdoc(Extracts the archive to the chosen directory.
+
+Args:
+    out_dir: the output directory where the extracted files will be put.)pbdoc"))
+        .def("test",
+             &bit7z::BitNestedArchiveReader::test,
+             py::doc(R"pbdoc(Tests the archive without extracting its content.
+
+Raises:
+    BitException: if the archive is not valid.)pbdoc"))
+        .def(
+            "open_count",
+            &bit7z::BitNestedArchiveReader::openCount,
+            py::doc(
+                R"pbdoc(the number of times the parent archive was extracted and the nested archive was opened.)pbdoc"))
+        .def("max_memory_usage",
+             &bit7z::BitNestedArchiveReader::maxMemoryUsage,
+             py::doc(R"pbdoc(the max memory usage limit applied while extracting the parent archive.)pbdoc"))
+        .def("set_max_memory_usage",
+             &bit7z::BitNestedArchiveReader::setMaxMemoryUsage,
+             py::arg("value"),
+             py::doc(R"pbdoc(Sets the max memory usage limit to be used while extracting the parent archive.
+
+Args:
+    value: the max memory limit to be used (in bytes).)pbdoc"));
 
     // bit7z::BitArchiveWriter class bindings
     py::class_<bit7z::BitArchiveWriter,

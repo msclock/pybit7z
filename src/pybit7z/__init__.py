@@ -13,7 +13,9 @@ from typing import Any, Generator
 from importlib_metadata import distribution
 
 from pybit7z._core import (
+    ArchiveStartOffset,
     Bit7zLibrary,
+    Bit7zLibraryLoader,
     BitAbstractArchiveCreator,
     BitAbstractArchiveHandler,
     BitAbstractArchiveOpener,
@@ -37,6 +39,7 @@ from pybit7z._core import (
     BitInputItem,
     BitMemCompressor,
     BitMemExtractor,
+    BitNestedArchiveReader,
     BitOutputArchive,
     BitProperty,
     BitPropVariant,
@@ -112,7 +115,9 @@ from pybit7z._core import (
 from ._version import version as __version__
 
 __all__ = [
+    "ArchiveStartOffset",
     "Bit7zLibrary",
+    "Bit7zLibraryLoader",
     "BitAbstractArchiveCreator",
     "BitAbstractArchiveHandler",
     "BitAbstractArchiveOpener",
@@ -136,6 +141,7 @@ __all__ = [
     "BitInputItem",
     "BitMemCompressor",
     "BitMemExtractor",
+    "BitNestedArchiveReader",
     "BitOutputArchive",
     "BitPropVariant",
     "BitPropVariantType",
@@ -209,6 +215,7 @@ __all__ = [
     "default_lib7zip",
     "default_plugin_dir",
     "lib7zip_context",
+    "loader_context",
 ]
 
 
@@ -253,7 +260,7 @@ def lib7zip_context(
     Raises:
         FileNotFoundError: If the lib7zip library is not found.
     """
-    lib_path = path if len(path) != 0 else default_lib7zip()
+    lib_path = path if path else default_lib7zip()
 
     if pathlib.Path(lib_path).exists():
         lib7zip = Bit7zLibrary(lib_path)
@@ -262,3 +269,33 @@ def lib7zip_context(
         yield lib7zip
     else:
         raise FileNotFoundError("lib7zip not found at " + lib_path)
+
+
+@contextmanager
+def loader_context() -> Generator[Bit7zLibraryLoader, Any, None]:
+    """
+    A context manager that creates a :class:`Bit7zLibraryLoader`, yields it to the
+    caller for explicit ``load()`` / ``try_load()``, and automatically unloads on exit
+    if the loader is still loaded.
+
+    The caller has full control over when and how to load the library:
+
+    .. code-block:: python
+
+       with pybit7z.loader_context() as loader:
+           if loader.try_load(pybit7z.default_lib7zip()):
+               lib = loader.library()
+               ...
+           else:
+               print("lib7zip unavailable")
+       # loader.unload() called automatically if loaded
+
+    Yields:
+        A fresh, unloaded Bit7zLibraryLoader instance.
+    """
+    loader = Bit7zLibraryLoader()
+    try:
+        yield loader
+    finally:
+        if loader.is_loaded():
+            loader.unload()

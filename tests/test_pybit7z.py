@@ -8,7 +8,9 @@ import pytest
 
 import pybit7z
 from pybit7z import (
+    ArchiveStartOffset,
     Bit7zLibrary,
+    Bit7zLibraryLoader,
     BitArchiveEditor,
     BitArchiveItem,
     BitArchiveReader,
@@ -16,6 +18,7 @@ from pybit7z import (
     BitCompressionLevel,
     BitFileCompressor,
     BitInputItem,
+    BitNestedArchiveReader,
     BitProperty,
     BitPropVariant,
     BitPropVariantType,
@@ -827,6 +830,65 @@ class TestBitInputArchive:
         reader = BitArchiveReader(lib, arc, FormatSevenZip)
         reader.test()
 
+    def test_archive_has_path_true(self, lib, tmp_path: Path):
+        arc = self._make(lib, tmp_path)
+        reader = BitArchiveReader(lib, arc, FormatSevenZip)
+        assert reader.archive_has_path() is True
+
+    def test_root_folder_no_common_parent(self, lib, tmp_path: Path):
+        arc = self._make(lib, tmp_path)
+        reader = BitArchiveReader(lib, arc, FormatSevenZip)
+        assert reader.root_folder() == ""
+
+    def test_root_folder_with_common_parent(self, lib, tmp_path: Path):
+        sub = tmp_path / "mysub"
+        sub.mkdir()
+        (sub / "a.txt").write_text("aaa")
+        (sub / "b.txt").write_text("bbb")
+        arc = str(tmp_path / "t.7z")
+        _make_archive(lib, [str(sub)], arc, fmt=FormatSevenZip)
+        reader = BitArchiveReader(lib, arc, FormatSevenZip)
+        assert reader.root_folder() == "mysub"
+
+    def test_item_has_property(self, lib, tmp_path: Path):
+        arc = self._make(lib, tmp_path)
+        reader = BitArchiveReader(lib, arc, FormatSevenZip)
+        assert reader.item_has_property(0, BitProperty.Size) is True
+        assert reader.item_has_property(0, BitProperty.Path) is True
+        assert reader.item_has_property(0, BitProperty.Name) is True
+
+    def test_items_matching_wildcard(self, lib, tmp_path: Path):
+        f1 = tmp_path / "a.txt"
+        f1.write_text("aaa")
+        f2 = tmp_path / "b.bin"
+        f2.write_bytes(b"\x00\x01")
+        sub = tmp_path / "folder"
+        sub.mkdir()
+        f3 = sub / "c.txt"
+        f3.write_text("ccc")
+        f4 = sub / "d.log"
+        f4.write_text("ddd")
+        arc = str(tmp_path / "t.7z")
+        _make_archive(lib, [str(f1), str(f2), str(sub)], arc, fmt=FormatSevenZip)
+        reader = BitArchiveReader(lib, arc, FormatSevenZip)
+        matches = list(reader.items_matching("*.txt"))
+        names = sorted(i.name() for i in matches)
+        assert "a.txt" in names
+        assert "c.txt" in names
+        assert "b.bin" not in names
+        assert all(isinstance(i, BitArchiveItem) for i in matches)
+
+    def test_items_matching_empty(self, lib, tmp_path: Path):
+        arc = self._make(lib, tmp_path)
+        reader = BitArchiveReader(lib, arc, FormatSevenZip)
+        assert list(reader.items_matching("*.xyz")) == []
+
+    def test_items_matching_all(self, lib, tmp_path: Path):
+        arc = self._make(lib, tmp_path)
+        reader = BitArchiveReader(lib, arc, FormatSevenZip)
+        matches = list(reader.items_matching("*"))
+        assert len(matches) == reader.items_count()
+
 
 # ---------------------------------------------------------------------------
 # BitArchiveEditor: delete_item & rename_item
@@ -979,6 +1041,12 @@ def test_symlink_policy_enum():
     assert item.in_archive_path() == "x.bin"
 
 
+def test_archive_start_offset_enum():
+    assert hasattr(ArchiveStartOffset, "NoneOffset")
+    assert hasattr(ArchiveStartOffset, "FileStart")
+    assert ArchiveStartOffset.NoneOffset != ArchiveStartOffset.FileStart
+
+
 # ---------------------------------------------------------------------------
 # BitArchiveItem metadata accessors
 # ---------------------------------------------------------------------------
@@ -1010,6 +1078,28 @@ class TestBitArchiveItemMetadata:
         pv = item.item_property(BitProperty.Size)
         assert pv.is_uint64()
         assert pv.get_uint64() == 5
+
+    def test_native_name(self, lib, tmp_path: Path):
+        f = tmp_path / "hello.txt"
+        f.write_text("hello content")
+        arc = str(tmp_path / "t.7z")
+        _make_archive(lib, [str(f)], arc)
+        reader = BitArchiveReader(lib, arc, FormatSevenZip)
+        item = reader.item_at(0)
+        nn = item.native_name()
+        assert isinstance(nn, str)
+        assert "hello.txt" in nn
+
+    def test_raw_path(self, lib, tmp_path: Path):
+        f = tmp_path / "hello.txt"
+        f.write_text("hello content")
+        arc = str(tmp_path / "t.7z")
+        _make_archive(lib, [str(f)], arc)
+        reader = BitArchiveReader(lib, arc, FormatSevenZip)
+        item = reader.item_at(0)
+        rp = item.raw_path()
+        assert isinstance(rp, str)
+        assert "hello.txt" in rp
 
 
 # ---------------------------------------------------------------------------
@@ -1070,3 +1160,107 @@ def test_bit_input_item_roundtrip(lib):
     assert reader.items_count() == 2
     names = sorted(i.name() for i in reader.items())
     assert names == ["1.txt", "2.txt"]
+
+
+class TestBit7zLibraryLoader:
+    def test_default_ctor_not_loaded(self):
+        loader = Bit7zLibraryLoader()
+        assert loader.is_loaded() is False
+
+    def test_try_load_missing_library(self):
+        loader = Bit7zLibraryLoader()
+        result = loader.try_load("C:/no/such/lib7z.dll")
+        assert result is False
+        assert loader.is_loaded() is False
+
+    def test_ctor_with_path_loads_immediately(self):
+        lib_path = pybit7z.default_lib7zip()
+        loader = Bit7zLibraryLoader(lib_path)
+        assert loader.is_loaded() is True
+
+    def test_unload_then_reload(self):
+        lib_path = pybit7z.default_lib7zip()
+        loader = Bit7zLibraryLoader(lib_path)
+        assert loader.is_loaded() is True
+        loader.unload()
+        assert loader.is_loaded() is False
+        loader.load(lib_path)
+        assert loader.is_loaded() is True
+
+    def test_library_accessor_returns_bit7zlibrary(self):
+        lib_path = pybit7z.default_lib7zip()
+        loader = Bit7zLibraryLoader(lib_path)
+        loaded_lib = loader.library()
+        assert isinstance(loaded_lib, Bit7zLibrary)
+
+
+class TestLoaderContext:
+    def test_yields_unloaded_loader(self):
+        with pybit7z.loader_context() as loader:
+            assert isinstance(loader, Bit7zLibraryLoader)
+            assert loader.is_loaded() is False
+
+    def test_load_within_context_auto_unloads(self):
+        with pybit7z.loader_context() as loader:
+            loader.load(pybit7z.default_lib7zip())
+            assert loader.is_loaded() is True
+        assert loader.is_loaded() is False
+
+    def test_try_load_success_auto_unloads(self):
+        with pybit7z.loader_context() as loader:
+            ok = loader.try_load(pybit7z.default_lib7zip())
+            assert ok is True
+            assert loader.is_loaded() is True
+        assert loader.is_loaded() is False
+
+    def test_try_load_failure_no_unload_needed(self):
+        with pybit7z.loader_context() as loader:
+            ok = loader.try_load("C:/no/such/lib7z.dll")
+            assert ok is False
+            assert loader.is_loaded() is False
+        assert loader.is_loaded() is False
+
+    def test_no_load_then_exit(self):
+        with pybit7z.loader_context() as loader:
+            pass
+        assert loader.is_loaded() is False
+
+    def test_library_accessible_after_loading(self):
+        with pybit7z.loader_context() as loader:
+            loader.load(pybit7z.default_lib7zip())
+            lib = loader.library()
+            assert isinstance(lib, Bit7zLibrary)
+
+    def test_exception_inside_context_still_unloads(self):
+        loader_ref: Bit7zLibraryLoader | None = None
+        with pybit7z.loader_context() as loader:
+            loader_ref = loader
+            loader.load(pybit7z.default_lib7zip())
+            with pytest.raises(RuntimeError):
+                loaded = f"Load default lib7zip: {loader_ref.is_loaded()}"
+                raise RuntimeError(loaded)
+        assert loader_ref is not None
+        assert loader_ref.is_loaded() is False
+
+
+class TestBitNestedArchiveReader:
+    def test_ctor_for_first_item_does_not_raise(self, lib, tmp_path: Path):
+        f = tmp_path / "inner.txt"
+        f.write_text("inner content")
+        inner_arc = str(tmp_path / "inner.tar")
+        outer_arc = str(tmp_path / "outer.tar.gz")
+
+        import tarfile
+
+        with tarfile.open(inner_arc, "w") as tf:
+            tf.add(str(f), arcname="inner.txt")
+
+        gz = pybit7z.BitFileCompressor(lib, pybit7z.FormatGZip)
+        gz.compress([inner_arc], outer_arc)
+
+        parent = BitArchiveReader(lib, outer_arc, pybit7z.FormatGZip)
+        assert parent.items_count() >= 1
+        nested = BitNestedArchiveReader(lib, parent, pybit7z.FormatTar)
+        assert nested.items_count() >= 1
+        assert nested.items_count() == parent.items_count()
+        assert isinstance(nested.detected_format(), pybit7z.BitInFormat)
