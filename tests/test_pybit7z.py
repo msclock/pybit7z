@@ -1236,7 +1236,7 @@ class TestLoaderContext:
         with pybit7z.loader_context() as loader:
             loader_ref = loader
             loader.load(pybit7z.default_lib7zip())
-            with pytest.raises(RuntimeError):
+            with pytest.raises(RuntimeError, match='Load default lib7zip'):
                 loaded = f"Load default lib7zip: {loader_ref.is_loaded()}"
                 raise RuntimeError(loaded)
         assert loader_ref is not None
