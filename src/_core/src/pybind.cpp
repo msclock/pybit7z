@@ -622,7 +622,7 @@ Returns:
                 R"pbdoc(Same as name() but returning a native string (i.e. std::wstring on Windows, std::string elsewhere).)pbdoc"))
         .def(
             "raw_path",
-            [](const bit7z::BitArchiveItem &self) -> std::string { return bit7z::to_tstring(self.rawPath()); },
+            [](const bit7z::BitArchiveItem &self) -> std::wstring { return self.rawPath(); },
             py::doc(
                 R"pbdoc(Same as path() but returning the internal string type used by 7-Zip on all OSes (wide string).)pbdoc"))
         .def("creation_time", &bit7z::BitArchiveItem::creationTime)
