@@ -27,7 +27,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: 3.14
 
@@ -64,7 +64,7 @@ jobs:
           key: codecov-${{ hashFiles('vcpkg.json') }}
           restore-keys: codecov-${{ hashFiles('vcpkg.json') }}
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: 3.x
 
@@ -101,7 +101,7 @@ jobs:
           key: docs-${{ hashFiles('vcpkg.json') }}
           restore-keys: docs-${{ hashFiles('vcpkg.json') }}
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: 3.x
 
