@@ -53,7 +53,7 @@ jobs:
           arch: ${{ matrix.arch }}
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
         if: runner.os == 'Linux' && inputs.extra && matrix.group == 'extra'
 
       - name: Cache
